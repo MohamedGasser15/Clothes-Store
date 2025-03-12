@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Clothes_DataAccess\Clothes_DataAccess.csproj" />
     <ProjectReference Include="..\Clothes_Models\Clothes_Models.csproj" />
+    <ProjectReference Include="..\Clothes_Utilities\Clothes_Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>
