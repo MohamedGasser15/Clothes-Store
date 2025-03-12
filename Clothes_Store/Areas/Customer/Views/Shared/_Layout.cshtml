@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Clothes_Store</title>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" />
+    <script src="https://kit.fontawesome.com/87ba71bd3b.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="~/css/style.css">
+
+</head>
+<body>
+    <section id="header">
+        <a href="view.php"><img src="img/logo.png" alt="logo"></a>
+        <!-- Search -->
+        <form action="search.php"
+              method="get">
+            <div class="col-rt-3 equal-height">
+                <div class="sb-example-3">
+                    <div class="search__container">
+                        <input class="search__input" type="search" placeholder="Need Something ?" aria-describedby="basic-addon2"
+                               aria-label="Need Something ?"
+                               name="key">
+                    </div>
+                </div>
+            </div>
+        </form>
+        <!-- End of Search -->
+        <div>
+            <ul id="navbar">
+                <li><a href="#" class="active">Home</a></li>
+                <li><a asp-area="customer" asp-controller="Home" asp-action="products">Shop</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+                <li id="krkr">
+                    <partial name="_LoginPartialView" />
+               </li>
+            </ul>
+        </div>
+    </section>
+
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+<footer class="section-p1">
+    <div class="col">
+        <img class="logo" src="img/logo.png" alt="">
+        <h4> contact</h4>
+        <p><strong>Address: </strong> grandplaza towrs, Elamin street, portsaid </p>
+        <p><strong>Phone: </strong>+201201055894/+201020749292</p>
+        <p><strong>Hours: </strong> 10:00 - 20:00, Sat-thur </p>
+        <div class="follow">
+            <h4>Follow us</h4>
+            <div class="icon">
+                    <a class="iconss" href="facebook.php"><i class="fab fa-facebook-f"></i></a>
+                    <a class="iconss" href="instgram.php"><i class="fab fa-instagram"></i></a>
+                    <a class="iconss" href="whatsapp.php"><i class="fab fa-whatsapp"></i></a>
+                    <a class="iconss" href="twitter.php"><i class="fab fa-twitter"></i></a>
+                    <a class="iconss" href="youtube.php"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+        <br>
+
+    </div>
+    <div class="col">
+        <h4>About</h4>
+        <a href="#">About Us</a>
+        <a href="#">Delivery Information</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Term & conditions</a>
+        <a href="#">Contact Us</a>
+    </div>
+    <div class="col">
+        <h4>My Account</h4>
+        <a href="#">Sign In</a>
+        <a href="#">View Cart</a>
+        <a href="#">My Wishlist</a>
+        <a href="#">Track My Order</a>
+        <a href="#">Help</a>
+    </div>
+    <div class="col install">
+        <h4> Install App</h4>
+        <p> From App Store or Google Play</p>
+        <div class="row">
+            <a href="google.com"><img src="img/pay/app.jpg" alt=""></a>
+            <a href="apple.com"><img src="img/pay/play.jpg" alt=""></a>
+    </div>
+        <p> Secured Payment Gateways</p>
+        <img src="~/img/pay/pay.png" alt="">
+    </div>
+    <div class="copyright">
+        <p> 2024, Mohamed Gasser - Clothes Store Project</p>
+    </div>
+</footer>
+
+
+    <script src="~/js/script.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

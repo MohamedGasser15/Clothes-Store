@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Clothes_Store.Controllers
 {
+    [Area("Customer")]
+
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
