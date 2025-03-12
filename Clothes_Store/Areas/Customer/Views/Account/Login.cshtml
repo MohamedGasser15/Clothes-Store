@@ -1,7 +1,9 @@
-﻿@model LoginViewModel
+﻿@using Clothes_Models.Models
 @using Clothes_Models.ViewModels
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<IdentityUser> signInManager
+
+@model LoginViewModel
+@inject SignInManager<ApplicationUser> signInManager
 <div class="row col-md-10 offset-md-1">
     <h1 class="text-primary text-center pt-2">Log in</h1>
     <form method="post" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">

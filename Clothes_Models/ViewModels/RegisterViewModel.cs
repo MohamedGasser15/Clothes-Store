@@ -23,7 +23,6 @@ namespace Clothes_Models.ViewModels
         [System.ComponentModel.DataAnnotations.Compare("Password", ErrorMessage = "Password and Confirm Password must match")]
         public string ConfirmPassword { get; set; }
         public IEnumerable<SelectListItem>? RoleList { get; set; }
-        [Display(Name = "Role")]
-        public string RoleSelected { get; set; }
+
     }
 }
