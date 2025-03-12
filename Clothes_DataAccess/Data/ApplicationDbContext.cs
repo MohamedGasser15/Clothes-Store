@@ -24,6 +24,78 @@ namespace Clothes_DataAccess.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Category>().HasData(
+            new Category
+            {
+                Category_Id = 1,
+                Category_Name = "T-Shirts",
+            },
+            new Category 
+            {
+                Category_Id = 2,
+                Category_Name = "Pantalon",
+            },
+            new Category
+            {
+                Category_Id = 3,
+                Category_Name = "Shorts",
+            }
+            );
+            modelBuilder.Entity<Brand>().HasData(
+                new Brand
+                {
+                    Brand_Id = 1,
+                    Brand_Name = "Nike",
+                },
+                new Brand
+                {
+                    Brand_Id = 2,
+                    Brand_Name = "Adidas",
+                },
+                new Brand
+                {
+                    Brand_Id = 3,
+                    Brand_Name = "Puma",
+                }
+                );
+            modelBuilder.Entity<Product>().HasData(
+                new Product {
+                    Product_Id = 1,
+                    Product_Name = "T-Shirt Nike",
+                    Product_Description= "Black T-Shirt Nike",
+                    imgUrl = "Nika.jpg",
+                    Product_Size = "M",
+                    Product_Color = "Black",
+                    Product_Price = 100,
+                    Category_Id = 1,
+                    brand_Id = 1,
+                },
+                new Product
+                {
+                    Product_Id = 2,
+                    Product_Name = "Pantalon Adidas",
+                    Product_Description = "Red Pantalon Adidas",
+                    imgUrl = "Adidas.jpg",
+                    Product_Size = "L",
+                    Product_Color = "Red",
+                    Product_Price = 200,
+                    Category_Id = 2,
+                    brand_Id = 2,
+                },
+                new Product
+                {
+                    Product_Id = 3,
+                    Product_Name = "Shorts Puma",
+                    Product_Description = "Yellow Shorts Puma",
+                    imgUrl = "Puma.jpg",
+                    Product_Size = "S",
+                    Product_Color = "Yellow",
+                    Product_Price = 150,
+                    Category_Id = 3,
+                    brand_Id = 3,
+                }
+                );
+
         }
     }
 }
