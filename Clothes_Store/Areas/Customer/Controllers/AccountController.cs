@@ -67,11 +67,33 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View(model);
         }
 
-        public IActionResult Login()
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Login(string returnurl = null)
         {
+            ViewData["ReturnUrl"] = returnurl;
             return View();
         }
 
+        public async Task<IActionResult> Login(LoginViewModel model, string returnurl = null)
+        {
+            ViewData["ReturnUrl"] = returnurl;
+            returnurl = returnurl ?? Url.Content("~/");
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                var result = await _signInManager.PasswordSignInAsync(user.Name, model.Password, model.RememberMe, lockoutOnFailure: false);
+                if (result.Succeeded)
+                {
+                    return LocalRedirect(returnurl);
+                }
+                ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+                return View(model);
+            }
+            return View(model);
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
