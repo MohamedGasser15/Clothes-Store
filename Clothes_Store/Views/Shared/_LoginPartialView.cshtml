@@ -1,0 +1,66 @@
+﻿@using Clothes_Models.Models
+﻿﻿@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<ApplicationUser> _signInManager
+@inject UserManager<ApplicationUser> UserManager
+
+
+@if (_signInManager.IsSignedIn(User))
+    {
+   
+    <li>
+        <img src="~/img/images/user.png" class="user-pic" onclick="toggleMenu()">
+        <div class="sub-menu-wrap" id="subMenu">
+            <div class="sub-menu">
+                <div class="user-info">
+                    <img src="~/img/images/user.png">
+                    <h3>James </h3>
+                </div>
+                <hr>
+                <a href="/admin/clothes.php" class="sub-menu-link">
+                    <img src="~/img/images/profile.png" alt="">
+                    <p>Admin</p>
+                    <span>></span>
+                </a>
+                <a href="profile.php" class="sub-menu-link">
+                    <img src="~/img/images/profile.png" alt="">
+                    <p>My Profile</p>
+                    <span>></span>
+                </a>
+                <a href="settings.php" class="sub-menu-link">
+                    <img src="~/img/images/setting.png" alt="">
+                    <p>Settings & Privacy</p>
+                    <span>></span>
+                </a>
+                <a href="back/logout.php" class="sub-menu-link">
+                    <img src="~/img/images/logout.png" alt="">
+                    <form method="post" asp-controller="Account" asp-action="Logout">
+                    <p>Logout</p>
+                    <span>></span>
+                    </form>
+
+                </a>
+            </div>
+        </div>
+    </li>
+    }
+    else
+    {
+    <li>
+        <img src="~/img/admin.png" class="user-pic" onclick="toggleMenu()">
+        <div class="sub-menu-wrap" id="subMenu">
+            <div class="sub-menu">
+                <a asp-controller="Account" asp-action="Login" class="sub-menu-link">
+                    <img src="~/img/images/logout.png" alt="">
+                    Sign up
+                </a>
+            </div>
+        </div>
+    </li>
+    }
+<script>
+    let subMenu = document.getElementById("subMenu");
+    function toggleMenu(){
+        subMenu.classList.toggle("open-menu");
+    }
+</script>
