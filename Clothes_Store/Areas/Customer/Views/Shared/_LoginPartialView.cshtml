@@ -32,14 +32,12 @@
                     <p>Settings & Privacy</p>
                     <span>></span>
                 </a>
-                <a href="back/logout.php" class="sub-menu-link">
-                    <img src="~/img/images/logout.png" alt="">
-                    <form method="post" asp-controller="Account" asp-action="Logout">
-                    <p>Logout</p>
-                    <span>></span>
+                    <form  method="post" asp-controller="Account" asp-action="Logout">
+                    <a class="sub-menu-link">
+                        <button class="krbutton"><p>Logout</p><span>></span></button>
+                   </a>
                     </form>
 
-                </a>
             </div>
         </div>
     </li>
