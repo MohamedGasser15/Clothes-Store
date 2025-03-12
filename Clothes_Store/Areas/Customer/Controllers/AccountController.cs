@@ -137,6 +137,42 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return RedirectToAction("VerifyResetCode", new { email = user.Email });
         }
 
+        [HttpGet]
+        public ActionResult VerifyResetCode(string email)
+        {
+            var model = new VerifyCodeViewModel { Email = email };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> VerifyResetCode(VerifyCodeViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "Invalid request.");
+                return View();
+            }
+
+            var claims = await _userManager.GetClaimsAsync(user);
+            var storedCode = claims.FirstOrDefault(c => c.Type == "ResetCode")?.Value;
+
+            if (storedCode == null || storedCode != model.Code)
+            {
+                ModelState.AddModelError("", "Invalid or expired code.");
+                return View();
+            }
+
+            return RedirectToAction("ResetPassword", new { email = model.Email });
+        }
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
