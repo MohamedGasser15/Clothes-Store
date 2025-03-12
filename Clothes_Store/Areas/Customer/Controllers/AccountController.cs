@@ -1,10 +1,13 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
+using Clothes_Store.Models.ViewModels;
 using Clothes_Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Clothes_Store.Areas.Customer.Controllers
 {
@@ -16,15 +19,17 @@ namespace Clothes_Store.Areas.Customer.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _db;
+        private readonly IEmailSender _emailSender; 
 
 
         public AccountController(UserManager<ApplicationUser> userManager,
                                 SignInManager<ApplicationUser> signInManager,
-                                RoleManager<IdentityRole> roleManager, ApplicationDbContext db)
+                                RoleManager<IdentityRole> roleManager, ApplicationDbContext db, IEmailSender emailSender)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _emailSender = emailSender;
             _db = db;
         }
         public async Task<IActionResult> Register(string returnurl = null)
@@ -94,6 +99,44 @@ namespace Clothes_Store.Areas.Customer.Controllers
             }
             return View(model);
         }
+
+
+        [HttpGet]
+        public ActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "No account found with this email.");
+                return View();
+            }
+
+            // Generate a 6-digit code
+            var resetCode = new Random().Next(100000, 999999).ToString();
+
+            // Store the code in a temporary place (e.g., user claims)
+            await _userManager.RemoveClaimsAsync(user, await _userManager.GetClaimsAsync(user));
+            await _userManager.AddClaimAsync(user, new Claim("ResetCode", resetCode));
+
+            // Send email using SendGrid
+            await _emailSender.SendEmailAsync(user.Email, "Password Reset Code",
+                $"Your password reset code is: {resetCode}");
+
+            return RedirectToAction("VerifyResetCode", new { email = user.Email });
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
