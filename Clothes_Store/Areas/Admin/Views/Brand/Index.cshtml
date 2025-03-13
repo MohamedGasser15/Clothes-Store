@@ -1,0 +1,72 @@
+﻿@model IEnumerable<Clothes_Models.Models.Brand>
+
+
+<link href="~/css/InProduct.css" rel="stylesheet" />
+
+<div class="main-content">
+    <header>
+        <h2>
+            <label for="nav-toggle">
+                <span class="fa-solid fa-bars"></span>
+            </label> Brands
+        </h2>
+        <div class="user-wrapper">
+            <img src="img/admin.png" width="70px" alt="">
+
+            <div>
+                <h4>Admin Account</h4>
+                <small>owner</small>
+            </div>
+        </div>
+    </header>
+    <main>
+
+        @if (Model.Count() == 0)
+        {
+            <div class="alert alert-warning
+        	            text-center p-5"
+                 role="alert">
+                <br>
+                There is no Brands in the database
+            </div>
+        }
+        else
+        {
+            <!-- LIST OF ALL Products -->
+            <h4 class="mt-5">All Brands</h4>
+            <table class="table table-hover table-striped table-bordered shadow">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Brand Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var i = 1;
+                    }
+                    @foreach (var Brand in Model)
+                    {
+                        <tr>
+                            <td>@i</td>
+                            <td>@Brand.Brand_Name</td>
+                            <td>
+                                <a class="btn btn-warning" asp-action="Upsert" asp-route-Id="@Brand.Brand_Id">Edit</a>
+                                <a class="btn btn-danger" asp-action="Delete" asp-route-Id="@Brand.Brand_Id">Delete</a>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+
+            </table>
+
+            <div class="input-group my-3">
+                <a class="btn button1" asp-action="Upsert">Add Brand</a>
+            </div>
+
+        }
+    </main>
+
+</div>

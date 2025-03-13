@@ -9,14 +9,16 @@ namespace Clothes_Store.Areas.Admin.Controllers
     public class BrandController : Controller
     {
         private readonly ApplicationDbContext _db;
+
         public BrandController(ApplicationDbContext db)
         {
-            db = _db;
+            _db = db;
         }
         public IActionResult Index()
         {
             List<Brand> objList = _db.Brands.ToList();
             return View(objList);
         }
+
     }
 }
