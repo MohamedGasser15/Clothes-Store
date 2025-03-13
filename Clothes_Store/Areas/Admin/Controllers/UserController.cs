@@ -1,5 +1,6 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
+using Clothes_Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -94,6 +95,19 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 Value = u.Id
             });
             return View(user);
+        }
+
+        public IActionResult Delete(string userId)
+        {
+            ApplicationUser obj = new();
+            obj = _db.ApplicationUsers.FirstOrDefault(u => u.Id == userId);
+            if (obj == null)
+            {
+                return NotFound();
+            }
+            _db.ApplicationUsers.Remove(obj);
+            _db.SaveChanges();
+            return RedirectToAction(nameof(Index));
         }
 
     }
