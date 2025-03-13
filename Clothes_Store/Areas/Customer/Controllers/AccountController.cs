@@ -211,7 +211,12 @@ namespace Clothes_Store.Areas.Customer.Controllers
             AddErrors(result);
             return View();
         }
-
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordConfirmation()
+        {
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
