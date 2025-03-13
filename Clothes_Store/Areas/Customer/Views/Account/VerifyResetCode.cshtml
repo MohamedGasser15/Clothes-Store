@@ -18,6 +18,15 @@
                     </div>
                 </div>
 
+                @if (TempData["Message"] != null)
+                {
+                    <p style="color: green;">@TempData["Message"]</p>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <p style="color: red;">@TempData["ErrorMessage"]</p>
+                }
+
 
                 <div class="form-group">
                     <div class="col-md-2">
@@ -26,11 +35,32 @@
                 </div>
 
             </form>
+            <form method="post" asp-action="ResendCode">
+                <input type="hidden" name="email" value="@Model.Email" />
+                <button type="submit" id="resendButton" disabled>Resend Code</button>
+            </form>
         </div>
     </div>
 </div>
 
+<script>
+    // Disable the resend button for 60 seconds
+    let resendButton = document.getElementById("resendButton");
+    let countdown = 60;
 
+    function updateButton() {
+        if (countdown > 0) {
+            resendButton.innerText = `Resend Code (${countdown}s)`;
+            countdown--;
+            setTimeout(updateButton, 1000);
+        } else {
+            resendButton.innerText = "Resend Code";
+            resendButton.disabled = false;
+        }
+    }
+
+    updateButton(); // Start countdown
+</script>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
