@@ -3,6 +3,7 @@ using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clothes_Store.Areas.Admin.Controllers
 {
@@ -74,6 +75,19 @@ namespace Clothes_Store.Areas.Admin.Controllers
             {
                 _db.Products.Update(obj.Product);
             }
+            await _db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            Product obj = new();
+            obj = await _db.Products.FirstOrDefaultAsync(u => u.Product_Id == id);
+            if (obj == null)
+            {
+                return NotFound();
+            }
+            _db.Products.Remove(obj);
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
