@@ -1,4 +1,14 @@
-﻿<!DOCTYPE html>
+﻿@functions {
+    public string IsActive(string controller, string action)
+    {
+        var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+        var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+        return (currentController == controller && currentAction == action) ? "active" : "";
+    }
+}
+
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -28,14 +38,15 @@
                 </div>
             </div>
         </form>
+
         <!-- End of Search -->
         <div>
             <ul id="navbar">
-                <li><a href="#" class="active">Home</a></li>
-                <li><a asp-area="customer" asp-controller="Home" asp-action="Shop">Shop</a></li>
-                <li><a asp-area="customer" asp-controller="Home" asp-action="Blog">Blog</a></li>
-                <li><a href="#">About</a></li>
-                <li><a href="#">Contact</a></li>
+                <li><a asp-area="customer" asp-controller="Home" asp-action="Home" class="@IsActive("Home", "Home")">Home</a></li>
+                <li><a asp-area="customer" asp-controller="Home" asp-action="Shop" class="@IsActive("Home", "Shop")">Shop</a></li>
+                <li><a asp-area="customer" asp-controller="Home" asp-action="Blog" class="@IsActive("Home", "Blog")">Blog</a></li>
+                <li><a asp-area="customer" asp-controller="Home" asp-action="About" class="@IsActive("Home", "About")">About</a></li>
+                <li><a asp-area="customer" asp-controller="Home" asp-action="Contact" class="@IsActive("Home", "Contact")">Contact</a></li>
                 <li id="krkr">
                     <partial name="_LoginPartialView" />
                </li>
