@@ -49,7 +49,6 @@
                             <td>
                                 <a class="btn btn-warning" asp-action="Edit" asp-route-userId="@item.Id">Edit</a>
                                 <a class="btn btn-danger" asp-action="Delete" asp-route-userId="@item.Id">Delete</a>
-                                <a class="btn btn-primary" asp-action="Make_Admin" asp-route-userId="@item.Id">Make Admin</a>
                                 @if (item.LockoutEnd == null || item.LockoutEnd < DateTime.Now)
                                 {
                                     <a asp-action="LockUnlock" asp-route-userId="@item.Id" class="btn btn-success text-white"
