@@ -12,7 +12,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _db;
 
-        public UserController(UserManager<ApplicationUser> userManager  , ApplicationDbContext db)
+        public UserController(UserManager<ApplicationUser> userManager, ApplicationDbContext db)
         {
             _userManager = userManager;
             _db = db;
@@ -20,12 +20,12 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
         public IActionResult Index()
         {
-            var users = _db.ApplicationUsers.ToList();
-            var userRoles = _db.UserRoles.ToList();
+            var UserAccount = _db.ApplicationUsers.ToList();
+            var userRole = _db.UserRoles.ToList();
             var roles = _db.Roles.ToList();
-            foreach (var user in users)
+            foreach (var user in UserAccount)
             {
-                var role = userRoles.FirstOrDefault(u => u.UserId == user.Id);
+                var role = userRole.FirstOrDefault(u => u.UserId == user.Id);
                 if (role == null)
                 {
                     user.Role = "None";
@@ -35,7 +35,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     user.Role = roles.FirstOrDefault(u => u.Id == role.RoleId).Name;
                 }
             }
-             return View();
+            return View(UserAccount);
         }
     }
 }
