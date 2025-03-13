@@ -1,0 +1,73 @@
+﻿@model IEnumerable<Clothes_Models.Models.Product>
+
+<link href="~/css/InProduct.css" rel="stylesheet" />
+
+<div class="main-content">
+    <header>
+        <h2>
+            <label for="nav-toggle">
+                <span class="fa-solid fa-bars"></span>
+            </label> Products
+        </h2>
+        <div class="user-wrapper">
+            <img src="img/admin.png" width="70px" alt="">
+
+            <div>
+                <h4>Admin Account</h4>
+                <small>owner</small>
+            </div>
+        </div>
+    </header>
+    <main>
+
+        @if (Model.Count() == 0)
+        {
+            <div class="alert alert-warning
+        	            text-center p-5"
+                 role="alert">
+                <br>
+                There is no Product in the database
+            </div>
+        }
+        else
+        {
+            <!-- LIST OF ALL Products -->
+            <h4 class="mt-5">All Products</h4>
+            <table class="table table-hover table-striped table-bordered shadow">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Product Photo</th>
+                        <th>Product Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var i = 1;
+                    }
+                    @foreach (var product in Model)
+                    {
+                        <tr>
+                            <td>@i</td>
+                            <td><img src="@product.imgUrl" alt="Alternate Text" width="70px" /></td>
+                            <td>@product.Product_Name</td>
+                            <td>
+                                <a class="btn btn-warning" asp-action="Upsert" asp-route-Id="@product.Product_Id">Edit</a>
+                                <a class="btn btn-danger" asp-action="Delete" asp-route-Id="@product.Product_Id">Delete</a>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+
+            </table>
+
+            <div class="input-group my-3">
+                <a class="btn button1" asp-action="Upsert">Add Product</a>
+            </div>
+
+        }
+    </main>
+
+</div>

@@ -1,0 +1,53 @@
+﻿#myDIv {
+    display: none;
+}
+
+.click {
+    cursor: pointer;
+}
+
+.button1 {
+    background-color: #1D2231;
+    padding: 15px;
+    /* text-decoration: white; */
+    color: #fff;
+}
+
+    .button1:hover {
+        background: #f1f5f9;
+        color: black;
+        /* border:!important; */
+        border-style: solid;
+        border-width: 1px;
+        transition: 0.5s;
+    }
+
+.button1 {
+    border-radius: 20px;
+    border: 1px solid #1D2231;
+    background-color: #1D2231;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 12px 25px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+}
+
+.table {
+    background-color: white;
+}
+
+.btn {
+    border-radius: 20px;
+    /* border: 1px solid #088178; */
+    /* background-color: #088178; */
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 900;
+    padding: 12px 25px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: transform 80ms ease-in;
+}
