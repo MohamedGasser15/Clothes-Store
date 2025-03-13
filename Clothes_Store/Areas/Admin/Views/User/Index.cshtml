@@ -1,0 +1,63 @@
+﻿@using Clothes_Models.Models
+@model IEnumerable<ApplicationUser>
+
+
+<link href="~/css/InProduct.css" rel="stylesheet" />
+
+<div class="main-content">
+    <header>
+        <h2>
+            <label for="nav-toggle">
+                <span class="fa-solid fa-bars"></span>
+            </label> Users
+        </h2>
+        <div class="user-wrapper">
+            <img src="~/img/admin.png" width="70px" alt="">
+
+            <div>
+                <h4>Admin Account</h4>
+                <small>owner</small>
+            </div>
+        </div>
+    </header>
+    <main>
+
+         @if (Model.Count() > 0)
+    {
+            <h4 class="mt-5">All Users</h4>
+            <table class="table table-hover table-striped table-bordered shadow">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>UserName</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var i = 1;
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@i</td>
+                        <td>@item.Name</td>
+                        <td>@item.Email</td>
+                        <td>@item.Role</td>
+                            <td>
+                            <a class="btn btn-warning" asp-action="Edit" asp-route-Id="@item.Id">Edit</a>
+                            <a class="btn btn-danger" asp-action="Delete" asp-route-Id="@item.Id">Delete</a>
+                            <a class="btn btn-primary" asp-action="Make_Admin" asp-route-Id="@item.Id">Make Admin</a>
+
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+    } 
+    </main>
+
+</div>
