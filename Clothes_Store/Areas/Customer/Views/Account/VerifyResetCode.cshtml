@@ -5,7 +5,8 @@
     <div class="row">
         <div class="col-md-8">
             <form asp-controller="Account" asp-action="VerifyResetCode" method="post" role="form">
-                <input type="hidden" id="Email" name="Email">
+                <input asp-for="Email" hidden />
+
                 <h4>Enter your Code.</h4>
                 <hr />
                 <div asp-validation-summary="All" class="text-danger"></div>
