@@ -22,8 +22,8 @@
     </header>
     <main>
 
-         @if (Model.Count() > 0)
-    {
+        @if (Model.Count() > 0)
+        {
             <h4 class="mt-5">All Users</h4>
             <table class="table table-hover table-striped table-bordered shadow">
                 <thead>
@@ -43,21 +43,20 @@
                     {
                         <tr>
                             <td>@i</td>
-                        <td>@item.Name</td>
-                        <td>@item.Email</td>
-                        <td>@item.Role</td>
+                            <td>@item.Name</td>
+                            <td>@item.Email</td>
+                            <td>@item.Role</td>
                             <td>
-                            <a class="btn btn-warning" asp-action="Edit" asp-route-Id="@item.Id">Edit</a>
-                            <a class="btn btn-danger" asp-action="Delete" asp-route-Id="@item.Id">Delete</a>
-                            <a class="btn btn-primary" asp-action="Make_Admin" asp-route-Id="@item.Id">Make Admin</a>
-
+                                <a class="btn btn-warning" asp-action="Edit" asp-route-userId="@item.Id">Edit</a>
+                                <a class="btn btn-danger" asp-action="Delete" asp-route-userId="@item.Id">Delete</a>
+                                <a class="btn btn-primary" asp-action="Make_Admin" asp-route-userId="@item.Id">Make Admin</a>
                             </td>
                         </tr>
                         i++;
                     }
                 </tbody>
             </table>
-    } 
+        }
     </main>
 
 </div>
