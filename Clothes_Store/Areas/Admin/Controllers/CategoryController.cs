@@ -34,6 +34,8 @@ namespace Clothes_Store.Areas.Admin.Controllers
             return View(obj);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upsert(Category obj)
         {
             if (obj.Category_Id == 0)
