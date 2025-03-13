@@ -51,5 +51,22 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 await _db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
         }
+
+        public IActionResult Delete(int id)
+        {
+            Brand obj = new();
+            obj = _db.Brands.FirstOrDefault(c => c.Brand_Id == id);
+
+            if (obj == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                _db.Brands.Remove(obj);
+            }
+            _db.SaveChanges();
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
