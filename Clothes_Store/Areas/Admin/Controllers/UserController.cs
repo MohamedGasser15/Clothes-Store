@@ -110,5 +110,25 @@ namespace Clothes_Store.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        //[HttpPost]
+        public IActionResult LockUnlock(string userId)
+        {
+            var objFromDb = _db.ApplicationUsers.FirstOrDefault(u => u.Id == userId);
+            if (objFromDb == null)
+            {
+                return NotFound();
+            }
+            if (objFromDb.LockoutEnd != null && objFromDb.LockoutEnd > DateTime.Now)
+            {
+                objFromDb.LockoutEnd = DateTime.Now;
+            }
+            else
+            {
+                objFromDb.LockoutEnd = DateTime.Now.AddDays(10);
+            }
+            _db.SaveChanges();
+            return RedirectToAction(nameof(Index));
+        }
+
     }
 }
