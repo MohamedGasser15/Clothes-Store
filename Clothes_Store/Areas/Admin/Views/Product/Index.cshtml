@@ -39,6 +39,10 @@
                         <th>#</th>
                         <th>Product Photo</th>
                         <th>Product Name</th>
+                        <th>Product Description</th>
+                        <th>Product Price</th>
+                        <th>Product Color</th>
+                        <th>Product Size</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -50,8 +54,12 @@
                     {
                         <tr>
                             <td>@i</td>
-                            <td><img src="@product.imgUrl" alt="Alternate Text" width="70px" /></td>
+                            <td><img src="@product.imgUrl" alt="Alternate Text" width="50px" /></td>
                             <td>@product.Product_Name</td>
+                            <td>@product.Product_Description</td>
+                            <td>@product.Product_Price</td>
+                            <td>@product.Product_Color</td>
+                            <td>@product.Product_Size</td>
                             <td>
                                 <a class="btn btn-warning" asp-action="Upsert" asp-route-Id="@product.Product_Id">Edit</a>
                                 <a class="btn btn-danger" asp-action="Delete" asp-route-Id="@product.Product_Id">Delete</a>
