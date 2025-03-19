@@ -301,6 +301,36 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View("Error");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ResendEmailCode(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return RedirectToAction("Register");
+
+            var claims = await _userManager.GetClaimsAsync(user);
+            var lastRequestClaim = claims.FirstOrDefault(c => c.Type == "LastResendTime");
+            DateTime lastRequestTime = lastRequestClaim != null ? DateTime.Parse(lastRequestClaim.Value) : DateTime.MinValue;
+
+            if ((DateTime.UtcNow - lastRequestTime).TotalSeconds < 60)
+            {
+                TempData["ErrorMessage"] = "Please wait before requesting a new code.";
+                return RedirectToAction("VerifyResetCode", new { email = user.Email });
+            }
+
+            var newCode = new Random().Next(100000, 999999).ToString();
+            await _userManager.SetAuthenticationTokenAsync(user, "Default", "ResetCode", newCode);
+
+            if (lastRequestClaim != null) await _userManager.RemoveClaimAsync(user, lastRequestClaim);
+            await _userManager.AddClaimAsync(user, new Claim("LastResendTime", DateTime.UtcNow.ToString()));
+
+            await _emailSender.SendEmailAsync(user.Email, "Email Reset Code", $"Your new code: {newCode}");
+
+            TempData["Message"] = "A new code has been sent to your email.";
+            return RedirectToAction("VerifyEmailCode", new { email = user.Email });
+        }
+
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
