@@ -40,12 +40,13 @@ namespace Clothes_Store.Areas.Customer.Controllers
             RegisterViewModel registerViewModel = new();
             return View(registerViewModel);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model, string returnurl = null)
         {
-            ViewData["ReturnUrl"] = returnurl;
-            returnurl = returnurl ?? Url.Content("~/");
+            ViewData["ReturnUrl"] = returnurl ?? Url.Content("~/");
+
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser
@@ -54,22 +55,26 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     Email = model.Email,
                     Name = model.Name
                 };
+
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    if (!await _roleManager.RoleExistsAsync(SD.User))
-                    {
-                        await _roleManager.CreateAsync(new IdentityRole(SD.User));
-                    }
 
-                    // Assign "User" role to new account
                     await _userManager.AddToRoleAsync(user, SD.User);
 
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return RedirectToAction("Index", "Home");
+                    var verificationCode = new Random().Next(100000, 999999).ToString();
+
+                    await _userManager.AddClaimAsync(user, new Claim("EmailVerificationCode", verificationCode));
+
+                    await _emailSender.SendEmailAsync(user.Email, "Email Confirmation Code",
+                        $"Your email confirmation code is: {verificationCode}");
+
+                    return RedirectToAction("VerifyEmailCode", new { userId = user.Id });
                 }
+
                 AddErrors(result);
             }
+
             return View(model);
         }
 
