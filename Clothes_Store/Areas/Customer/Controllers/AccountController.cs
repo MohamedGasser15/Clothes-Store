@@ -267,6 +267,42 @@ namespace Clothes_Store.Areas.Customer.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyEmailCode(VerifyEmailCodeViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            var claims = await _userManager.GetClaimsAsync(user);
+            var storedCode = claims.FirstOrDefault(c => c.Type == "EmailVerificationCode")?.Value;
+
+            if (storedCode == null || storedCode != model.Code)
+            {
+                ModelState.AddModelError("", "Invalid or expired code.");
+                return View(model);
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, await _userManager.GenerateEmailConfirmationTokenAsync(user));
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View("Error");
+        }
+
+
+        [HttpPost]
         [ValidateAntiForgeryToken]
         [AllowAnonymous]
         public async Task<IActionResult> Logout()
