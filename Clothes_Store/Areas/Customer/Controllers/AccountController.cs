@@ -330,7 +330,12 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return RedirectToAction("VerifyEmailCode", new { email = user.Email });
         }
 
-
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult EmailConfirmationSuccess()
+        {
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
