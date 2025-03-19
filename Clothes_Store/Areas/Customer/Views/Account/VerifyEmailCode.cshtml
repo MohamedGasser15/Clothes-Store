@@ -1,0 +1,68 @@
+﻿@using Clothes_Models.ViewModels
+@model VerifyEmailCodeViewModel
+<div class="row col-md-10 offset-md-1">
+    <h1 class="text-info">Confirm Your Email</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-controller="Account" asp-action="VerifyEmailCode" method="post" role="form">
+                <input asp-for="UserId" hidden />
+
+                <h4>Enter your Code.</h4>
+                <hr />
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <div class="form-group">
+                    <label asp-for="Code" class="col-md-2"></label>
+                    <div class="col-md-10">
+                        <input asp-for="Code" class="form-control" />
+                        <span asp-validation-for="Code" class="text-danger"></span>
+                    </div>
+                </div>
+
+                @if (TempData["Message"] != null)
+                {
+                    <p style="color: green;">@TempData["Message"]</p>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <p style="color: red;">@TempData["ErrorMessage"]</p>
+                }
+
+
+                <div class="form-group">
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-success form-control">Verify</button>
+                    </div>
+                </div>
+
+            </form>
+            <form method="post" asp-action="ResendEmailCode">
+                <input type="hidden" name="id" value="@Model.UserId" />
+                <button type="submit" id="resendButton" disabled>Resend Code</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Disable the resend button for 60 seconds
+    let resendButton = document.getElementById("resendButton");
+    let countdown = 60;
+
+    function updateButton() {
+        if (countdown > 0) {
+            resendButton.innerText = `Resend Code (${countdown}s)`;
+            countdown--;
+            setTimeout(updateButton, 1000);
+        } else {
+            resendButton.innerText = "Resend Code";
+            resendButton.disabled = false;
+        }
+    }
+
+    updateButton(); // Start countdown
+</script>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
