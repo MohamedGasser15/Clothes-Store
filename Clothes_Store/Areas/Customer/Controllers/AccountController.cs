@@ -252,6 +252,20 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View();
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyEmailCode(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            var model = new VerifyEmailCodeViewModel { UserId = userId };
+            return View(model);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         [AllowAnonymous]
