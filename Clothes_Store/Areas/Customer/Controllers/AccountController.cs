@@ -259,6 +259,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
+                
                 return View("Error");
             }
 
@@ -295,7 +296,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("EmailConfirmationSuccess", "Account");
             }
 
             return View("Error");
@@ -343,7 +344,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Home", "Home");
 
         }
         private void AddErrors(IdentityResult result)
