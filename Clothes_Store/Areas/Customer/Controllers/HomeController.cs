@@ -1,6 +1,9 @@
 using System.Diagnostics;
+using Clothes_DataAccess.Data;
+using Clothes_Models.Models;
 using Clothes_Store.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Clothes_Store.Controllers
 {
@@ -9,10 +12,13 @@ namespace Clothes_Store.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _db;
 
-        public HomeController(ILogger<HomeController> logger)
+
+        public HomeController(ILogger<HomeController> logger , ApplicationDbContext db)
         {
             _logger = logger;
+            _db = db;
         }
 
         public IActionResult Home()
@@ -20,9 +26,14 @@ namespace Clothes_Store.Controllers
             return View();
         }
 
-        public IActionResult Shop()
+        public async Task<IActionResult> Shop()
         {
-            return View();
+            // Retrieve all products including their Brand details
+            var products = await _db.Products
+                                    .Include(p => p.Brand) // Include Brand to get Brand Name
+                                    .ToListAsync();
+
+            return View(products); // Pass the list of products to the Shop view
         }
 
         public IActionResult Blog()
