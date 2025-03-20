@@ -59,13 +59,13 @@ namespace Clothes_Store.Areas.Admin.Controllers
             if (file != null)
             {
                 string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                string productPath = Path.Combine(wwwRootPath, @"img");
+                string productPath = Path.Combine(wwwRootPath, @"img" , @"products");
 
                 using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
                 {
                     file.CopyTo(fileStream);
                 }
-                obj.Product.imgUrl = @"\img\" + fileName;
+                obj.Product.imgUrl = @"\img\products\" + fileName;
             }
             if (obj.Product.Product_Id == 0)
             {
