@@ -4,60 +4,90 @@
 
 @model LoginViewModel
 @inject SignInManager<ApplicationUser> signInManager
-<div class="row col-md-10 offset-md-1">
-    <h1 class="text-primary text-center pt-2">Log in</h1>
-    <form method="post" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">
-        <div class="border p-2 rounded">
-            <p class="text-center">Login</p>
-            <div asp-validation-summary="All" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="Email" class="col-12"></label>
-                <div class="col-md-12">
-                    <input asp-for="Email" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Password" class="col-12"></label>
-                <div class="col-md-12">
-                    <input asp-for="Password" class="form-control" />
-                    <span asp-validation-for="Password" class="text-danger"></span>
-                </div>
-            </div>
-            <div class="form-group pt-2">
-                <div class="col-md-12">
-                    <div class="custom-checkbox">
-                        <label>
-                            <input asp-for="RememberMe" />
-                            Remember me
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group pt-3">
-
-                <div class="col-md-6 offset-md-3">
-                    <button class="btn btn-success form-control" type="submit">
-                        Login
-                    </button>
-                </div>
-                <div class="row">
-                    <div class="col-6">
-                        <a asp-action="Register"> Register as a new user?</a>
-                    </div>
-                    <div class="col-6 text-end">
-                        <a asp-controller="Account" asp-action="ForgotPassword"> Forgot your passowrd?</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
-
-
-@section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+@{
+    Layout = null;
 }
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Cara Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-[#d9f3ee] flex items-center justify-center min-h-screen relative">
+    <div class="w-full max-w-md bg-white shadow-lg rounded-lg p-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-bold text-[#088178] mt-4">Welcome Back</h2>
+            <p class="text-lg text-gray-500">Login to your account</p>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div id="errorMessage" class="fixed top-10 right-10 bg-red-100 text-red-800 py-2 px-4 rounded-lg shadow-md">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <form class="mt-6" id="loginForm" method="post" asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div>
+                <label asp-for="Email" class="block text-gray-700 font-medium mb-2">Email Address</label>
+                <input asp-for="Email" type="email" id="email" placeholder="Enter your email"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none focus:bg-white">
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mt-4">
+                <label asp-for="Password" class="block text-gray-700 font-medium mb-2">Password</label>
+                <input asp-for="Password" type="password" id="password" placeholder="Enter your password"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none focus:bg-white">
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center">
+                <div class="flex items-center">
+                    <input asp-for="RememberMe" type="checkbox" id="rememberMe"
+                           class="h-4 w-4 text-[#088178] border-gray-300 rounded focus:ring-[#088178]">
+                    <label for="rememberMe" class="ml-2 text-gray-700 text-sm">Remember Me</label>
+                </div>
+                <a asp-controller="Account" asp-action="ForgotPassword" class="text-[#088178] text-sm hover:underline">Forgot Password?</a>
+            </div>
+
+            <button type="submit" id="loginButton"
+                    class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    disabled>
+                <span id="loginText">Login</span>
+                <div id="loadingSpinner" class="hidden ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            </button>
+        </form>
+
+        <div class="flex items-center my-6">
+            <hr class="flex-grow border-gray-300">
+            <span class="mx-3 text-gray-500">OR</span>
+            <hr class="flex-grow border-gray-300">
+        </div>
+
+        <button class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition">
+            <img src="https://www.svgrepo.com/show/303108/google-icon-logo.svg" class="w-5 h-5"> Continue with Google
+        </button>
+
+        <button class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition mt-3">
+            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5"> Continue with Facebook
+        </button>
+
+        <p class="text-center text-gray-600 mt-4">
+            Don't have an account? <a asp-action="Register" class="text-[#088178] font-semibold hover:underline">Sign Up</a>
+        </p>
+    </div>
+
+    <script src="~/js/login.js"></script>
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+</body>
+</html>
