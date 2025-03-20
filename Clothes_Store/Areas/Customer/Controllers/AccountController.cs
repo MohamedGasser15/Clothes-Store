@@ -91,20 +91,33 @@ namespace Clothes_Store.Areas.Customer.Controllers
         {
             ViewData["ReturnUrl"] = returnurl;
             returnurl = returnurl ?? Url.Content("~/");
+
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
 
-                var result = await _signInManager.PasswordSignInAsync(user.Name, model.Password, model.RememberMe, lockoutOnFailure: false);
+                if (user == null) // Check if user exists
+                {
+                    TempData["ErrorMessage"] = "❌ User isn't exists!";
+                    return View(model);
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+
                 if (result.Succeeded)
                 {
                     return LocalRedirect(returnurl);
                 }
-                ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
-                return View(model);
+                else
+                {
+                    TempData["ErrorMessage"] = "❌ Invalid email or password!";
+                    return View(model);
+                }
             }
+
             return View(model);
         }
+
 
 
         [HttpGet]
