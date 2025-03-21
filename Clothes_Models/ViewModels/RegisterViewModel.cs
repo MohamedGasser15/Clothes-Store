@@ -10,17 +10,19 @@ namespace Clothes_Models.ViewModels
 {
     public class RegisterViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(50, ErrorMessage = "Name must be between 3 and 50 characters.", MinimumLength = 3)]
+        [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Name can only contain letters and spaces.")]
         public string Name { get; set; }
         [Required]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
         public string Email { get; set; }
         [Required]
         [DataType(DataType.Password)]
         public string Password { get; set; }
         [Required]
         [Display(Name = "Confirm Password")]
-        [System.ComponentModel.DataAnnotations.Compare("Password", ErrorMessage = "Password and Confirm Password must match")]
+        [Compare("Password", ErrorMessage = "Password and Confirm Password must match")]
         public string ConfirmPassword { get; set; }
         public IEnumerable<SelectListItem>? RoleList { get; set; }
 

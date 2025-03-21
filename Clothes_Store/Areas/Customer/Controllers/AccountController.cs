@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace Clothes_Store.Areas.Customer.Controllers
 {
@@ -49,6 +50,26 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             if (ModelState.IsValid)
             {
+                // Check if the email is already registered
+                var existingUserByEmail = await _userManager.FindByEmailAsync(model.Email);
+                if (existingUserByEmail != null)
+                {
+                    ModelState.AddModelError("Email", "This email is already registered.");
+                    return View(model);
+                }
+
+                if (string.IsNullOrWhiteSpace(model.Name) || model.Name.Length < 3)
+                {
+                    ModelState.AddModelError("Name", "Name must be at least 3 characters long.");
+                    return View(model);
+                }
+
+                if (!Regex.IsMatch(model.Name, @"^[a-zA-Z\s]+$"))
+                {
+                    ModelState.AddModelError("Name", "Name can only contain letters and spaces.");
+                    return View(model);
+                }
+
                 var user = new ApplicationUser
                 {
                     UserName = model.Name,
@@ -59,11 +80,9 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-
                     await _userManager.AddToRoleAsync(user, SD.User);
 
                     var verificationCode = new Random().Next(100000, 999999).ToString();
-
                     await _userManager.AddClaimAsync(user, new Claim("EmailVerificationCode", verificationCode));
 
                     await _emailSender.SendEmailAsync(user.Email, "Email Confirmation Code",
@@ -77,6 +96,8 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return View(model);
         }
+
+
 
 
         [HttpGet]
