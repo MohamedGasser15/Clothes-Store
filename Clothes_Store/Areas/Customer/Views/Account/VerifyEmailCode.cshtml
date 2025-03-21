@@ -27,18 +27,20 @@
             <p class="text-lg text-gray-500">Enter the code sent to your email</p>
         </div>
 
-        <form class="mt-6" method="post" asp-controller="Account" asp-action="VerifyEmailCode">
+        <form class="mt-6" method="post" asp-controller="Account" asp-action="VerifyEmailCode" id="verifyForm">
             <input asp-for="UserId" type="hidden" />
 
             <div>
                 <label asp-for="Code" class="block text-gray-700 font-medium mb-2">Verification Code</label>
                 <input asp-for="Code" type="text" placeholder="Enter the code"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none">
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none" id="verificationCode">
                 <span asp-validation-for="Code" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition">
-                Verify
+            <button type="submit" id="verifyButton"
+                    class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition duration-300 flex items-center justify-center">
+                <span id="verifyText">Verify</span>
+                <div id="loadingSpinner" class="hidden ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </button>
         </form>
 
@@ -59,7 +61,23 @@
 
     </div>
 
-    <script src="~/js/ResendCode.js"></script>
+    <script>
+            const verifyButton = document.getElementById("verifyButton");
+        const verifyText = document.getElementById("verifyText");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+
+        document.getElementById("verifyForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            verifyText.classList.add("hidden");
+            loadingSpinner.classList.remove("hidden");
+            verifyButton.setAttribute("disabled", "true");
+
+            setTimeout(function () {
+                document.getElementById("verifyForm").submit();
+            }, 2000);
+        });
+    </script>
 
     @section Scripts {
         @{
