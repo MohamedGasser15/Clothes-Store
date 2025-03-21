@@ -35,7 +35,16 @@ confirmPasswordInput.addEventListener("input", function () {
 });
 
 document.getElementById("registerForm").addEventListener("submit", function (event) {
+
     registerText.classList.add("hidden");
     loadingSpinner.classList.remove("hidden");
     registerButton.setAttribute("disabled", "true");
+
+    setTimeout(function () {
+        loadingSpinner.classList.add("hidden");
+        registerText.classList.remove("hidden");
+        registerButton.removeAttribute("disabled");
+
+        document.getElementById("registerForm").submit();
+    }, 2000); 
 });
