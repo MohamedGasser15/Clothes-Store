@@ -236,7 +236,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             if (user == null)
             {
                 ModelState.AddModelError("", "No account found with this email.");
-                return View();
+                return View(model);
             }
 
             // Generate a 6-digit code
