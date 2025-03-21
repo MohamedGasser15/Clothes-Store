@@ -1,5 +1,6 @@
 ﻿@using Clothes_Models.ViewModels
 @model VerifyCodeViewModel
+
 @{
     Layout = null;
 }
@@ -26,7 +27,7 @@
             <p class="text-lg text-gray-500">Enter the code sent to your email</p>
         </div>
 
-        <form class="mt-6" method="post" asp-controller="Account" asp-action="VerifyResetCode">
+        <form class="mt-6" method="post" asp-controller="Account" asp-action="VerifyResetCode" id="verifyForm">
             <input asp-for="Email" type="hidden" />
 
             <div>
@@ -36,8 +37,10 @@
                 <span asp-validation-for="Code" class="text-danger"></span>
             </div>
 
-            <button type="submit" class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition">
-                Submit
+            <button type="submit" id="verifyButton"
+                    class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition duration-300 flex items-center justify-center">
+                <span id="verifyText">Verify</span>
+                <div id="loadingSpinner" class="hidden ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </button>
         </form>
 
@@ -50,8 +53,25 @@
             </form>
         </div>
     </div>
-
     <script src="~/js/ResendCode.js"></script>
+    <script>
+        const verifyButton = document.getElementById("verifyButton");
+        const verifyText = document.getElementById("verifyText");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+
+        document.getElementById("verifyForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            verifyText.classList.add("hidden");
+            loadingSpinner.classList.remove("hidden");
+
+            verifyButton.setAttribute("disabled", "true");
+
+            setTimeout(function () {
+                document.getElementById("verifyForm").submit();
+            }, 2000); 
+        });
+    </script>
 
     @section Scripts {
         @{
