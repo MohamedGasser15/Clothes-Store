@@ -1,0 +1,104 @@
+﻿@{
+    Layout = "~/Areas/Customer/Views/Shared/_ProfileLayout.cshtml";
+
+}
+
+<section>
+    <!-- Profile Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-[#008080] mb-2">Profile Settings</h1>
+        <p class="text-gray-600">View and manage your personal information.</p>
+    </div>
+
+    <!-- Profile Photo Section -->
+    <div class="flex flex-col items-center mb-8">
+        <div class="relative w-40 h-40 mb-4">
+            <div class="w-40 h-40 rounded-full border-4 border-[#008080] flex items-center justify-center overflow-hidden shadow-lg">
+                <img id="profileImage" src="https://via.placeholder.com/150" alt="User Avatar" class="w-full h-full object-cover">
+            </div>
+            <!-- Upload Button -->
+            <label for="fileInput" class="absolute bottom-0 right-0 bg-white border-2 border-[#008080] text-[#008080] px-3 py-1 rounded-full cursor-pointer text-lg font-bold shadow-md hover:bg-[#008080] hover:text-white transition-colors duration-200">
+                <i class="fa-solid fa-camera"></i>
+            </label>
+            <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="previewImage(event)">
+        </div>
+        <p class="text-gray-600">Click the camera icon to update your profile photo.</p>
+    </div>
+
+    <!-- Personal Information Section -->
+    <div class="bg-white p-6 rounded-lg shadow-xl border border-gray-200">
+        <h2 class="text-2xl font-semibold text-[#008080] mb-4">Personal Information</h2>
+        <div class="space-y-4">
+
+            <!-- Full Name (Left) and Email (Right) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- #### this if the user didn't use it####-->
+                <div>
+                    <p class="text-gray-700 font-medium">Full Name</p>
+                    <!-- Conditional Display for Full Name -->
+                    <div class="flex items-center gap-2">
+                        <p class="text-gray-600 italic">Please add your full name</p>
+                        <button class="bg-[#008080] text-white px-3 py-1 rounded-md hover:bg-[#006666] transition-colors duration-200">Add</button>
+                    </div>
+                </div>
+                <div>
+                    <p class="text-gray-700 font-medium">Email</p>
+                    <p class="text-gray-900">john.doe@example.com</p>
+                </div>
+            </div>
+
+            <!-- Phone Number (Left) and Address (Right) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-700 font-medium">Phone Number</p>
+                    <p class="text-gray-900">+1234567890</p>
+                </div>
+                <div>
+                    <p class="text-gray-700 font-medium">Address</p>
+                    <p class="text-gray-900">123 Main Street, New York, NY</p>
+                </div>
+            </div>
+
+            <!-- Current City (Left) and Postal Code (Right) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-700 font-medium">Current City</p>
+                    <p class="text-gray-900">New York</p>
+                </div>
+                <div>
+                    <p class="text-gray-700 font-medium">Postal Code</p>
+                    <p class="text-gray-900">10001</p>
+                </div>
+            </div>
+
+            <!-- Gender (Left) and Empty (Right) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-gray-700 font-medium">Gender</p>
+                    <p class="text-gray-900">Male</p>
+                </div>
+                <div>
+                    <!-- Empty for alignment -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Button -->
+        <div class="mt-6">
+            <button asp-controller="Profile" asp-action="Edit" class="bg-[#008080] text-white px-6 py-2 rounded-md hover:bg-[#006666] transition-colors duration-200">Edit Profile</button>
+        </div>
+    </div>
+</section>
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const profileImage = document.getElementById('profileImage');
+                profileImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
