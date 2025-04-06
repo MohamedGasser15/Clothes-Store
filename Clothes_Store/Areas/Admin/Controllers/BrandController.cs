@@ -1,5 +1,6 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_DataAccess.Migrations;
+using Clothes_DataAccess.Repo.Interfaces;
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -9,25 +10,26 @@ namespace Clothes_Store.Areas.Admin.Controllers
     [Area("Admin")]
     public class BrandController : Controller
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public BrandController(ApplicationDbContext db)
+
+        public BrandController(IUnitOfWork unitOfWork)
         {
-            _db = db;
+            _unitOfWork = unitOfWork;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            List<Brand> objList = _db.Brands.ToList();
+            IEnumerable<Brand> objList = await _unitOfWork.Brands.GetAll();
             return View(objList);
         }
-        public IActionResult Upsert(int? id)
+        public async Task<IActionResult> Upsert(int id)
         {
             Brand obj = new();
             if (id == null || id == 0)
             {
                 return View(obj);
             }
-            obj = _db.Brands.FirstOrDefault(i => i.Brand_Id == id);
+            obj = await _unitOfWork.Brands.GetById(id);
             if (obj == null)
             {
                 return NotFound();
@@ -40,22 +42,22 @@ namespace Clothes_Store.Areas.Admin.Controllers
         public async Task<IActionResult> Upsert(Brand obj)
         {
 
-                if (obj.Brand_Id == 0)
-                {
-                    await _db.Brands.AddAsync(obj);
-                }
-                else
-                {
-                    _db.Brands.Update(obj);
-                }
-                await _db.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+            if (obj.Brand_Id == 0)
+            {
+                await _unitOfWork.Brands.Add(obj);
+            }
+            else
+            {
+                _unitOfWork.Brands.UpdateAsync(obj);
+            }
+            await _unitOfWork.SaveAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             Brand obj = new();
-            obj = _db.Brands.FirstOrDefault(c => c.Brand_Id == id);
+            obj = await _unitOfWork.Brands.GetById(id);
 
             if (obj == null)
             {
@@ -63,9 +65,9 @@ namespace Clothes_Store.Areas.Admin.Controllers
             }
             else
             {
-                _db.Brands.Remove(obj);
+                _unitOfWork.Brands.Delete(obj);
             }
-            _db.SaveChanges();
+            await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }
     }

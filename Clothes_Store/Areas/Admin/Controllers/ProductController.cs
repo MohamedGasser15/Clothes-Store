@@ -1,4 +1,6 @@
 ﻿using Clothes_DataAccess.Data;
+using Clothes_DataAccess.Repo;
+using Clothes_DataAccess.Repo.Interfaces;
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -10,31 +12,34 @@ namespace Clothes_Store.Areas.Admin.Controllers
     [Area("Admin")]
     public class ProductController : Controller
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(ApplicationDbContext db, IWebHostEnvironment webHostEnvironment)
+        public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment)
         {
-            _db = db;
+            _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            List<Product> objList = _db.Products.ToList();
+            IEnumerable<Product> objList = await _unitOfWork.Products.GetAll();
             return View(objList);
         }
 
 
-        public IActionResult Upsert(int? id)
+        public async Task<IActionResult> Upsert(int id)
         {
             ProductViewModel obj = new();
-            obj.BrandList = _db.Brands.Select(i => new SelectListItem
+            var Brands = await _unitOfWork.Brands.GetAll();
+
+            obj.BrandList = Brands.Select(i => new SelectListItem
             {
                 Text = i.Brand_Name,
                 Value = i.Brand_Id.ToString()
             });
-            obj.CategoryList = _db.Categories.Select(i => new SelectListItem
+            var Categories = await _unitOfWork.Categories.GetAll();
+            obj.CategoryList = Categories.Select(i => new SelectListItem
             {
                 Text = i.Category_Name,
                 Value = i.Category_Id.ToString()
@@ -43,7 +48,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
             {
                 return View(obj);
             }
-            obj.Product = _db.Products.FirstOrDefault(u => u.Product_Id == id);
+            obj.Product = await _unitOfWork.Products.GetById(id);
             if (obj == null)
             {
                 return NotFound();
@@ -69,26 +74,26 @@ namespace Clothes_Store.Areas.Admin.Controllers
             }
             if (obj.Product.Product_Id == 0)
             {
-                await _db.Products.AddAsync(obj.Product);
+                await _unitOfWork.Products.Add(obj.Product);
             }
             else
             {
-                _db.Products.Update(obj.Product);
+                _unitOfWork.Products.UpdateAsync(obj.Product);
             }
-            await _db.SaveChangesAsync();
+            await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Delete(int id)
         {
             Product obj = new();
-            obj = await _db.Products.FirstOrDefaultAsync(u => u.Product_Id == id);
+            obj = await _unitOfWork.Products.GetById(id);
             if (obj == null)
             {
                 return NotFound();
             }
-            _db.Products.Remove(obj);
-            await _db.SaveChangesAsync();
+            _unitOfWork.Products.Delete(obj);
+            await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }
     }

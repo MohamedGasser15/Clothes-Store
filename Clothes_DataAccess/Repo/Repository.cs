@@ -29,12 +29,10 @@ namespace Clothes_DataAccess.Repo
         public async Task Add(T entity)
         {
             dbSet.Add(entity);
-            await _db.SaveChangesAsync();
         }
-        public async Task Delete(int id)
+        public async Task Delete(T entity)
         {
-            dbSet.Remove(dbSet.Find(id));
-            await _db.SaveChangesAsync();
+            dbSet.Remove(entity);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Clothes_DataAccess.Data;
+using Clothes_DataAccess.Repo.Interfaces;
 using Clothes_Models.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,25 +9,25 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
     public class CategoryController : Controller
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryController(ApplicationDbContext db)
+        public CategoryController(IUnitOfWork unitOfWork)
         {
-            _db = db;
+            _unitOfWork = unitOfWork;
         }
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            List<Category> objList = _db.Categories.ToList();
+            IEnumerable<Category> objList = await _unitOfWork.Categories.GetAll();
             return View(objList);
         }
-        public IActionResult Upsert(int? id)
+        public async Task<IActionResult> Upsert(int id)
         {
             Category obj = new();
             if (id == null || id == 0)
             {
                 return View(obj);
             }
-            obj = _db.Categories.FirstOrDefault(i => i.Category_Id == id);
+            obj = await _unitOfWork.Categories.GetById(id);
             if (obj == null)
             {
                 return NotFound();
@@ -40,29 +41,27 @@ namespace Clothes_Store.Areas.Admin.Controllers
         {
             if (obj.Category_Id == 0)
             {
-                await _db.Categories.AddAsync(obj);
+                await _unitOfWork.Categories.Add(obj);
             }
             else
             {
-                _db.Categories.Update(obj);
+                _unitOfWork.Categories.UpdateAsync(obj);
             }
-            await _db.SaveChangesAsync();
+            await _unitOfWork.SaveAsync();
+
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             Category obj = new();
-            obj = _db.Categories.FirstOrDefault(c => c.Category_Id == id);
+            obj = await _unitOfWork.Categories.GetById(id);
             if (obj == null)
             {
                 return NotFound();
             }
-            else
-            {
-                _db.Categories.Remove(obj);
-            }
-            _db.SaveChanges();
+                _unitOfWork.Categories.Delete(obj);
+            await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }
     }

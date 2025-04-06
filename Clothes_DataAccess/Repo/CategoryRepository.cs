@@ -19,7 +19,6 @@ namespace Clothes_DataAccess.Repo
         public async Task UpdateAsync(Category category)
         {
             _db.Categories.Update(category);
-            await _db.SaveChangesAsync();
         }
     }
 }
