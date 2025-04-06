@@ -1,4 +1,6 @@
 using Clothes_DataAccess.Data;
+using Clothes_DataAccess.Repo;
+using Clothes_DataAccess.Repo.Interfaces;
 using Clothes_Models.Models;
 using Clothes_Store.Services;
 using Microsoft.AspNetCore.Identity;
@@ -33,6 +35,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
