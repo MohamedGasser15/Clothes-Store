@@ -47,9 +47,7 @@
                 <li><a asp-area="customer" asp-controller="Home" asp-action="Blog" class="@IsActive("Home", "Blog")">Blog</a></li>
                 <li><a asp-area="customer" asp-controller="Home" asp-action="About" class="@IsActive("Home", "About")">About</a></li>
                 <li><a asp-area="customer" asp-controller="Home" asp-action="Contact" class="@IsActive("Home", "Contact")">Contact</a></li>
-                <li id="krkr">
                     <partial name="_LoginPartialView" />
-               </li>
             </ul>
         </div>
     </section>
@@ -114,7 +112,8 @@
 
 
     <script src="~/js/script.js" asp-append-version="true"></script>
-
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

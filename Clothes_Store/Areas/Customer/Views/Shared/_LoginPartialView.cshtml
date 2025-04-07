@@ -1,71 +1,165 @@
 ﻿@using Clothes_Models.Models
-﻿﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 
 @inject SignInManager<ApplicationUser> _signInManager
 @inject UserManager<ApplicationUser> UserManager
-
+@{
+    var user = await UserManager.GetUserAsync(User);
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 @if (_signInManager.IsSignedIn(User))
-    {
-   
-    <li>
-        <img src="~/img/images/user.png" class="user-pic" onclick="toggleMenu()">
-        <div class="sub-menu-wrap" id="subMenu">
-            <div class="sub-menu">
-                <div class="user-info">
-                    <img src="~/img/images/user.png">
-                    <h3>James </h3>
-                </div>
-                <hr>
-                <a asp-area="Admin" asp-controller="Dash" asp-action="Index" class="sub-menu-link">
-                    <img src="~/img/images/profile.png" alt="">
-                    <p>Admin</p>
-                    <span>></span>
-                </a>
-                <a asp-area="Customer" asp-controller="Profile" asp-action="Index" class="sub-menu-link">
-                    <img src="~/img/images/profile.png" alt="">
-                    <p>My Profile</p>
-                    <span>></span>
-                </a>
-                <a asp-area="customer" asp-controller="Cart" asp-action="Index" class="sub-menu-link">
-                    <img src="~/img/images/profile.png" alt="">
-                    <p>Cart</p>
-                    <span>></span>
-                </a>
+{
+    <div class="dropdown m-auto text-center p-auto">
+        <button class="btn p-0 border-0 position-relative custom-focus" type="button"
+                id="userDropdown" data-bs-toggle="dropdown"
+                aria-expanded="false">
+            @if (user != null)
+            {
+                <img src="https://api.dicebear.com/7.x/initials/svg?seed=@(user.Name?[0])&backgroundColor=088178&textColor=ffffff"
+                     class="rounded-circle rotate-on-focus"
+                     width="36" height="36" alt="User">
+            }
+        </button>
 
-                <a href="settings.php" class="sub-menu-link">
-                    <img src="~/img/images/setting.png" alt="">
-                    <p>Settings & Privacy</p>
-                    <span>></span>
-                </a>
-                    <form  method="post" asp-controller="Account" asp-action="Logout">
-                    <a class="sub-menu-link">
-                        <button class="krbutton"><p>Logout</p><span>></span></button>
-                   </a>
-                    </form>
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-2" style="min-width: 240px; border-radius: 12px !important;" aria-labelledby="userDropdown">
+            <li class="dropdown-header px-3 py-2 rounded-top-2" style="background: linear-gradient(to right, #f0fdf4, white);">
+                <h6 class="mb-0 text-success">
+                    @user?.Name
+                    <span class="badge bg-success ms-1 animate-pulse" style="animation: pulse 2s infinite;">Online</span>
+                </h6>
+                <small class="text-muted d-block text-truncate" style="max-width: 200px;">@user?.Email</small>
+            </li>
 
-            </div>
-        </div>
-    </li>
-    }
-    else
-    {
-    <li>
-        <img src="~/img/admin.png" class="user-pic" onclick="toggleMenu()">
-        <div class="sub-menu-wrap" id="subMenu">
-            <div class="sub-menu">
-                <a asp-controller="Account" asp-action="Login" class="sub-menu-link">
-                    <img src="~/img/images/logout.png" alt="">
-                    Sign up
-                </a>
+            <li><hr class="dropdown-divider my-1 mx-3" style="border-color: #e9ecef;"></li>
 
-            </div>
-        </div>
-    </li>
+            @if (User.IsInRole("Admin"))
+            {
+                <li>
+                    <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Admin" asp-controller="Product" asp-action="Index">
+                        <i class="fas fa-user-shield me-2 text-success"></i>
+                        Admin
+                        <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+                    </a>
+                </li>
+            }
+
+            <!-- Enhanced Cart Item with Counter -->
+            <li>
+                <a class="dropdown-item py-2 px-3 hover-effect rounded-1 position-relative pe-4" asp-area="Customer" asp-controller="Cart" asp-action="Index">
+                    <i class="fas fa-shopping-cart me-2 text-success"></i>
+                    My Cart
+                    <span class="position-absolute end-0 me-3 top-50 translate-middle-y badge rounded-pill bg-danger"
+                          style="font-size: 0.65rem; min-width: 1.25rem; padding: 0.25em 0.5em; margin-top: -1px;">
+                        @(ViewBag.CartItemCount ?? 0)
+                    </span>
+                </a>
+            </li>
+
+            <li>
+                <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Customer" asp-controller="Profile" asp-action="Index">
+                    <i class="fas fa-user-circle me-2 text-success"></i>
+                    My Profile
+                    <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+                </a>
+            </li>
+
+            <li>
+                <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Customer" asp-controller="Setting" asp-action="Index">
+                    <i class="fas fa-cog me-2 text-success"></i>
+                    Settings
+                    <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider my-1 mx-3" style="border-color: #e9ecef;"></li>
+
+            <li>
+                <form asp-area="Customer" asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="dropdown-item py-2 px-3 hover-effect rounded-1 w-100 text-start">
+                        <i class="fas fa-sign-out-alt me-2 text-success"></i>
+                        Sign Out
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}
+else
+{
+    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Register">Register</a></li>
+    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">Login</a></li>
+}
+
+<style>
+    .custom-focus {
+        outline: none !important;
+        box-shadow: none !important;
+        transition: none !important;
     }
-<script>
-    let subMenu = document.getElementById("subMenu");
-    function toggleMenu(){
-        subMenu.classList.toggle("open-menu");
+
+    .rotate-on-focus {
+        transition: transform 0.3s ease;
     }
-</script>
+
+    .custom-focus:focus .rotate-on-focus,
+    .custom-focus[aria-expanded="true"] .rotate-on-focus {
+        transform: rotate(15deg);
+    }
+
+    .hover-effect {
+        transition: all 0.3s ease;
+        border-radius: 8px;
+        margin: 2px 6px;
+    }
+
+        .hover-effect:hover {
+            background-color: #f8f9fa !important;
+            color: #088178 !important;
+            transform: translateX(4px);
+        }
+
+            .hover-effect:hover i:first-child {
+                transform: scale(1.2);
+                color: #088178 !important;
+            }
+
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.5;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    /* Enhanced dropdown styling */
+    .dropdown-menu {
+        border: 1px solid rgba(0,0,0,0.1);
+        padding: 0.5rem 0;
+    }
+
+    .dropdown-item {
+        padding: 0.5rem 1.25rem;
+        margin: 0.15rem 0.5rem;
+    }
+
+    /* Cart badge animation */
+    .badge.bg-danger {
+        transition: all 0.3s ease;
+    }
+
+    .hover-effect:hover .badge.bg-danger {
+        transform: scale(1.1);
+        background-color: #dc3545 !important;
+    }
+</style>
