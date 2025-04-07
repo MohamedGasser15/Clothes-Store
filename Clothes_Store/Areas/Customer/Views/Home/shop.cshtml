@@ -12,11 +12,19 @@
     <div class="pro-container">
         @foreach (var product in Model)
         {
-            <div class="pro">
-                <img src="@product.imgUrl" alt="@product.Product_Name">
+            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { id = product.Product_Id })';">
+
+                <!-- Product Image -->
+                <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
+
                 <div class="des">
-                    <span>@product.Brand.Brand_Name</span>
-                    <h5>@product.Product_Description</h5>
+                    <!-- Product Brand -->
+                    <span class="product-brand">@product.Brand.Brand_Name</span>
+
+                    <!-- Product Name / Description -->
+                    <h5 class="product-description">@product.Product_Description</h5>
+
+                    <!-- Product Rating -->
                     <div class="star">
                         @for (int i = 0; i < product.Product_Rating; i++)
                         {
@@ -27,10 +35,20 @@
                             <i class="far fa-star"></i>
                         }
                     </div>
-                    <h4>$@product.Product_Price</h4>
+
+                    <!-- Product Price -->
+                    <h4 class="product-price">$@product.Product_Price</h4>
                 </div>
-                <a href="#"><i class="fal fa-shopping-cart cart"></i></a>
+
+                <!-- Add to Cart Button -->
+                <form asp-controller="Cart" asp-action="AddToCart" method="post" style="display: inline;">
+                    <input type="hidden" name="productId" value="@product.Product_Id" />
+                    <button type="submit" class="pro-cart-button">
+                        <i class="fal fa-shopping-cart"></i>
+                    </button>
+                </form>
             </div>
+
         }
     </div>
 </section>
@@ -52,3 +70,33 @@
         <button class="normal"> Sign Up</button>
     </div>
 </section>
+<style>
+    .pro-cart-button {
+        /* Your original styles */
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 50px;
+        background-color: #e8f6ea;
+        font-weight: 500;
+        color: #088178;
+        border: 1px solid #cce7d0;
+        position: absolute;
+        bottom: 20px;
+        right: 10px;
+        /* Additional styles to make it look like a link */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+        .pro-cart-button:hover {
+            background-color: #cce7d0;
+            color: #066156;
+            transform: scale(1.05);
+        }
+</style>
