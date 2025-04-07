@@ -20,5 +20,6 @@ namespace Clothes_Models.Models
         public string Role { get; set; }
         [NotMapped]
         public IEnumerable<SelectListItem> RoleList { get; set; }
+        public virtual ICollection<CartItem> CartItems { get; set; }
     }
 }

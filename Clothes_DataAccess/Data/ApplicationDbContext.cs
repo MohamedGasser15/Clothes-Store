@@ -19,13 +19,23 @@ namespace Clothes_DataAccess.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Brand> Brands { get; set; }
         public DbSet<UserProfile> UserProfiles { get; set; }
-
+        public DbSet<CartItem> CartItems { get; set; }
 
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<CartItem>()
+          .HasOne(ci => ci.Product)
+          .WithMany()
+          .HasForeignKey(ci => ci.ProductId)
+          .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<CartItem>()
+                .HasOne(ci => ci.User)
+                .WithMany(u => u.CartItems)
+                .HasForeignKey(ci => ci.UserId);
             modelBuilder.Entity<Category>().HasData(
             new Category
             {
