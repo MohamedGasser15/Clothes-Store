@@ -38,48 +38,54 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View(viewModel);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
         {
-            var user = await _userManager.GetUserAsync(User);
-            var product = await _context.Products.FindAsync(productId);
-
-            if (product == null)
+            try
             {
-                return NotFound();
-            }
+                var user = await _userManager.GetUserAsync(User);
+                var product = await _context.Products.FindAsync(productId);
 
-            var existingItem = await _context.CartItems
-                .FirstOrDefaultAsync(ci => ci.ProductId == productId && ci.UserId == user.Id);
-
-            if (existingItem != null)
-            {
-                existingItem.Quantity += quantity;
-            }
-            else
-            {
-                var newItem = new CartItem
+                if (product == null)
                 {
-                    ProductId = productId,
-                    UserId = user.Id,
-                    Quantity = quantity
-                };
-                _context.CartItems.Add(newItem);
-            }
+                    return Json(new { success = false, message = "Product not found" });
+                }
 
-            await _context.SaveChangesAsync();
+                var existingItem = await _context.CartItems
+                    .FirstOrDefaultAsync(ci => ci.ProductId == productId && ci.UserId == user.Id);
 
-            // Return the updated cart count for AJAX requests
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
+                if (existingItem != null)
+                {
+                    existingItem.Quantity += quantity;
+                }
+                else
+                {
+                    var newItem = new CartItem
+                    {
+                        ProductId = productId,
+                        UserId = user.Id,
+                        Quantity = quantity
+                    };
+                    _context.CartItems.Add(newItem);
+                }
+
+                await _context.SaveChangesAsync();
+
                 var cartCount = await _context.CartItems
                     .Where(ci => ci.UserId == user.Id)
                     .SumAsync(ci => ci.Quantity);
-                return Json(new { success = true, cartCount });
-            }
 
-            // Standard form submission redirect
-            string referer = Request.Headers["Referer"].ToString();
-            return Redirect(string.IsNullOrEmpty(referer) ? Url.Action("Index", "Cart") : referer);
+                return Json(new
+                {
+                    success = true,
+                    message = "Item added to cart successfully!",
+                    cartCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost]

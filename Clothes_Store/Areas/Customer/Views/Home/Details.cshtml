@@ -1,11 +1,18 @@
 ﻿@using Clothes_Models.Models
 @model Product
 
+@{
+    var showSuccessMessage = TempData["AddToCartSuccess"] != null && (bool)TempData["AddToCartSuccess"];
+    var showErrorMessage = TempData["AddToCartError"] != null && (bool)TempData["AddToCartError"];
+    var errorMessage = TempData["ErrorMessage"]?.ToString() ?? "An error occurred while adding to cart";
+}
+
 <title>@Model.Product_Name</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css">
 <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.3/dist/tailwind.min.css" rel="stylesheet">
 
 <style>
+    /* Your existing styles remain the same */
     .btn-custom {
         background-color: #088178;
     }
@@ -22,7 +29,112 @@
         border-color: #088178;
         box-shadow: 0 0 0 1px #088178;
     }
+
+    /* Notification styles */
+    .notification-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 1000;
+    }
+
+    .notification {
+        padding: 1rem 1.5rem;
+        color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        transform: translateX(150%);
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .notification.success {
+            background-color: #088178;
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.hide {
+            transform: translateX(150%);
+            opacity: 0;
+        }
+
+    .notification-icon {
+        margin-right: 0.75rem;
+        font-size: 1.25rem;
+    }
+
+    .notification-close {
+        margin-left: 1rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .notification-progress-bar {
+        height: 100%;
+        width: 100%;
+        background: white;
+        animation: progress 3s linear forwards;
+        transform-origin: left;
+    }
+
+    @@keyframes progress {
+        0% {
+            transform: scaleX(0);
+        }
+
+        100% {
+            transform: scaleX(1);
+        }
+    }
+    /* Bounce animation for cart button */
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+
+        40% {
+            transform: translateY(-10px);
+        }
+
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .bounce-effect {
+        animation: bounce 1s;
+    }
 </style>
+
+<!-- Notification Container -->
+<div class="notification-container">
+    <!-- Notifications will be added here dynamically -->
+</div>
 
 <!-- Product Details -->
 <section id="product-details" class="section-p1 py-16 px-8">
@@ -47,16 +159,18 @@
                 <h4 class="text-lg font-medium text-gray-900 mb-3">Size</h4>
                 <div class="flex flex-wrap gap-2">
                     <!-- Size options as buttons -->
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="S" selected="@(Model.Product_Size == "S" ? "selected" : null)">S</button>
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="M" selected="@(Model.Product_Size == "M" ? "selected" : null)">M</button>
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="L" selected="@(Model.Product_Size == "L" ? "selected" : null)">L</button>
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="XL" selected="@(Model.Product_Size == "XL" ? "selected" : null)">XL</button>
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="XXL" selected="@(Model.Product_Size == "XXL" ? "selected" : null)">XXL</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="S">S</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="M">M</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="L">L</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="XL">XL</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="XXL">XXL</button>
                 </div>
                 <input type="hidden" id="selectedSize" name="size" value="">
             </div>
 
-            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <!-- Add to Cart Form -->
+            <form id="addToCartForm" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                @Html.AntiForgeryToken()
                 <input type="hidden" name="productId" value="@Model.Product_Id">
 
                 <!-- Quantity -->
@@ -67,7 +181,7 @@
                 </div>
 
                 <!-- Add to Cart Button -->
-                <button type="submit" class="btn-custom text-white font-medium py-2 px-6 rounded-md hover:shadow-md transition duration-300">
+                <button type="submit" id="addToCartBtn" class="btn-custom text-white font-medium py-2 px-6 rounded-md hover:shadow-md transition duration-300">
                     <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
                 </button>
             </form>
@@ -90,7 +204,128 @@
             this.classList.remove('border-gray-300');
 
             // Set the hidden input value
-            document.getElementById('selectedSize').value = this.dataset.size;
+            document.getElementById('selectedSize').value = this.value;
         });
     });
+
+    // AJAX form submission
+    document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const form = this;
+        const formData = new FormData(form);
+        const button = form.querySelector('button[type="submit"]');
+        const originalButtonText = button.innerHTML;
+
+        // Add selected size to form data
+        const selectedSize = document.getElementById('selectedSize').value;
+        formData.append('size', selectedSize);
+
+        // Add loading state to button
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+
+        fetch('@Url.Action("AddToCart", "Cart")', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Network response was not ok.');
+        })
+        .then(data => {
+            if (data.success) {
+                showNotification(true, data.message);
+                button.classList.add('bounce-effect');
+
+                // Update cart count if needed
+                if (data.cartCount) {
+                    updateCartCount(data.cartCount);
+                }
+            } else {
+                showNotification(false, data.message);
+            }
+        })
+        .catch(error => {
+            showNotification(false, 'An error occurred while adding to cart');
+        })
+        .finally(() => {
+            // Reset button state
+            button.innerHTML = originalButtonText;
+            button.disabled = false;
+        });
+    });
+
+    function showNotification(isSuccess, message) {
+        const notificationContainer = document.querySelector('.notification-container');
+        const notificationId = 'notification-' + Date.now();
+        const notificationClass = isSuccess ? 'success' : 'error';
+        const iconClass = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+        const notificationHTML = `
+            <div id="${notificationId}" class="notification ${notificationClass}">
+                <i class="fas ${iconClass} notification-icon"></i>
+                <span>${message}</span>
+                <span class="notification-close" onclick="hideNotification('${notificationId}')">
+                    <i class="fas fa-times"></i>
+                </span>
+                <div class="notification-progress">
+                    <div class="notification-progress-bar"></div>
+                </div>
+            </div>
+        `;
+
+        notificationContainer.insertAdjacentHTML('beforeend', notificationHTML);
+        const notification = document.getElementById(notificationId);
+
+        // Show notification
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 100);
+
+        // Auto-hide after 3 seconds
+        const autoHide = setTimeout(() => {
+            hideNotification(notificationId);
+        }, 3000);
+
+        // Pause on hover
+        notification.addEventListener('mouseenter', () => {
+            clearTimeout(autoHide);
+            notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
+        });
+
+        notification.addEventListener('mouseleave', () => {
+            const progressBar = notification.querySelector('.notification-progress-bar');
+            const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
+            const remainingTime = remainingWidth * 3000;
+
+            progressBar.style.animationPlayState = 'running';
+            setTimeout(() => {
+                hideNotification(notificationId);
+            }, remainingTime);
+        });
+    }
+
+    function updateCartCount(count) {
+        // Implement this if you have a cart counter in your UI
+        // Example: document.querySelector('.cart-count').textContent = count;
+    }
+
+    function hideNotification(id) {
+        const notification = document.getElementById(id);
+        if (notification) {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
+        }
+    }
 </script>
