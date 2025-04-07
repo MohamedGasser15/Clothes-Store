@@ -1,9 +1,12 @@
 using System.Diagnostics;
+using System.Linq.Expressions;
+using System.Security.Claims;
 using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
 using Clothes_Store.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SendGrid.Helpers.Mail;
 
 namespace Clothes_Store.Controllers
 {
@@ -15,7 +18,7 @@ namespace Clothes_Store.Controllers
         private readonly ApplicationDbContext _db;
 
 
-        public HomeController(ILogger<HomeController> logger , ApplicationDbContext db)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext db)
         {
             _logger = logger;
             _db = db;
@@ -35,7 +38,20 @@ namespace Clothes_Store.Controllers
 
             return View(products); // Pass the list of products to the Shop view
         }
+        public async Task<IActionResult> Details(int id)
+        {
+            var product = await _db.Products
+                .Include(p => p.Category) // Include category details
+                .Include(p => p.Brand) // Include brand details
+                .FirstOrDefaultAsync(p => p.Product_Id == id);
 
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return View(product);
+        }
         public IActionResult Blog()
         {
             return View();
