@@ -17,14 +17,18 @@
     .btn-custom:hover {
         background-color: #0a9a8e;
     }
+
+    .size-select:focus {
+        border-color: #088178;
+        box-shadow: 0 0 0 1px #088178;
+    }
 </style>
+
 <!-- Product Details -->
 <section id="product-details" class="section-p1 py-16 px-8">
-    <div class="flex gap-16">
-        <!-- Increased gap to 16 for more space -->
+    <div class="flex flex-col lg:flex-row gap-16">
         <!-- Product Image -->
-        <div class="w-full lg:w-1/3 ml-6">
-            <!-- Added ml-6 for additional space -->
+        <div class="w-full lg:w-1/3 lg:ml-6">
             <img src="@Model.imgUrl" alt="@Model.Product_Name" class="w-full h-auto object-cover rounded-lg shadow-lg">
         </div>
 
@@ -33,19 +37,60 @@
             <h6 class="text-gray-600 mb-2">Home / <span class="custom-color">@Model.Category.Category_Name</span></h6>
             <h4 class="text-3xl font-semibold text-gray-900 mb-4 font-bold">@Model.Product_Name</h4>
             <h2 class="text-2xl custom-color mb-4 font-medium">@Model.Product_Price.ToString("C")</h2>
-            <p class="text-lg text-gray-700 mb-6 "><strong>Brand:</strong> @Model.Brand.Brand_Name</p>
+            <p class="text-lg text-gray-700 mb-6"><strong>Brand:</strong> @Model.Brand.Brand_Name</p>
 
             <h4 class="text-xl font-semibold mb-2">Product Details</h4>
             <p class="text-gray-700 mb-6">@Model.Product_Description</p>
 
-            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="flex items-center gap-4">
+            <!-- Size Selection -->
+            <div class="mb-6">
+                <h4 class="text-lg font-medium text-gray-900 mb-3">Size</h4>
+                <div class="flex flex-wrap gap-2">
+                    <!-- Size options as buttons -->
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="S" selected="@(Model.Product_Size == "S" ? "selected" : null)">S</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="M" selected="@(Model.Product_Size == "M" ? "selected" : null)">M</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="L" selected="@(Model.Product_Size == "L" ? "selected" : null)">L</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="XL" selected="@(Model.Product_Size == "XL" ? "selected" : null)">XL</button>
+                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="XXL" selected="@(Model.Product_Size == "XXL" ? "selected" : null)">XXL</button>
+                </div>
+                <input type="hidden" id="selectedSize" name="size" value="">
+            </div>
+
+            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <input type="hidden" name="productId" value="@Model.Product_Id">
-                <input type="number" name="quantity" value="1" min="1" class="quantity-input border rounded-md p-2 w-20 text-center">
-                <button type="submit" class="btn btn-custom text-white py-2 px-6 rounded-md transition duration-300">
-                    Add to Cart
+
+                <!-- Quantity -->
+                <div class="mb-4 sm:mb-0">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                    <input type="number" name="quantity" value="1" min="1"
+                           class="quantity-input border border-gray-300 rounded-md p-2 w-20 text-center focus:border-custom-color focus:ring-1 focus:ring-custom-color">
+                </div>
+
+                <!-- Add to Cart Button -->
+                <button type="submit" class="btn-custom text-white font-medium py-2 px-6 rounded-md hover:shadow-md transition duration-300">
+                    <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
                 </button>
             </form>
         </div>
     </div>
 </section>
 
+<script>
+    // Size selection functionality
+    document.querySelectorAll('.size-option').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.size-option').forEach(btn => {
+                btn.classList.remove('bg-custom-color', 'text-white');
+                btn.classList.add('border-gray-300');
+            });
+
+            // Add active class to clicked button
+            this.classList.add('bg-custom-color', 'text-white');
+            this.classList.remove('border-gray-300');
+
+            // Set the hidden input value
+            document.getElementById('selectedSize').value = this.dataset.size;
+        });
+    });
+</script>
