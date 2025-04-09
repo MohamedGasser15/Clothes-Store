@@ -17,9 +17,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .text-danger {
-            color: #dc2626; 
-            font-size: 0.875rem; 
-            font-weight: 500; 
+            color: #dc2626;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -66,20 +66,46 @@
             </button>
 
         </form>
-
+        @{
+            var schemes = await signInManager.GetExternalAuthenticationSchemesAsync();
+            var loginProviders = schemes.ToList();
+        }
         <div class="flex items-center my-6">
             <hr class="flex-grow border-gray-300">
             <span class="mx-3 text-gray-500">OR</span>
             <hr class="flex-grow border-gray-300">
         </div>
-
-        <button class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition">
-            <img src="https://www.svgrepo.com/show/303108/google-icon-logo.svg" class="w-5 h-5"> Continue with Google
-        </button>
-
-        <button class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition mt-3">
-            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5"> Continue with Facebook
-        </button>
+        @if (loginProviders.Count > 0)
+        {
+            <form asp-action="ExternalLogin" asp-controller="Account" method="post" class="flex flex-col gap-3">
+                <!-- Added gap-3 -->
+                @foreach (var provider in loginProviders)
+                {
+                    @if (provider.Name == "Google")
+                    {
+                        <button type="submit"
+                                name="provider"
+                                value="@provider.Name"
+                                class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition"
+                                title="Log in using your @provider.DisplayName account">
+                            <img src="https://www.svgrepo.com/show/303108/google-icon-logo.svg" class="w-5 h-5">
+                            Continue with Google
+                        </button>
+                    }
+                    else if (provider.Name == "Facebook")
+                    {
+                        <button type="submit"
+                                name="provider"
+                                value="@provider.Name"
+                                class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition"
+                                title="Log in using your @provider.DisplayName account">
+                            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5">
+                            Continue with Facebook
+                        </button>
+                    }
+                }
+            </form>
+        }
 
         <p class="text-center text-gray-600 mt-4">
             Already have an account? <a asp-action="Login" class="text-[#088178] font-semibold hover:underline">Login</a>

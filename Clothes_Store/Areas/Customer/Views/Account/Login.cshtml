@@ -36,48 +36,73 @@
             <div>
                 <label asp-for="Email" class="block text-gray-700 font-medium mb-2">Email Address</label>
                 <input asp-for="Email" type="email" id="email" placeholder="Enter your email"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none focus:bg-white">
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none focus:bg-white">
                 <span asp-validation-for="Email" class="text-danger"></span>
             </div>
 
             <div class="mt-4">
                 <label asp-for="Password" class="block text-gray-700 font-medium mb-2">Password</label>
                 <input asp-for="Password" type="password" id="password" placeholder="Enter your password"
-                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none focus:bg-white">
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none focus:bg-white">
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
             <div class="mt-4 flex justify-between items-center">
                 <div class="flex items-center">
                     <input asp-for="RememberMe" type="checkbox" id="rememberMe"
-                           class="h-4 w-4 text-[#088178] border-gray-300 rounded focus:ring-[#088178]">
+                    class="h-4 w-4 text-[#088178] border-gray-300 rounded focus:ring-[#088178]">
                     <label for="rememberMe" class="ml-2 text-gray-700 text-sm">Remember Me</label>
                 </div>
                 <a asp-controller="Account" asp-action="ForgotPassword" class="text-[#088178] text-sm hover:underline">Forgot Password?</a>
             </div>
 
             <button type="submit" id="loginButton"
-                    class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                    disabled>
+            class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            disabled>
                 <span id="loginText">Login</span>
                 <div id="loadingSpinner" class="hidden ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </button>
         </form>
-
+        @{
+            var schemes = await signInManager.GetExternalAuthenticationSchemesAsync();
+            var loginProviders = schemes.ToList();
+        }
         <div class="flex items-center my-6">
             <hr class="flex-grow border-gray-300">
             <span class="mx-3 text-gray-500">OR</span>
             <hr class="flex-grow border-gray-300">
         </div>
-
-        <button class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition">
-            <img src="https://www.svgrepo.com/show/303108/google-icon-logo.svg" class="w-5 h-5"> Continue with Google
-        </button>
-
-        <button class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition mt-3">
-            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5"> Continue with Facebook
-        </button>
-
+        @if (loginProviders.Count > 0)
+        {
+            <form asp-action="ExternalLogin" asp-controller="Account" method="post" class="flex flex-col gap-3">
+                <!-- Added gap-3 -->
+                @foreach (var provider in loginProviders)
+                {
+                    @if (provider.Name == "Google")
+                    {
+                        <button type="submit"
+                                name="provider"
+                                value="@provider.Name"
+                                class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition"
+                                title="Log in using your @provider.DisplayName account">
+                            <img src="https://www.svgrepo.com/show/303108/google-icon-logo.svg" class="w-5 h-5">
+                            Continue with Google
+                        </button>
+                    }
+                    else if (provider.Name == "Facebook")
+                    {
+                        <button type="submit"
+                                name="provider"
+                                value="@provider.Name"
+                                class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition"
+                                title="Log in using your @provider.DisplayName account">
+                            <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5">
+                            Continue with Facebook
+                        </button>
+                    }
+                }
+            </form>
+        }
         <p class="text-center text-gray-600 mt-4">
             Don't have an account? <a asp-action="Register" class="text-[#088178] font-semibold hover:underline">Sign Up</a>
         </p>
