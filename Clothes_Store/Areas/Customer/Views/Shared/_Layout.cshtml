@@ -24,16 +24,17 @@
 </head>
 <body>
     <section id="header">
-        <a href="view.php"><img src="~/img/logo.png" alt="logo"></a>
+        <a asp-controller="Home" asp-action="Home"><img src="~/img/logo.png" alt="logo"></a>
         <!-- Search -->
-        <form action="search.php"
-              method="get">
+        <form asp-controller="Home" asp-action="Search" method="get">
             <div class="col-rt-3 equal-height">
                 <div class="sb-example-3">
                     <div class="search__container">
-                        <input class="search__input" type="search" placeholder="Need Something ?" aria-describedby="basic-addon2"
+                        <input class="search__input" type="search"
+                               placeholder="Need Something ?"
+                               aria-describedby="basic-addon2"
                                aria-label="Need Something ?"
-                               name="key">
+                               name="searchTerm"> <!-- Changed from 'key' to 'searchTerm' -->
                     </div>
                 </div>
             </div>

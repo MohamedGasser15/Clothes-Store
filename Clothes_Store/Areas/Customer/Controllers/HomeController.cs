@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using System.Security.Claims;
 using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
+using Clothes_Models.ViewModels;
 using Clothes_Store.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,27 @@ namespace Clothes_Store.Controllers
             }
 
             return View(product);
+        }
+        public ActionResult Search(string searchTerm)
+        {
+            var viewModel = new SearchViewModel
+            {
+                SearchTerm = searchTerm
+            };
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                viewModel.Results = _db.Products.Include(p => p.Brand)
+                    .Where(p => p.Product_Name.Contains(searchTerm) ||
+                                p.Product_Description.Contains(searchTerm))
+                    .ToList();
+            }
+            else
+            {
+                viewModel.Results = new List<Product>();
+            }
+
+            return View(viewModel);
         }
         public IActionResult Blog()
         {
