@@ -129,6 +129,34 @@
     .bounce-effect {
         animation: bounce 1s;
     }
+
+    .size-option {
+        border: 1px solid #cce7d0; /* Light green border matching your theme */
+        background-color: #e8f6ea; /* Very light green background */
+        color: #088178; /* Your main green color for text */
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .size-option:hover {
+            background-color: #088178; /* Your main green color */
+            color: white;
+            border-color: #088178;
+        }
+
+        .size-option:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.3); /* Green focus ring */
+        }
+
+        /* Selected state */
+        .size-option.active {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
 </style>
 
 <!-- Notification Container -->
@@ -159,11 +187,11 @@
                 <h4 class="text-lg font-medium text-gray-900 mb-3">Size</h4>
                 <div class="flex flex-wrap gap-2">
                     <!-- Size options as buttons -->
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="S">S</button>
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="M">M</button>
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="L">L</button>
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="XL">XL</button>
-                    <button type="button" class="size-option border border-gray-300 rounded-md px-4 py-2 hover:border-custom-color focus:outline-none focus:ring-1 focus:ring-custom-color" value="XXL">XXL</button>
+                    <button type="button" class="size-option" value="S">S</button>
+                    <button type="button" class="size-option" value="M">M</button>
+                    <button type="button" class="size-option" value="L">L</button>
+                    <button type="button" class="size-option" value="XL">XL</button>
+                    <button type="button" class="size-option" value="XXL">XXL</button>
                 </div>
                 <input type="hidden" id="selectedSize" name="size" value="">
             </div>
@@ -328,4 +356,23 @@
             }, 500);
         }
     }
+       document.querySelectorAll('.size-option').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.size-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Add active class to clicked button
+            this.classList.add('active');
+
+            // Set the hidden input value
+            document.getElementById('selectedSize').value = this.value;
+        });
+
+        // Initialize selected size if needed
+        if (this.value === document.getElementById('selectedSize').value) {
+            this.classList.add('active');
+        }
+    });
 </script>

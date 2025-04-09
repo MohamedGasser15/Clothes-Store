@@ -251,6 +251,12 @@
                 const formData = new FormData(this);
                 const productId = this.dataset.productId;
                 const button = this.querySelector('button[type="submit"]');
+                const originalButtonHTML = button.innerHTML;
+                const originalButtonStyle = {
+                    backgroundColor: button.style.backgroundColor,
+                    color: button.style.color,
+                    borderColor: button.style.borderColor
+                };
 
                 // Add loading state to button
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -272,20 +278,55 @@
                 .then(data => {
                     showNotification(data.success, data.message);
                     if (data.success) {
+                        // Add bounce effect
                         button.classList.add('bounce-effect');
+
+                        // Change button style to indicate success (using your brand color #088178)
+                        button.style.backgroundColor = '#088178';
+                        button.style.color = 'white';
+                        button.style.borderColor = '#088178';
+
+                        // Change icon to checkmark
+                        button.innerHTML = '<i class="fas fa-check"></i>';
+
+                        // Reset to original state after 2 seconds
+                        setTimeout(() => {
+                            button.style.backgroundColor = originalButtonStyle.backgroundColor || '#e8f6ea';
+                            button.style.color = originalButtonStyle.color || '#088178';
+                            button.style.borderColor = originalButtonStyle.borderColor || '#cce7d0';
+                            button.innerHTML = originalButtonHTML;
+                            button.classList.remove('bounce-effect');
+                            button.disabled = false;
+                        }, 2000);
+
+                        // Update cart count in navbar if you have one
+                        if (data.cartCount !== undefined) {
+                            updateCartCount(data.cartCount);
+                        }
+                    } else {
+                        // Reset button if not successful
+                        button.innerHTML = originalButtonHTML;
+                        button.disabled = false;
                     }
                 })
                 .catch(error => {
                     showNotification(false, 'An error occurred while adding to cart');
-                })
-                .finally(() => {
-                    // Reset button state
-                    button.innerHTML = '<i class="fal fa-shopping-cart"></i>';
+                    button.innerHTML = originalButtonHTML;
                     button.disabled = false;
                 });
             });
         });
 
+        // Function to update cart count in navbar (if you have one)
+        function updateCartCount(count) {
+            const cartCountElement = document.querySelector('.cart-count');
+            if (cartCountElement) {
+                cartCountElement.textContent = count;
+                cartCountElement.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }
+
+        // Rest of your existing notification code...
         function showNotification(isSuccess, message) {
             const notificationContainer = document.querySelector('.notification-container');
             const notificationId = 'notification-' + Date.now();

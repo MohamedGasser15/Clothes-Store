@@ -3,6 +3,7 @@ using Clothes_DataAccess.Repo;
 using Clothes_DataAccess.Repo.Interfaces;
 using Clothes_Models.Models;
 using Clothes_Store.Services;
+using Clothes_Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
@@ -57,5 +58,53 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{area=Customer}/{controller=Home}/{action=Home}/{id?}");
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+    var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+    string adminEmail = "admin@example.com";  // Change this
+    string adminPassword = "Admin1234@";      // Change this
+
+    // Ensure "Admin" role exists
+    if (!await roleManager.RoleExistsAsync(SD.Admin))
+    {
+        await roleManager.CreateAsync(new IdentityRole(SD.Admin));
+        await roleManager.CreateAsync(new IdentityRole(SD.User));
+    }
+
+    // Ensure admin user exists
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true,
+            Name = "Admin",
+        };
+        var result = await userManager.CreateAsync(adminUser, adminPassword);
+
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+            Console.WriteLine("Admin user created successfully!");
+        }
+        else
+        {
+            Console.WriteLine("Error creating admin user:");
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"- {error.Description}");
+            }
+        }
+    }
+    else
+    {
+        Console.WriteLine("Admin user already exists.");
+    }
+}
 
 app.Run();
