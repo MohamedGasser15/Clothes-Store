@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 
@@ -21,7 +22,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _db;
-        private readonly IEmailSender _emailSender; 
+        private readonly IEmailSender _emailSender;
 
 
         public AccountController(UserManager<ApplicationUser> userManager,
@@ -322,7 +323,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
 </html>";
 
             // Send email using SendGrid
-            await _emailSender.SendEmailAsync(user.Email, "Password Reset Code",emailBody);
+            await _emailSender.SendEmailAsync(user.Email, "Password Reset Code", emailBody);
 
             return RedirectToAction("VerifyResetCode", new { email = user.Email });
         }
@@ -397,7 +398,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
         {
             var model = new ResetPasswordViewModel
             {
-                Email = email 
+                Email = email
             };
             return View(model);
         }
@@ -443,7 +444,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                
+
                 return View("Error");
             }
 
@@ -521,6 +522,112 @@ namespace Clothes_Store.Areas.Customer.Controllers
         {
             return View();
         }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult ExternalLogin(string provider, string returnurl = null)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Account", new { returnurl });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallback(string returnurl = null, string remoteError = null)
+        {
+            returnurl = returnurl ?? Url.Content("~/");
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
+                return View(nameof(SignIn));
+            }
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return RedirectToAction(nameof(SignIn));
+            }
+
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+            if (result.Succeeded)
+            {
+                await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                return LocalRedirect(returnurl);
+            }
+            if (result.RequiresTwoFactor)
+            {
+                return RedirectToAction("VerifyAuthenticatorCode", new { returnurl = returnurl });
+            }
+            else
+            {
+                ViewData["ReturnUrl"] = returnurl;
+                ViewData["ProviderDisplayName"] = info.ProviderDisplayName;
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                return RedirectToAction("ExternalLoginConfirmation", "Account", new
+                {
+                    returnurl = returnurl,
+                    email = email
+                });
+            }
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ExternalLoginConfirmation(string returnurl, string email)
+        {
+            returnurl = returnurl ?? Url.Content("~/");
+
+            return View(new ExternalLoginConfirmationViewModel
+            {
+                Email = email,
+            });
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExternalLoginConfirmation(ExternalLoginConfirmationViewModel model, string returnurl = null)
+        {
+            returnurl = returnurl ?? Url.Content("~/");
+
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                return View("Error");
+            }
+
+            var user = new ApplicationUser
+            {
+                Name = model.Name,
+                Email = model.Email,
+                UserName = model.Email // Make sure to set UserName
+            };
+
+            var result = await _userManager.CreateAsync(user);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, SD.User);
+                result = await _userManager.AddLoginAsync(user, info);
+                if (result.Succeeded)
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                    return LocalRedirect(returnurl);
+                }
+            }
+
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            ViewData["ReturnUrl"] = returnurl;
+            return View(model);
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
