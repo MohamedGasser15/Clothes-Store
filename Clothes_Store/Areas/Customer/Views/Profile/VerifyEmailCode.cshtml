@@ -1,0 +1,126 @@
+﻿@model Clothes_Models.ViewModels.VerifyEmailCodeViewModel
+@{
+    Layout = "~/Areas/Customer/Views/Shared/_ProfileLayout.cshtml";
+}
+
+<div class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-96 border border-gray-200 mt-[-150px]">
+        <a href="@Url.Action("Security","Profile")"
+           class="flex items-center text-[#076b63] hover:text-[#054a43] mb-4 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Back to Security
+        </a>
+
+        <h2 class="text-2xl font-bold text-gray-800 text-center">Verify Your Email</h2>
+        <p class="text-gray-600 text-center mt-2">Code sent to <span class="font-medium">@Model.Email</span></p>
+
+        <form id="verifyForm" method="post" asp-action="VerifyEmailCode">
+            <input type="hidden" asp-for="Email" />
+            @Html.AntiForgeryToken()
+            <input asp-for="UserId" type="hidden" />
+
+            <div class="flex justify-center gap-2 mt-4">
+                @for (int i = 0; i < 6; i++)
+                {
+                    <input type="text"
+                           maxlength="1"
+                           pattern="[0-9]"
+                           class="w-12 h-12 text-center text-lg font-semibold border border-gray-300 rounded-md
+                                  focus:ring-2 focus:ring-[#076b63] focus:border-[#076b63] focus:outline-none code-input"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '');
+                                    if(this.value.length && this.nextElementSibling) this.nextElementSibling.focus();"
+                           required>
+                }
+                <input type="hidden" asp-for="Code" id="fullCode">
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="mt-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="font-medium">Verification failed</span>
+                    </div>
+                    <p class="mt-1 text-sm">
+                        @Html.ValidationMessageFor(m => m.Code, null, new { @class = "text-red-600" })
+                        @if (!string.IsNullOrEmpty(ViewData["ErrorMessage"] as string))
+                        {
+                            @ViewData["ErrorMessage"]
+                        }
+                    </p>
+                </div>
+            }
+
+            <button type="submit" id="verifyBtn"
+                    class="mt-6 w-full bg-[#076b63] text-white py-3 rounded-lg hover:bg-[#054a43] transition-colors font-medium relative">
+                <span id="btnText">Verify Email</span>
+                <div id="spinner" class="hidden absolute inset-0 flex items-center justify-center">
+                    <div class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            </button>
+        </form>
+
+        <p class="mt-4 text-center text-gray-600 text-sm">
+            Didn't receive a code?
+            <a href="@Url.Action("SendEmailVerificationCode", new { userId = Model.UserId })"
+               class="text-[#076b63] hover:text-[#054a43] hover:underline">Resend it</a>
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('verifyForm');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const btnText = document.getElementById('btnText');
+            const spinner = document.getElementById('spinner');
+            const inputs = document.querySelectorAll('.code-input');
+            const fullCodeInput = document.getElementById('fullCode');
+
+            inputs[0].focus();
+
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !input.value && index > 0) {
+                        inputs[index - 1].focus();
+                    }
+                });
+            });
+
+            form.addEventListener('submit', (e) => {
+                let code = "";
+                inputs.forEach(input => code += input.value.trim());
+
+                if (code.length !== 6) {
+                    e.preventDefault();
+                    inputs.forEach(input => {
+                        if (!input.value) {
+                            input.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+                            input.addEventListener('animationend', () => {
+                                input.classList.remove('ring-2', 'ring-red-200');
+                            }, { once: true });
+                        }
+                    });
+                    return;
+                }
+
+                fullCodeInput.value = code;
+
+                btnText.classList.add('opacity-0');
+                spinner.classList.remove('hidden');
+                verifyBtn.disabled = true;
+            });
+
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    input.classList.remove('border-red-500');
+                });
+            });
+        });
+    </script>
+}
