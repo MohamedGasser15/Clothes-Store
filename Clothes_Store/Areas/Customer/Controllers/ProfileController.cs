@@ -100,36 +100,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool IsValidEmail(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-                return false;
-
-            try
-            {
-                // Use MailAddress to validate the email format
-                var mailAddress = new System.Net.Mail.MailAddress(email);
-
-                // Additional check to prevent things like "test@example.com.xyz" (but allow valid subdomains)
-                string[] parts = mailAddress.Host.Split('.');
-                if (parts.Length < 2 || parts.Any(string.IsNullOrWhiteSpace))
-                    return false;
-
-                // Check for common TLDs (you can expand this list)
-                string[] commonTlds = { "com", "net", "org", "edu", "gov", "io", "co", "uk", "de", "fr" };
-                string lastPart = parts.Last().ToLower();
-
-                if (lastPart.Length < 2 || lastPart.Length > 6 || (!commonTlds.Contains(lastPart) && lastPart.Any(c => !char.IsLetter(c))))
-                    return false;
-
-                return mailAddress.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
 
         [HttpPost]
         public async Task<IActionResult> UpdatePhone(ProfileViewModel model)

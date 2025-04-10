@@ -20,6 +20,36 @@ namespace Clothes_Store.Areas.Customer.Controllers
             _db = db;
             _userManager = userManager;
         }
+        public bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            try
+            {
+                // Use MailAddress to validate the email format
+                var mailAddress = new System.Net.Mail.MailAddress(email);
+
+                // Additional check to prevent things like "test@example.com.xyz" (but allow valid subdomains)
+                string[] parts = mailAddress.Host.Split('.');
+                if (parts.Length < 2 || parts.Any(string.IsNullOrWhiteSpace))
+                    return false;
+
+                // Check for common TLDs (you can expand this list)
+                string[] commonTlds = { "com", "net", "org", "edu", "gov", "io", "co", "uk", "de", "fr" };
+                string lastPart = parts.Last().ToLower();
+
+                if (lastPart.Length < 2 || lastPart.Length > 6 || (!commonTlds.Contains(lastPart) && lastPart.Any(c => !char.IsLetter(c))))
+                    return false;
+
+                return mailAddress.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public async Task TrackUserDevice(ApplicationUser user)
         {
             var deviceInfo = new
@@ -85,6 +115,9 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 await _db.SaveChangesAsync();
             }
         }
+
+
+
         public string GetClientIpAddress()
         {
             var ip = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
@@ -121,7 +154,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
             if (userAgent.Contains("iPhone")) return "iOS";
             return "Unknown";
         }
-
         public string GetBrowserFromUserAgent(string userAgent)
         {
             if (userAgent.Contains("Edg"))
@@ -172,7 +204,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return "Unknown Device";
         }
-
         public async Task<string> GetLocationFromIP(string ipAddress)
         {
             if (ipAddress == "::1" || ipAddress == "127.0.0.0")
@@ -196,7 +227,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 return "Location Unknown";
             }
         }
-
         public record IpApiResponse(
             string Status,
             string Country,
