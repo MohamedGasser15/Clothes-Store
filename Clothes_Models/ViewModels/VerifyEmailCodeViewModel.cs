@@ -14,5 +14,7 @@ namespace Clothes_Models.ViewModels
         [Required]
         [Display(Name = "Verification Code")]
         public string Code { get; set; }
+        public string Email { get; set; }
+
     }
 }

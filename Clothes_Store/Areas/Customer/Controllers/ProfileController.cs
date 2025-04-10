@@ -1,7 +1,9 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -11,9 +13,11 @@ namespace Clothes_Store.Areas.Customer.Controllers
     [Area("Customer")]
     public class ProfileController : BaseController
     {
+        private readonly IEmailSender _emailSender;
 
-        public ProfileController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : base(db , userManager)
+        public ProfileController(ApplicationDbContext db, UserManager<ApplicationUser> userManager , IEmailSender emailSender) : base(db , userManager)
         {
+            _emailSender = emailSender;
         }
         public async Task<IActionResult> Index()
         {
@@ -181,6 +185,228 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 .ToListAsync()
             };
             return View(model);
+        }
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendEmailVerificationCode()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            var verificationCode = new Random().Next(100000, 999999).ToString();
+            var emailBody = GenerateEmailConfirmationEmail(user, verificationCode);
+            TempData["EmailVerificationCode"] = verificationCode;
+
+            try
+            {
+                await _emailSender.SendEmailAsync(user.Email, "Confirm your email", emailBody);
+                Console.WriteLine("Email sent successfully to: " + user.Email);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error sending email: " + ex.Message);
+            }
+
+            return RedirectToAction("VerifyEmailCode", new { userId = user.Id });
+        }
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> VerifyEmailCode(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            var model = new VerifyEmailCodeViewModel
+            {
+                UserId = user.Id,
+                Email = user.Email
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyEmailCode(VerifyEmailCodeViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var user = await _userManager.FindByIdAsync(model.UserId);
+                if (user != null) model.Email = user.Email;
+                ModelState.AddModelError("Code", "Please enter a valid 6-digit code.");
+                return View(model);
+            }
+
+            var storedCode = TempData.Peek("EmailVerificationCode")?.ToString();
+
+            if (string.IsNullOrEmpty(storedCode)
+                || storedCode != model.Code
+                || string.IsNullOrEmpty(model.UserId))
+            {
+                var invalidCodeUser = await _userManager.FindByIdAsync(model.UserId);
+                if (invalidCodeUser != null) model.Email = invalidCodeUser.Email;
+
+                ModelState.AddModelError("Code", "The verification code is invalid or has expired.");
+                return View(model);
+            }
+
+            TempData.Remove("EmailVerificationCode");
+
+            var verifiedUser = await _userManager.FindByIdAsync(model.UserId);
+            if (verifiedUser == null)
+            {
+                return View("Error");
+            }
+
+            verifiedUser.EmailConfirmed = true;
+            var result = await _userManager.UpdateAsync(verifiedUser);
+
+            if (!result.Succeeded)
+            {
+                ModelState.AddModelError("", "Failed to verify email. Please try again.");
+                model.Email = verifiedUser.Email;
+                return View(model);
+            }
+
+            return RedirectToAction("Security", "Profile", new { area = "Customer", message = "Email verified successfully!" });
+        }
+
+        private string GenerateEmailConfirmationEmail(ApplicationUser user, string confirmationCode)
+        {
+            return $@"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }}
+        .email-container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 15px;
+        }}
+        .header h1 {{
+            color: #6366f1;
+            margin: 0;
+            font-size: 24px;
+        }}
+        .content {{
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }}
+        .content p {{
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 15px;
+        }}
+        .verification-code {{
+            font-size: 28px;
+            font-weight: bold;
+            color: #6366f1;
+            letter-spacing: 3px;
+            text-align: center;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px dashed #6366f1;
+        }}
+        .security-alert {{
+            background-color: #f8f9fa;
+            border-left: 4px solid #6366f1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .footer {{
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 25px;
+            border-top: 1px solid #eaeaea;
+            padding-top: 15px;
+        }}
+        .button {{
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #6366f1;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px auto;
+            text-align: center;
+        }}
+        .info-item {{
+            margin-bottom: 8px;
+        }}
+    </style>
+</head>
+<body>
+    <div class='email-container'>
+        <div class='header'>
+            <h1>Email Verification</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Hello {user.Name},</p>
+            
+            <p>Thank you for registering with Trendsvalley! Please use the following verification code to confirm your email address:</p>
+            
+            <div class='verification-code'>
+                {confirmationCode}
+            </div>
+            
+            <p>This code will expire in 15 minutes. If you didn't request this, please ignore this email.</p>
+            
+            <div class='security-alert'>
+                <p><strong>Security Tip:</strong> Never share this code with anyone. Trendsvalley will never ask for your verification code.</p>
+            </div>
+            
+            <p>Alternatively, you can click the button below to verify your email:</p>
+            
+            <a href=""{GenerateVerificationLink(user, confirmationCode)}"" class='button'>Verify Email Address</a>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style=""word-break: break-all;"">{GenerateVerificationLink(user, confirmationCode)}</p>
+        </div>
+        
+        <div class='footer'>
+            <p>&copy; {DateTime.Now.Year} Cara-Store. All rights reserved.</p>
+            <p>This email was sent to {user.Email} as part of our verification process.</p>
+        </div>
+    </div>
+</body>
+</html>";
+        }
+
+        private string GenerateVerificationLink(ApplicationUser user, string code)
+        {
+            return Url.Action(
+                "VerifyEmailCode",
+                "Profile",
+                new { userId = user.Id, code = code },
+                protocol: HttpContext.Request.Scheme
+            );
         }
     }
 }
