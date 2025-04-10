@@ -618,7 +618,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
             }
 
             var code = GenerateSecureSixDigitCode();
-            Console.WriteLine($"=============================={code}");
             var emailBody = GenerateEmailEnable2FA(user, code);
 
             HttpContext.Session.SetString("2FA_Code", code);
