@@ -824,6 +824,76 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return RedirectToAction("Enable2FA");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ManageDevices()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var devices = await _db.UserDevices
+                .Where(d => d.UserId == user.Id)
+                .OrderByDescending(d => d.LastLoginDate)
+                .ToListAsync();
+
+            return View(devices);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveDevice(string deviceId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var device = await _db.UserDevices
+                .FirstOrDefaultAsync(d => d.Id == Guid.Parse(deviceId) && d.UserId == user.Id);
+
+            if (device == null)
+            {
+                TempData["Error"] = "The Device Is Not Found";
+                return RedirectToAction("ManageDevices");
+            }
+
+
+            await _userManager.UpdateSecurityStampAsync(user);
+
+            _db.UserDevices.Remove(device);
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = "Device removed and logout activated successfully!";
+            return RedirectToAction("ManageDevices");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveInactiveDevices()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var thirtyDaysAgo = DateTime.Now.AddDays(-30);
+            var inactiveDevices = await _db.UserDevices
+                .Where(d => d.UserId == user.Id &&
+                           d.LastLoginDate < thirtyDaysAgo &&
+                           d.DeviceToken != Request.Cookies["DeviceToken"])
+                .ToListAsync();
+
+            if (inactiveDevices.Any())
+            {
+                await _userManager.UpdateSecurityStampAsync(user);
+
+                _db.UserDevices.RemoveRange(inactiveDevices);
+                await _db.SaveChangesAsync();
+
+                TempData["Success"] = $"Removed {inactiveDevices.Count} inactive devices and activated logout!";
+            }
+            else
+            {
+                TempData["Info"] = "No inactive devices to remove";
+            }
+
+            return RedirectToAction("ManageDevices");
+        }
         private static string GenerateSecureSixDigitCode()
         {
             using var rng = RandomNumberGenerator.Create();
