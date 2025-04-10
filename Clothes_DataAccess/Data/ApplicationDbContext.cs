@@ -19,6 +19,8 @@ namespace Clothes_DataAccess.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Brand> Brands { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
+        public DbSet<SecurityActivity> SecurityActivities { get; set; }
+
         public DbSet<CartItem> CartItems { get; set; }
 
 
