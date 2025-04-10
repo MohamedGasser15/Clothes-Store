@@ -1,0 +1,294 @@
+﻿@using Clothes_Models.ViewModels
+@using Clothes_Models.Models
+@using Microsoft.AspNetCore.Identity
+@model ProfileViewModel
+@inject UserManager<ApplicationUser> _userManager
+
+@{
+    Layout = "~/Areas/Customer/Views/Shared/_ProfileLayout.cshtml";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div id="successMessage" class="fixed top-4 right-4 z-50 animate-fade-in">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center justify-between">
+            <span class="flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                @TempData["SuccessMessage"]
+            </span>
+            <button type="button" class="text-green-700 hover:text-green-900" onclick="closeMessage('successMessage')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+}
+
+<div class="mb-6 lg:mb-8">
+    <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Login & Security</h2>
+    <p class="text-gray-500 text-sm lg:text-base">Manage your account security settings</p>
+</div>
+
+<div class="space-y-4 lg:space-y-6">
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-envelope text-primary mr-2"></i>
+                Email Address
+            </h3>
+            @if (Model.IsEmailConfirmed)
+            {
+                <span class="text-green-600 text-sm flex items-center">
+                    <i class="fas fa-check-circle mr-1"></i> Confirmed
+                </span>
+            }
+            else
+            {
+                <form asp-controller="Profile" asp-action="SendEmailVerificationCode" method="post">
+                    <input type="hidden" name="userId" value="@Model.UserId" />
+                    <button class="text-primary hover:text-[#076b63] text-sm font-medium">
+                        <i class="fas fa-envelope mr-1"></i> Verify Email
+                    </button>
+                </form>
+            }
+        </div>
+        <div class="mt-4">
+            <p class="text-gray-800">@Model.Email</p>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-lock text-primary mr-2"></i>
+                Password
+            </h3>
+            <a asp-controller="Profile"
+               asp-action="ChangePassword"
+               class="text-primary hover:text-[#076b63] text-sm font-medium">
+                <i class="fas fa-edit mr-1"></i> Change
+
+            </a>
+        </div>
+        <div class="mt-4">
+            <p class="text-gray-800">••••••••</p>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm">
+                <i class="fas fa-exclamation-circle mr-1"></i>
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-shield-alt text-primary mr-2"></i>
+                Two-Factor Authentication
+            </h3>
+            @if (Model.IsTwoFactorEnabled)
+            {
+                <form asp-action="Disable2FA" method="post" id="disable2faForm">
+                    @Html.AntiForgeryToken()
+                    <button type="button" onclick="confirmDisable2FA()"
+                            class="text-red-500 hover:text-red-700 text-sm font-medium">
+                        <i class="fas fa-times-circle mr-1"></i> Disable
+                    </button>
+                </form>
+            }
+            else
+            {
+                <a asp-action="Enable2FA"
+                   class="text-primary hover:text-[#076b63] text-sm font-medium">
+                    <i class="fas fa-plus-circle mr-1"></i> Enable
+                </a>
+            }
+        </div>
+        <div class="mt-4">
+            <p class="text-gray-800">@(Model.IsTwoFactorEnabled ? "Enabled" : "Disabled")</p>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-laptop text-primary mr-2"></i>
+                Connected Devices
+            </h3>
+            <a asp-action="ManageDevices"
+               class="text-primary hover:text-[#076b63] text-sm font-medium">
+                <i class="fas fa-cog mr-1"></i> Manage
+            </a>
+        </div>
+        <div class="mt-4 space-y-2">
+            @if (Model.ConnectedDevices != null && Model.ConnectedDevices.Count > 0)
+            {
+                foreach (var device in Model.ConnectedDevices)
+                {
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                        <div>
+                            <p class="text-gray-800 font-medium">@device.DeviceName</p>
+                            <p class="text-gray-500 text-sm">
+                                Last active:
+                                @if (device.LastLoginDate.HasValue)
+                                {
+                                    @FormatLastActive(device.LastLoginDate.Value)
+                                }
+                                else
+                                {
+                                    <span>unknown</span>
+                                }
+                            </p>
+                            @if (device.DeviceToken == Context.Request.Cookies["DeviceToken"])
+                            {
+                                <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded mt-1">This device</span>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-gray-500">No connected devices</p>
+            }
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold flex items-center">
+            <i class="fas fa-history text-primary mr-2"></i>
+            Recent Security Activity
+        </h3>
+        <div class="mt-4 space-y-2">
+            @if (Model.RecentSecurityActivities.Any())
+            {
+                foreach (var activity in Model.RecentSecurityActivities)
+                {
+                    <div class="py-2 border-b border-gray-100">
+                        <p class="text-gray-800">@activity.Description</p>
+                        <p class="text-gray-500 text-sm">@activity.ActivityDate.ToString("MMMM dd, yyyy h:mm tt")</p>
+                    </div>
+                }
+            }
+            else
+            {
+                <p class="text-gray-500">No recent security activities</p>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="mt-8 flex justify-start">
+    <a asp-area="Customer" asp-controller="Home" asp-action="Index"
+       class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center text-sm font-medium">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+    </a>
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function closeMessage(id) {
+            let element = document.getElementById(id);
+            if (element) {
+                element.classList.add('animate-fade-out');
+                setTimeout(() => element.remove(), 1000);
+            }
+        }
+
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        function showEmailVerificationModal() {
+            showModal('emailVerificationModal');
+        }
+
+        function showEnable2FAModal() {
+            showModal('enable2FAModal');
+        }
+
+        function confirmDisable2FA() {
+            Swal.fire({
+                title: 'Disable Two-Factor Authentication?',
+                text: "This will reduce your account security. Are you sure?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, disable it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('disable2faForm').submit();
+                }
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                closeMessage('successMessage');
+            }, 5000);
+        });
+    </script>
+}
+
+<style>
+    .animate-fade-in {
+        opacity: 0;
+        transform: translateY(-10px);
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-out {
+        animation: fadeOut 1s ease-out forwards;
+    }
+
+    @@keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    }
+</style>
+
+@functions {
+    public string FormatLastActive(DateTime lastActive)
+    {
+        var timeSince = DateTime.Now - lastActive;
+
+        if (timeSince.TotalMinutes < 1) return "just now";
+        if (timeSince.TotalHours < 1) return $"{Math.Floor(timeSince.TotalMinutes)} minutes ago";
+        if (timeSince.TotalDays < 1) return $"{Math.Floor(timeSince.TotalHours)} hours ago";
+        if (timeSince.TotalDays < 30) return $"{Math.Floor(timeSince.TotalDays)} days ago";
+
+        return lastActive.ToString("MMMM dd, yyyy");
+    }
+}
