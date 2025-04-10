@@ -194,10 +194,12 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     TempData["ErrorMessage"] = "❌ User isn't exists!";
                     return View(model);
                 }
+
                 var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
 
                 if (result.Succeeded)
                 {
+                    await TrackUserDevice(user);
                     return LocalRedirect(returnurl);
                 }
                 else
@@ -475,6 +477,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.SignInAsync(user, isPersistent: false);
+                await TrackUserDevice(user);
                 return RedirectToAction("EmailConfirmationSuccess", "Account");
             }
 
@@ -547,6 +550,8 @@ namespace Clothes_Store.Areas.Customer.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+                await TrackUserDevice(user);
                 return LocalRedirect(returnurl);
             }
             if (result.RequiresTwoFactor)
@@ -605,6 +610,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 result = await _userManager.AddLoginAsync(user, info);
                 if (result.Succeeded)
                 {
+                    await TrackUserDevice(user);
                     user.EmailConfirmed = true;
                     await _userManager.UpdateAsync(user);
                     await _signInManager.SignInAsync(user, isPersistent: false);
