@@ -464,7 +464,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
             var passwordResetLink = Url.Action(
                 "ResetPassword",
-                "Auth",
+                "Account",
                 new { userId = user.Id, code = resetToken },
                 protocol: HttpContext.Request.Scheme
             );
