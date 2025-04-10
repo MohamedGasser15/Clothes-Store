@@ -17,7 +17,20 @@
         </div>
     </div>
 }
-
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="errorMessage" class="fixed top-4 right-4 z-50 animate-fade-in">
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg flex items-center justify-between">
+            <span class="flex items-center">
+                <i class="fas fa-exclamation-circle mr-2"></i>
+                @TempData["ErrorMessage"]
+            </span>
+            <button type="button" class="text-red-700 hover:text-red-900" onclick="closeMessage('errorMessage')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+}
 <div class="mb-6 lg:mb-8">
     <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Personal Information</h2>
     <p class="text-gray-500 text-sm lg:text-base">View and manage your personal details</p>
@@ -352,9 +365,10 @@
         document.body.classList.remove('overflow-hidden');
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function() {
         setTimeout(() => {
             closeMessage('successMessage');
+            closeMessage('errorMessage');
         }, 5000);
     });
 </script>
