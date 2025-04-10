@@ -1,0 +1,546 @@
+﻿@{
+    Layout = "~/Areas/Customer/Views/Shared/_ProfileLayout.cshtml";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div id="successMessage" class="fixed top-4 right-4 z-50 animate-fade-in">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center justify-between">
+            <span class="flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                @TempData["SuccessMessage"]
+            </span>
+            <button type="button" class="text-green-700 hover:text-green-900" onclick="closeMessage('successMessage')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+}
+
+<div class="mb-6 lg:mb-8">
+    <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Your Orders</h2>
+    <p class="text-gray-500 text-sm lg:text-base">View and manage your order history</p>
+</div>
+
+<div class="space-y-4 lg:space-y-6">
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="relative flex-grow">
+                <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base">
+                    <option>All Orders</option>
+                    <option>Past 30 Days</option>
+                    <option>Past 6 Months</option>
+                    <option>2023</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+            </div>
+            <div class="relative flex-grow">
+                <input type="text" placeholder="Search orders..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base">
+                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gray-50 p-4 lg:p-6 flex flex-col md:flex-row justify-between border-b border-gray-200">
+            <div class="mb-3 md:mb-0">
+                <p class="text-gray-500 text-sm">Order Placed</p>
+                <p class="text-gray-800 font-medium">June 15, 2023</p>
+            </div>
+            <div class="mb-3 md:mb-0">
+                <p class="text-gray-500 text-sm">Total</p>
+                <p class="text-gray-800 font-medium">$149.99</p>
+            </div>
+            <div class="mb-3 md:mb-0">
+                <p class="text-gray-500 text-sm">Order #</p>
+                <p class="text-gray-800 font-medium">112-5567892-4101234</p>
+            </div>
+            <div>
+                <p class="text-gray-500 text-sm">Status</p>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span class="text-green-700 font-medium">Delivered</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 lg:p-6">
+            <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                <div class="w-full sm:w-24 flex-shrink-0">
+                    <img src="https://via.placeholder.com/150" alt="Product" class="w-full h-auto rounded-lg">
+                </div>
+                <div class="flex-grow">
+                    <h3 class="text-lg font-medium text-gray-800">Wireless Bluetooth Headphones</h3>
+                    <p class="text-gray-500 text-sm mb-2">Color: Black | Size: One Size</p>
+                    <p class="text-gray-800 font-medium">$79.99</p>
+                    <p class="text-gray-500 text-sm">Quantity: 1</p>
+                </div>
+                <div class="flex sm:flex-col justify-between sm:justify-start gap-3 sm:w-32">
+                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
+                        Buy it again
+                    </button>
+                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
+                        View item
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="w-full sm:w-24 flex-shrink-0">
+                    <img src="https://via.placeholder.com/150" alt="Product" class="w-full h-auto rounded-lg">
+                </div>
+                <div class="flex-grow">
+                    <h3 class="text-lg font-medium text-gray-800">Phone Charging Stand</h3>
+                    <p class="text-gray-500 text-sm mb-2">Color: White</p>
+                    <p class="text-gray-800 font-medium">$29.99</p>
+                    <p class="text-gray-500 text-sm">Quantity: 2</p>
+                </div>
+                <div class="flex sm:flex-col justify-between sm:justify-start gap-3 sm:w-32">
+                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
+                        Buy it again
+                    </button>
+                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
+                        View item
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 p-4 lg:p-6 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-200">
+            <button onclick="showOrderDetail('order1')"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-sm lg:text-base">
+                Track package
+            </button>
+            <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-[#076b63] transition-colors text-sm lg:text-base">
+                Leave seller feedback
+            </button>
+        </div>
+
+        <div id="order1-detail" class="hidden p-4 lg:p-6 border-t border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold mb-4">Order Details</h3>
+
+            <div class="mb-6">
+                <h4 class="font-medium text-gray-800 mb-2">Shipping Information</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="font-medium text-gray-800 mb-1">Shipping Address</p>
+                        <p class="text-gray-600">John Doe</p>
+                        <p class="text-gray-600">123 Main Street</p>
+                        <p class="text-gray-600">Apartment 4B</p>
+                        <p class="text-gray-600">New York, NY 10001</p>
+                        <p class="text-gray-600">United States</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="font-medium text-gray-800 mb-1">Shipping Method</p>
+                        <p class="text-gray-600">Standard Shipping</p>
+                        <p class="text-gray-600">Estimated delivery: June 18-20, 2023</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h4 class="font-medium text-gray-800 mb-2">Payment Information</h4>
+                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <i class="fab fa-cc-visa text-2xl text-blue-500"></i>
+                        <div>
+                            <p class="text-gray-800">Visa ending in 4242</p>
+                            <p class="text-gray-500 text-sm">Expires 04/2025</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <p class="text-gray-500 text-sm">Subtotal</p>
+                            <p class="text-gray-800">$139.97</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Shipping</p>
+                            <p class="text-gray-800">$5.99</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Tax</p>
+                            <p class="text-gray-800">$4.03</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between">
+                        <p class="text-gray-800 font-medium">Total</p>
+                        <p class="text-gray-800 font-medium">$149.99</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-medium text-gray-800 mb-2">Tracking Information</h4>
+                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                    <div class="relative pl-8 pb-6 border-l-2 border-primary">
+                        <div class="mb-6">
+                            <div class="absolute w-4 h-4 rounded-full bg-primary border-2 border-white -left-2"></div>
+                            <p class="text-sm font-medium">Delivered</p>
+                            <p class="text-xs text-gray-500">June 18, 2023 at 2:30 PM</p>
+                            <p class="text-sm mt-1">Left at front door</p>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
+                            <p class="text-sm">Out for delivery</p>
+                            <p class="text-xs text-gray-500">June 18, 2023 at 8:15 AM</p>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
+                            <p class="text-sm">At local facility</p>
+                            <p class="text-xs text-gray-500">June 17, 2023 at 11:45 PM</p>
+                        </div>
+
+                        <div>
+                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
+                            <p class="text-sm">Order processed</p>
+                            <p class="text-xs text-gray-500">June 15, 2023 at 5:10 PM</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <p class="text-sm font-medium text-gray-800">Carrier: USPS</p>
+                        <p class="text-sm text-gray-600">Tracking number: <span class="font-mono">9405511202536197845123</span></p>
+                        <button class="mt-2 text-primary hover:text-[#076b63] text-sm font-medium">
+                            View carrier website
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gray-50 p-4 lg:p-6 flex flex-col md:flex-row justify-between border-b border-gray-200">
+            <div class="mb-3 md:mb-0">
+                <p class="text-gray-500 text-sm">Order Placed</p>
+                <p class="text-gray-800 font-medium">May 2, 2023</p>
+            </div>
+            <div class="mb-3 md:mb-0">
+                <p class="text-gray-500 text-sm">Total</p>
+                <p class="text-gray-800 font-medium">$89.98</p>
+            </div>
+            <div class="mb-3 md:mb-0">
+                <p class="text-gray-500 text-sm">Order #</p>
+                <p class="text-gray-800 font-medium">112-1234567-8910111</p>
+            </div>
+            <div>
+                <p class="text-gray-500 text-sm">Status</p>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span class="text-blue-700 font-medium">Shipped</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 lg:p-6">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="w-full sm:w-24 flex-shrink-0">
+                    <img src="https://via.placeholder.com/150" alt="Product" class="w-full h-auto rounded-lg">
+                </div>
+                <div class="flex-grow">
+                    <h3 class="text-lg font-medium text-gray-800">Smart Watch</h3>
+                    <p class="text-gray-500 text-sm mb-2">Color: Midnight Black</p>
+                    <p class="text-gray-800 font-medium">$89.98</p>
+                    <p class="text-gray-500 text-sm">Quantity: 1</p>
+                </div>
+                <div class="flex sm:flex-col justify-between sm:justify-start gap-3 sm:w-32">
+                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
+                        Buy it again
+                    </button>
+                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
+                        View item
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 p-4 lg:p-6 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-200">
+            <button onclick="showOrderDetail('order2')"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-sm lg:text-base">
+                Track package
+            </button>
+            <button onclick="showReturnForm('order2')"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-sm lg:text-base">
+                Return items
+            </button>
+        </div>
+
+        <div id="order2-detail" class="hidden p-4 lg:p-6 border-t border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold mb-4">Order Details</h3>
+
+            <div class="mb-6">
+                <h4 class="font-medium text-gray-800 mb-2">Shipping Information</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="font-medium text-gray-800 mb-1">Shipping Address</p>
+                        <p class="text-gray-600">John Doe</p>
+                        <p class="text-gray-600">123 Main Street</p>
+                        <p class="text-gray-600">Apartment 4B</p>
+                        <p class="text-gray-600">New York, NY 10001</p>
+                        <p class="text-gray-600">United States</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="font-medium text-gray-800 mb-1">Shipping Method</p>
+                        <p class="text-gray-600">Express Shipping</p>
+                        <p class="text-gray-600">Estimated delivery: May 5-7, 2023</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <h4 class="font-medium text-gray-800 mb-2">Payment Information</h4>
+                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                    <div class="flex items-center gap-3">
+                        <i class="fab fa-cc-mastercard text-2xl text-red-500"></i>
+                        <div>
+                            <p class="text-gray-800">Mastercard ending in 5555</p>
+                            <p class="text-gray-500 text-sm">Expires 08/2024</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <p class="text-gray-500 text-sm">Subtotal</p>
+                            <p class="text-gray-800">$89.98</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Shipping</p>
+                            <p class="text-gray-800">$0.00</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Tax</p>
+                            <p class="text-gray-800">$0.00</p>
+                        </div>
+                    </div>
+                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between">
+                        <p class="text-gray-800 font-medium">Total</p>
+                        <p class="text-gray-800 font-medium">$89.98</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="font-medium text-gray-800 mb-2">Tracking Information</h4>
+                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                    <div class="relative pl-8 pb-6 border-l-2 border-primary">
+                        <div class="mb-6">
+                            <div class="absolute w-4 h-4 rounded-full bg-primary border-2 border-white -left-2"></div>
+                            <p class="text-sm font-medium">In transit</p>
+                            <p class="text-xs text-gray-500">May 4, 2023 at 3:20 PM</p>
+                            <p class="text-sm mt-1">Departed from Chicago, IL</p>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
+                            <p class="text-sm">Arrived at facility</p>
+                            <p class="text-xs text-gray-500">May 3, 2023 at 11:45 PM</p>
+                        </div>
+
+                        <div>
+                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
+                            <p class="text-sm">Order processed</p>
+                            <p class="text-xs text-gray-500">May 2, 2023 at 5:10 PM</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <p class="text-sm font-medium text-gray-800">Carrier: FedEx</p>
+                        <p class="text-sm text-gray-600">Tracking number: <span class="font-mono">78451236985214789632</span></p>
+                        <button class="mt-2 text-primary hover:text-[#076b63] text-sm font-medium">
+                            View carrier website
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="order2-return" class="hidden p-4 lg:p-6 border-t border-gray-200 bg-gray-50">
+            <h3 class="text-lg font-semibold mb-4">Request Return</h3>
+            <form class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason for return</label>
+                    <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base">
+                        <option>Select a reason</option>
+                        <option>Arrived too late</option>
+                        <option>Wrong item was sent</option>
+                        <option>Item defective or doesn't work</option>
+                        <option>No longer needed</option>
+                        <option>Better price available</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Return method</label>
+                    <div class="space-y-2">
+                        <label class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fas fa-box text-primary mr-2"></i>
+                                <span>Drop-off at carrier location</span>
+                            </div>
+                            <div class="relative">
+                                <input type="radio" name="returnMethod" value="dropoff" class="sr-only" checked>
+                                <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors border-primary bg-primary">
+                                    <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fas fa-truck text-primary mr-2"></i>
+                                <span>Schedule a pickup</span>
+                            </div>
+                            <div class="relative">
+                                <input type="radio" name="returnMethod" value="pickup" class="sr-only">
+                                <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors border-gray-300">
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund method</label>
+                    <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base">
+                        <option>Original payment method</option>
+                        <option>Store credit</option>
+                        <option>Gift card</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Comments (optional)</label>
+                    <textarea class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base" rows="3"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="hideReturnForm('order2')" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-sm lg:text-base">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-[#076b63] transition-colors text-sm lg:text-base">
+                        Submit Return Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="mt-8 flex justify-start">
+    <a asp-area="Customer" asp-controller="Home" asp-action="Index"
+       class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center text-sm font-medium">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+    </a>
+</div>
+
+<div class="mt-6 flex justify-center">
+    <nav class="flex items-center gap-1">
+        <button class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="px-3 py-1 rounded-lg bg-primary text-white">1</button>
+        <button class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">2</button>
+        <button class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">3</button>
+        <span class="px-2">...</span>
+        <button class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+    </nav>
+</div>
+
+<script>
+    function closeMessage(id) {
+        let element = document.getElementById(id);
+        if (element) {
+            element.classList.add('animate-fade-out');
+            setTimeout(() => element.remove(), 1000);
+        }
+    }
+
+    function showOrderDetail(orderId) {
+        document.querySelectorAll('[id$="-detail"], [id$="-return"]').forEach(el => {
+            el.classList.add('hidden');
+        });
+        document.getElementById(`${orderId}-detail`).classList.remove('hidden');
+    }
+
+    function showReturnForm(orderId) {
+        document.querySelectorAll('[id$="-detail"], [id$="-return"]').forEach(el => {
+            el.classList.add('hidden');
+        });
+        document.getElementById(`${orderId}-return`).classList.remove('hidden');
+    }
+
+    function hideReturnForm(orderId) {
+        document.getElementById(`${orderId}-return`).classList.add('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('input[name="returnMethod"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('input[name="returnMethod"]').forEach(r => {
+                    const indicator = r.nextElementSibling;
+                    indicator.classList.remove('border-primary', 'bg-primary');
+                    indicator.classList.add('border-gray-300');
+                    indicator.innerHTML = '';
+                });
+
+                if (this.checked) {
+                    const indicator = this.nextElementSibling;
+                    indicator.classList.add('border-primary', 'bg-primary');
+                    indicator.classList.remove('border-gray-300');
+                    indicator.innerHTML = `
+                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    `;
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(() => {
+            closeMessage('successMessage');
+        }, 5000);
+    });
+</script>
+
+<style>
+    .animate-fade-in {
+        opacity: 0;
+        transform: translateY(-10px);
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-out {
+        animation: fadeOut 1s ease-out forwards;
+    }
+
+    @@keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    }
+</style>
