@@ -15,7 +15,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
     {
         private readonly IEmailSender _emailSender;
 
-        public ProfileController(ApplicationDbContext db, UserManager<ApplicationUser> userManager , IEmailSender emailSender) : base(db , userManager)
+        public ProfileController(ApplicationDbContext db, UserManager<ApplicationUser> userManager, IEmailSender emailSender) : base(db, userManager)
         {
             _emailSender = emailSender;
         }
@@ -99,7 +99,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
             TempData["SuccessMessage"] = "Email updated successfully!";
             return RedirectToAction(nameof(Index));
         }
-
 
         [HttpPost]
         public async Task<IActionResult> UpdatePhone(ProfileViewModel model)
@@ -201,6 +200,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             };
             return View(model);
         }
+
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -422,6 +422,186 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 new { userId = user.Id, code = code },
                 protocol: HttpContext.Request.Scheme
             );
+        }
+
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View(new ChangePasswordViewModel());
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var ipAddress = GetClientIpAddress();
+            var deviceName = System.Net.Dns.GetHostName();
+            var changeTime = DateTime.Now;
+
+            var activity = new SecurityActivity
+            {
+                UserId = user.Id,
+                ActivityType = "PasswordChange",
+                Description = "Password changed",
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+            };
+            _db.SecurityActivities.Add(activity);
+            await _db.SaveChangesAsync();
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View(model);
+            }
+
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var passwordResetLink = Url.Action(
+                "ResetPassword",
+                "Auth",
+                new { userId = user.Id, code = resetToken },
+                protocol: HttpContext.Request.Scheme
+            );
+
+            var emailSubject = "Your password has been changed";
+            var emailBody = GeneratePasswordChangeEmail(user, ipAddress, deviceName, changeTime, passwordResetLink);
+            await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
+
+            TempData["SuccessMessage"] = "Your password has been changed successfully!";
+            return RedirectToAction("Security");
+        }
+
+
+        private string GeneratePasswordChangeEmail(
+            ApplicationUser user,
+            string ipAddress,
+            string deviceName,
+            DateTime changeTime,
+            string passwordResetLink)
+        {
+            return $@"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }}
+        .email-container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 15px;
+        }}
+        .header h1 {{
+            color: #6366f1;
+            margin: 0;
+            font-size: 24px;
+        }}
+        .content {{
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }}
+        .content p {{
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 15px;
+        }}
+        .security-alert {{
+            background-color: #f8f9fa;
+            border-left: 4px solid #6366f1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .footer {{
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 25px;
+            border-top: 1px solid #eaeaea;
+            padding-top: 15px;
+        }}
+        .button {{
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #6366f1;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 15px 0;
+        }}
+        .info-item {{
+            margin-bottom: 8px;
+        }}
+        .info-label {{
+            font-weight: bold;
+            color: #555;
+        }}
+    </style>
+</head>
+<body>
+    <div class='email-container'>
+        <div class='header'>
+            <h1>Password Change Confirmation</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Hello {user.Name},</p>
+            
+            <p>Your TrendsValley account password was successfully changed on {changeTime:MMMM dd, yyyy} at {changeTime:h:mm tt}.</p>
+            
+            <div class='security-alert'>
+                <p><strong>Security Notice:</strong> If you didn't make this change, please take immediate action to secure your account.</p>
+            </div>
+            
+            <div class='info-item'>
+                <span class='info-label'>Device:</span> {deviceName}
+            </div>
+            <div class='info-item'>
+                <span class='info-label'>IP Address:</span> {ipAddress}
+            </div>
+            <div class='info-item'>
+                <span class='info-label'>Time:</span> {changeTime:f}
+            </div>
+            
+            <p>For your security, we recommend that you:</p>
+            <ul>
+                <li>Use a strong, unique password</li>
+                <li>Enable two-factor authentication</li>
+                <li>Review your recent account activity</li>
+            </ul>
+            
+            <a href=""{passwordResetLink}"" class='button'>Secure My Account</a>
+        </div>
+        
+        <div class='footer'>
+            <p>&copy; {changeTime.Year} TrendsValley. All rights reserved.</p>
+            <p>This email was sent to {user.Email} as part of our security notifications.</p>
+        </div>
+    </div>
+</body>
+</html>";
+
         }
     }
 }
