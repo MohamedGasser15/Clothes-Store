@@ -159,6 +159,31 @@ namespace Clothes_Store.Areas.Customer.Controllers
             TempData["SuccessMessage"] = "City updated successfully!";
             return RedirectToAction(nameof(Index));
         }
+        public async Task<IActionResult> Security()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
+            var model = new ProfileViewModel
+            {
+                Email = user.Email,
+                IsEmailConfirmed = user.EmailConfirmed,
+                IsTwoFactorEnabled = await _userManager.GetTwoFactorEnabledAsync(user),
+                ConnectedDevices = await _db.UserDevices
+                    .Where(d => d.UserId == user.Id)
+                    .OrderByDescending(d => d.LastLoginDate)
+                    .Take(2)
+                    .ToListAsync(),
+                RecentSecurityActivities = await _db.SecurityActivities
+                .Where(a => a.UserId == user.Id)
+                .OrderByDescending(a => a.ActivityDate)
+                .Take(5)
+                .ToListAsync()
+            };
+            return View(model);
+        }
     }
 }

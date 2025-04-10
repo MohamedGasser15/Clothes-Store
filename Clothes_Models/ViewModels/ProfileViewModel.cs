@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Clothes_Models.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -33,7 +34,8 @@ namespace Clothes_Models.ViewModels
 
         [Display(Name = "Country")]
         public string Country { get; set; }
-
+        public List<SecurityActivity> RecentSecurityActivities { get; set; } = new List<SecurityActivity>();
+        public List<UserDevice> ConnectedDevices { get; set; } = new List<UserDevice>();
     }
 
 }
