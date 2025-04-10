@@ -9,15 +9,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Clothes_Store.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    public class CartController : Controller
+    public class CartController : BaseController
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
-
-        public CartController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public CartController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : base(db , userManager)
         {
-            _context = context;
-            _userManager = userManager;
         }
 
         [HttpGet]
@@ -25,7 +20,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
 
-            var cartItems = await _context.CartItems
+            var cartItems = await _db.CartItems
                 .Include(ci => ci.Product)
                 .Where(ci => ci.UserId == user.Id)
                 .ToListAsync();
@@ -44,14 +39,14 @@ namespace Clothes_Store.Areas.Customer.Controllers
             try
             {
                 var user = await _userManager.GetUserAsync(User);
-                var product = await _context.Products.FindAsync(productId);
+                var product = await _db.Products.FindAsync(productId);
 
                 if (product == null)
                 {
                     return Json(new { success = false, message = "Product not found" });
                 }
 
-                var existingItem = await _context.CartItems
+                var existingItem = await _db.CartItems
                     .FirstOrDefaultAsync(ci => ci.ProductId == productId && ci.UserId == user.Id);
 
                 if (existingItem != null)
@@ -66,12 +61,12 @@ namespace Clothes_Store.Areas.Customer.Controllers
                         UserId = user.Id,
                         Quantity = quantity
                     };
-                    _context.CartItems.Add(newItem);
+                    _db.CartItems.Add(newItem);
                 }
 
-                await _context.SaveChangesAsync();
+                await _db.SaveChangesAsync();
 
-                var cartCount = await _context.CartItems
+                var cartCount = await _db.CartItems
                     .Where(ci => ci.UserId == user.Id)
                     .SumAsync(ci => ci.Quantity);
 
@@ -91,14 +86,14 @@ namespace Clothes_Store.Areas.Customer.Controllers
         [HttpPost]
         public async Task<IActionResult> RemoveFromCart(int id)
         {
-            var cartItem = await _context.CartItems
+            var cartItem = await _db.CartItems
                 .Include(ci => ci.Product)
                 .FirstOrDefaultAsync(ci => ci.Id == id);
 
             if (cartItem != null)
             {
-                _context.CartItems.Remove(cartItem);
-                await _context.SaveChangesAsync();
+                _db.CartItems.Remove(cartItem);
+                await _db.SaveChangesAsync();
             }
 
             return RedirectToAction("Index");
@@ -108,7 +103,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
         public async Task<IActionResult> IncreaseQuantity(int id)
         {
             var user = await _userManager.GetUserAsync(User);
-            var cartItem = await _context.CartItems
+            var cartItem = await _db.CartItems
                 .Include(ci => ci.Product)
                 .FirstOrDefaultAsync(ci => ci.Id == id && ci.UserId == user.Id);
 
@@ -121,7 +116,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             if (cartItem.Quantity > 0)
             {
                 cartItem.Quantity += 1;
-                await _context.SaveChangesAsync();
+                await _db.SaveChangesAsync();
             }
 
             return RedirectToAction(nameof(Index));
@@ -131,7 +126,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
         public async Task<IActionResult> DecreaseQuantity(int id)
         {
             var user = await _userManager.GetUserAsync(User);
-            var cartItem = await _context.CartItems
+            var cartItem = await _db.CartItems
                 .Include(ci => ci.Product)
                 .FirstOrDefaultAsync(ci => ci.Id == id && ci.UserId == user.Id);
 
@@ -143,12 +138,12 @@ namespace Clothes_Store.Areas.Customer.Controllers
             if (cartItem.Quantity > 1)
             {
                 cartItem.Quantity -= 1;
-                await _context.SaveChangesAsync();
+                await _db.SaveChangesAsync();
             }
             else
             {
-                _context.CartItems.Remove(cartItem);
-                await _context.SaveChangesAsync();
+                _db.CartItems.Remove(cartItem);
+                await _db.SaveChangesAsync();
             }
 
             return RedirectToAction(nameof(Index));
@@ -158,12 +153,12 @@ namespace Clothes_Store.Areas.Customer.Controllers
         public async Task<IActionResult> ClearCart()
         {
             var user = await _userManager.GetUserAsync(User);
-            var cartItems = await _context.CartItems
+            var cartItems = await _db.CartItems
                 .Where(ci => ci.UserId == user.Id)
                 .ToListAsync();
 
-            _context.CartItems.RemoveRange(cartItems);
-            await _context.SaveChangesAsync();
+            _db.CartItems.RemoveRange(cartItems);
+            await _db.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }

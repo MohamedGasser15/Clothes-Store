@@ -15,25 +15,20 @@ using System.Text.RegularExpressions;
 namespace Clothes_Store.Areas.Customer.Controllers
 {
     [Area("Customer")]
-
-    public class AccountController : Controller
+    public class AccountController : BaseController
     {
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly ApplicationDbContext _db;
         private readonly IEmailSender _emailSender;
-
-
         public AccountController(UserManager<ApplicationUser> userManager,
                                 SignInManager<ApplicationUser> signInManager,
-                                RoleManager<IdentityRole> roleManager, ApplicationDbContext db, IEmailSender emailSender)
+                                RoleManager<IdentityRole> roleManager,
+                                ApplicationDbContext db,
+                                IEmailSender emailSender) : base(db, userManager)
         {
-            _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _emailSender = emailSender;
-            _db = db;
         }
         public async Task<IActionResult> Register(string returnurl = null)
         {
@@ -199,7 +194,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     TempData["ErrorMessage"] = "❌ User isn't exists!";
                     return View(model);
                 }
-
                 var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
 
                 if (result.Succeeded)

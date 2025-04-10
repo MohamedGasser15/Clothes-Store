@@ -9,14 +9,11 @@ using System.Security.Claims;
 namespace Clothes_Store.Areas.Customer.Controllers
 {
     [Area("Customer")]
-    public class ProfileController : Controller
+    public class ProfileController : BaseController
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _db;
-        public ProfileController(ApplicationDbContext db, UserManager<ApplicationUser> userManager)
+
+        public ProfileController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : base(db , userManager)
         {
-            _db = db;
-            _userManager = userManager;
         }
         public async Task<IActionResult> Index()
         {
