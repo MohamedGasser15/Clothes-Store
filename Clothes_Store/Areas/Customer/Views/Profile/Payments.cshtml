@@ -1,0 +1,349 @@
+﻿@{
+    Layout = "~/Areas/Customer/Views/Shared/_ProfileLayout.cshtml";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div id="successMessage" class="fixed top-4 right-4 z-50 animate-fade-in">
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center justify-between">
+            <span class="flex items-center">
+                <i class="fas fa-check-circle mr-2"></i>
+                @TempData["SuccessMessage"]
+            </span>
+            <button type="button" class="text-green-700 hover:text-green-900" onclick="closeMessage('successMessage')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+}
+
+<div class="mb-6 lg:mb-8">
+    <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Payment Methods</h2>
+    <p class="text-gray-500 text-sm lg:text-base">Manage your saved payment options</p>
+</div>
+
+<div class="space-y-4 lg:space-y-6">
+    <!-- Default Payment Method -->
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-credit-card text-primary mr-2"></i>
+                Default Payment Method
+            </h3>
+            <button onclick="showChangePaymentModal()"
+                    class="text-primary hover:text-[#076b63] text-sm font-medium">
+                <i class="fas fa-edit mr-1"></i> Change
+            </button>
+        </div>
+        <div class="mt-4 flex items-center gap-3">
+            <i class="fab fa-cc-visa text-3xl text-blue-500"></i>
+            <div>
+                <p class="text-gray-800">Visa ending in •••• 4242</p>
+                <p class="text-gray-500 text-sm">Expires 04/2025</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold flex items-center">
+            <i class="fas fa-plus-circle text-primary mr-2"></i>
+            Payment Methods
+        </h3>
+        <button onclick="showAddPaymentModal()"
+                class="mt-4 w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 rounded-lg text-primary hover:border-primary hover:bg-gray-50 transition-colors">
+            <i class="fas fa-plus"></i> Add New Payment Method
+        </button>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold flex items-center">
+                <i class="fas fa-map-marker-alt text-primary mr-2"></i>
+                Billing Address
+            </h3>
+            <button onclick="showEditAddressModal()"
+                    class="text-primary hover:text-[#076b63] text-sm font-medium">
+                <i class="fas fa-edit mr-1"></i> Edit
+            </button>
+        </div>
+        <div class="mt-4">
+            <p class="text-gray-800">123 Main Street</p>
+            <p class="text-gray-800">Apartment 4B</p>
+            <p class="text-gray-800">New York, NY 10001</p>
+            <p class="text-gray-800">United States</p>
+        </div>
+    </div>
+</div>
+
+<div class="mt-8 flex justify-start">
+    <a asp-area="Customer" asp-controller="Home" asp-action="Index"
+       class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors inline-flex items-center text-sm font-medium">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Home
+    </a>
+</div>
+
+<div id="changePaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Change Payment Method</h3>
+        <div class="space-y-4">
+            <div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fab fa-cc-visa text-2xl text-blue-500"></i>
+                        <div>
+                            <p class="text-gray-800">Visa ending in •••• 4242</p>
+                            <p class="text-gray-500 text-sm">Expires 04/2025</p>
+                        </div>
+                    </div>
+                    <div class="h-5 w-5 rounded-full border-2 border-primary bg-primary flex items-center justify-center">
+                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <i class="fab fa-cc-mastercard text-2xl text-red-500"></i>
+                        <div>
+                            <p class="text-gray-800">Mastercard ending in •••• 5555</p>
+                            <p class="text-gray-500 text-sm">Expires 08/2024</p>
+                        </div>
+                    </div>
+                    <div class="h-5 w-5 rounded-full border-2 border-gray-300 flex items-center justify-center"></div>
+                </div>
+            </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+            <button type="button"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    onclick="hideModal('changePaymentModal')">
+                Cancel
+            </button>
+            <button type="button"
+                    class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-[#076b63] transition-colors">
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="addPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Add Payment Method</h3>
+        <form>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Type</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fab fa-cc-visa text-xl text-blue-500 mr-2"></i>
+                                <span>Visa</span>
+                            </div>
+                            <input type="radio" name="cardType" value="visa" class="sr-only">
+                            <div class="h-5 w-5 rounded-full border-2 border-gray-300 flex items-center justify-center radio-indicator"></div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fab fa-cc-mastercard text-xl text-red-500 mr-2"></i>
+                                <span>Mastercard</span>
+                            </div>
+                            <input type="radio" name="cardType" value="mastercard" class="sr-only">
+                            <div class="h-5 w-5 rounded-full border-2 border-gray-300 flex items-center justify-center radio-indicator"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                    <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="1234 5678 9012 3456">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Expiration Date</label>
+                        <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="MM/YY">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Security Code</label>
+                        <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="CVV">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Name on Card</label>
+                    <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" placeholder="John Doe">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        onclick="hideModal('addPaymentModal')">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-[#076b63] transition-colors">
+                    Add Card
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editAddressModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Edit Billing Address</h3>
+        <form>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                    <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" value="123 Main Street">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Apt/Suite (Optional)</label>
+                    <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" value="Apartment 4B">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                        <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" value="New York">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                        <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <option>New York</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ZIP Code</label>
+                    <input type="text" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary" value="10001">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                    <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                        <option>United States</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        onclick="hideModal('editAddressModal')">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-[#076b63] transition-colors">
+                    Save Address
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function closeMessage(id) {
+        let element = document.getElementById(id);
+        if (element) {
+            element.classList.add('animate-fade-out');
+            setTimeout(() => element.remove(), 1000);
+        }
+    }
+
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+    }
+
+    function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+    }
+
+    function showChangePaymentModal() {
+        showModal('changePaymentModal');
+    }
+
+    function showAddPaymentModal() {
+        showModal('addPaymentModal');
+    }
+
+    function showEditAddressModal() {
+        showModal('editAddressModal');
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('input[name="cardType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.radio-indicator').forEach(indicator => {
+                    indicator.classList.remove('border-primary', 'bg-primary');
+                    indicator.classList.add('border-gray-300');
+                    indicator.innerHTML = '';
+                });
+
+                if (this.checked) {
+                    const indicator = this.nextElementSibling;
+                    indicator.classList.add('border-primary', 'bg-primary');
+                    indicator.classList.remove('border-gray-300');
+                    indicator.innerHTML = `
+                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    `;
+                }
+            });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        setTimeout(() => {
+            closeMessage('successMessage');
+        }, 5000);
+    });
+</script>
+
+<style>
+    .animate-fade-in {
+        opacity: 0;
+        transform: translateY(-10px);
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-out {
+        animation: fadeOut 1s ease-out forwards;
+    }
+
+    @@keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    }
+</style>

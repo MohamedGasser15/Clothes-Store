@@ -902,5 +902,19 @@ namespace Clothes_Store.Areas.Customer.Controllers
             var number = BitConverter.ToUInt32(bytes, 0) % 1000000;
             return number.ToString("D6");
         }
+        public IActionResult Payments()
+        {
+            return View();
+        }
+
+        public IActionResult Orders()
+        {
+            return View();
+        }
+
+        public IActionResult ContactUs()
+        {
+            return View();
+        }
     }
 }
