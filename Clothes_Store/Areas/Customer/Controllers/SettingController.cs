@@ -185,5 +185,45 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetPrimaryAddress(string userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    TempData["ErrorMessage"] = "User not found";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (!string.IsNullOrEmpty(user.StreetAddress2))
+                {
+                    // Swap addresses
+                    var temp = user.StreetAddress;
+                    user.StreetAddress = user.StreetAddress2;
+                    user.StreetAddress2 = temp;
+                    user.SelectedAddress = "primary";
+
+                    var result = await _userManager.UpdateAsync(user);
+
+                    if (result.Succeeded)
+                    {
+                        TempData["SuccessMessage"] = "Primary address changed successfully";
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = "Failed to update primary address";
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error updating address: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
