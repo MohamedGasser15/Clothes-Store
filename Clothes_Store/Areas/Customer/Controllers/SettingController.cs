@@ -93,5 +93,30 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return RedirectToAction("Index");
         }
+        [HttpPost]
+        public async Task<IActionResult> ChangePreferredCarriers(string PreferredCarriers)
+        {
+            var userId = _userManager.GetUserId(User);
+            var user = await _userManager.FindByIdAsync(userId);
+            try
+            {
+                if (user != null)
+                {
+                    user.PreferredCarriers = PreferredCarriers;
+                    await _userManager.UpdateAsync(user);
+                    TempData["SuccessMessage"] = "Preferred Carriers updated successfully!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "User not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Failed to update Preferred Carriers";
+            }
+
+            return RedirectToAction("Index");
+        }
     }
 }
