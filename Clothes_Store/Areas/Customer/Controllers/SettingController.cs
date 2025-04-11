@@ -225,5 +225,44 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteSecondaryAddress(string userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    TempData["ErrorMessage"] = "User not found";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                user.StreetAddress2 = null;
+
+                // If secondary was selected, revert to primary
+                if (user.SelectedAddress == "secondary")
+                {
+                    user.SelectedAddress = "primary";
+                }
+
+                var result = await _userManager.UpdateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    TempData["SuccessMessage"] = "Secondary address removed";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Failed to remove address";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Error removing address: {ex.Message}";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
