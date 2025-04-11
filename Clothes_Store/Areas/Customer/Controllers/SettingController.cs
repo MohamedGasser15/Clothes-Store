@@ -18,5 +18,33 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return View(user);
         }
+        [HttpPost]
+        public async Task<IActionResult> ChangeLanguage(string PreferredLanguage)
+        {
+            var userId = _userManager.GetUserId(User);
+            var user = await _userManager.FindByIdAsync(userId);
+
+            try
+            {
+                if (user != null)
+                {
+                    user.PreferredLanguage = PreferredLanguage;
+                    await _userManager.UpdateAsync(user);
+
+                    if (HttpContext.Session != null)
+                    {
+                        HttpContext.Session.SetString("lang", PreferredLanguage);
+                    }
+                }
+
+                TempData["SuccessMessage"] = "Language changed successfully!";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Failed to change language";
+                return RedirectToAction("Index");
+            }
+        }
     }
 }
