@@ -1,0 +1,351 @@
+﻿@{
+    Layout = "~/Areas/Customer/Views/Shared/_SettingLayout.cshtml";
+}
+<div class="mb-6 lg:mb-8">
+    <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Notification Settings</h2>
+    <p class="text-gray-500 text-sm lg:text-base">Manage your notification preferences</p>
+</div>
+
+<div class="space-y-4 lg:space-y-8">
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+            <i class="fas fa-envelope text-[#088178] mr-2"></i>
+            Email Notifications
+        </h3>
+
+        <div class="space-y-3 lg:space-y-4">
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-shopping-bag text-blue-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">Order Updates</div>
+                        <div class="text-xs lg:text-sm text-gray-500">Order confirmations, shipping updates</div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <input type="checkbox"
+                           id="orderEmailToggle"
+                           class="sr-only peer"
+                           checked
+                           onchange="updateNotificationSetting('orderEmails', this.checked)">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-tag text-red-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">Promotional Offers</div>
+                        <div class="text-xs lg:text-sm text-gray-500">Discounts, sales, and special offers</div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <input type="checkbox"
+                           id="promoEmailToggle"
+                           class="sr-only peer"
+                           checked
+                           onchange="updateNotificationSetting('promoEmails', this.checked)">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-newspaper text-purple-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">Newsletter</div>
+                        <div class="text-xs lg:text-sm text-gray-500">Weekly fashion trends and updates</div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <input type="checkbox"
+                           id="newsletterToggle"
+                           class="sr-only peer"
+                           onchange="updateNotificationSetting('newsletter', this.checked)">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+            <i class="fas fa-mobile-alt text-[#088178] mr-2"></i>
+            Push Notifications
+        </h3>
+
+        <div class="space-y-3 lg:space-y-4">
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-box-open text-green-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">Order Updates</div>
+                        <div class="text-xs lg:text-sm text-gray-500">Shipping status updates</div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <input type="checkbox"
+                           id="orderPushToggle"
+                           class="sr-only peer"
+                           checked
+                           onchange="updateNotificationSetting('orderPush', this.checked)">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-bell text-yellow-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">Price Alerts</div>
+                        <div class="text-xs lg:text-sm text-gray-500">When items on your wishlist go on sale</div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <input type="checkbox"
+                           id="priceAlertToggle"
+                           class="sr-only peer"
+                           onchange="updateNotificationSetting('priceAlerts', this.checked)">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-star text-pink-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">New Arrivals</div>
+                        <div class="text-xs lg:text-sm text-gray-500">New products in your favorite categories</div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <input type="checkbox"
+                           id="newArrivalsToggle"
+                           class="sr-only peer"
+                           checked
+                           onchange="updateNotificationSetting('newArrivals', this.checked)">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+            <i class="fas fa-sms text-[#088178] mr-2"></i>
+            SMS Notifications
+        </h3>
+
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm lg:text-base font-medium mb-1">Enable SMS Notifications</div>
+                    <div class="text-xs lg:text-sm text-gray-500">Receive important updates via text message</div>
+                </div>
+                <div class="relative">
+                    <input type="checkbox"
+                           id="smsToggle"
+                           class="sr-only peer"
+                           onchange="toggleSmsNotifications(this.checked)">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="phoneNumberContainer" class="hidden">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <div class="flex gap-2">
+                    <input type="tel"
+                           id="phoneNumber"
+                           placeholder="+1 (___) ___-____"
+                           class="flex-1 p-2 border rounded-lg">
+                    <button class="px-4 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#076b63]"
+                            onclick="savePhoneNumber()">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+            <i class="fas fa-sliders-h text-[#088178] mr-2"></i>
+            Notification Preferences
+        </h3>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Notification Frequency</label>
+                <select id="notificationFrequency"
+                        class="w-full p-2 border rounded-lg text-sm lg:text-base"
+                        onchange="updateNotificationFrequency(this.value)">
+                    <option value="instant">Instant - as soon as possible</option>
+                    <option value="daily" selected>Daily digest</option>
+                    <option value="weekly">Weekly digest</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Quiet Hours</label>
+                <div class="flex items-center gap-3">
+                    <select id="quietHoursStart"
+                            class="flex-1 p-2 border rounded-lg text-sm lg:text-base">
+                        <option value="22">10:00 PM</option>
+                        <option value="23">11:00 PM</option>
+                        <option value="0">12:00 AM</option>
+                    </select>
+                    <span>to</span>
+                    <select id="quietHoursEnd"
+                            class="flex-1 p-2 border rounded-lg text-sm lg:text-base">
+                        <option value="6">6:00 AM</option>
+                        <option value="7">7:00 AM</option>
+                        <option value="8" selected>8:00 AM</option>
+                    </select>
+                    <button class="px-3 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#076b63]"
+                            onclick="saveQuietHours()">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="successNotification" class="fixed top-4 right-4 z-50 animate-fade-in hidden">
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center justify-between">
+        <span class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="successMessageText">Settings updated successfully</span>
+        </span>
+        <button type="button" class="text-green-700 hover:text-green-900" onclick="hideNotification('successNotification')">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const preferences = {
+            smsEnabled: false,
+            phoneNumber: '',
+            notificationFrequency: 'daily',
+            quietHours: { start: '23', end: '8' }
+        };
+
+        document.getElementById('smsToggle').checked = preferences.smsEnabled;
+        document.getElementById('notificationFrequency').value = preferences.notificationFrequency;
+        document.getElementById('quietHoursStart').value = preferences.quietHours.start;
+        document.getElementById('quietHoursEnd').value = preferences.quietHours.end;
+
+        if (preferences.smsEnabled) {
+            document.getElementById('phoneNumberContainer').classList.remove('hidden');
+            document.getElementById('phoneNumber').value = preferences.phoneNumber;
+        }
+    });
+
+    function updateNotificationSetting(type, enabled) {
+        console.log(`${type} notifications ${enabled ? 'enabled' : 'disabled'}`);
+        showSuccessNotification(`Notification preference updated`);
+    }
+
+    function toggleSmsNotifications(enabled) {
+        document.getElementById('phoneNumberContainer').classList.toggle('hidden', !enabled);
+        if (enabled) {
+            document.getElementById('phoneNumber').focus();
+        }
+        showSuccessNotification(`SMS notifications ${enabled ? 'enabled' : 'disabled'}`);
+    }
+
+    function savePhoneNumber() {
+        const phoneNumber = document.getElementById('phoneNumber').value;
+        if (!phoneNumber) {
+            return;
+        }
+        console.log('Phone number saved:', phoneNumber);
+        showSuccessNotification('Phone number updated');
+    }
+
+    function updateNotificationFrequency(frequency) {
+        console.log('Notification frequency set to:', frequency);
+        showSuccessNotification('Notification frequency updated');
+    }
+
+    function saveQuietHours() {
+        const start = document.getElementById('quietHoursStart').value;
+        const end = document.getElementById('quietHoursEnd').value;
+        console.log('Quiet hours set from', start, 'to', end);
+        showSuccessNotification('Quiet hours updated');
+    }
+
+    function showSuccessNotification(message) {
+        document.getElementById('successMessageText').textContent = message;
+        const notification = document.getElementById('successNotification');
+        notification.classList.remove('hidden');
+        notification.classList.add('animate-fade-in');
+
+        setTimeout(() => {
+            hideNotification('successNotification');
+        }, 3000);
+    }
+
+    function hideNotification(id) {
+        const notification = document.getElementById(id);
+        notification.classList.remove('animate-fade-in');
+        notification.classList.add('animate-fade-out');
+        setTimeout(() => {
+            notification.classList.add('hidden');
+            notification.classList.remove('animate-fade-out');
+        }, 500);
+    }
+</script>
+
+<style>
+    .animate-fade-in {
+        opacity: 0;
+        transform: translateY(-10px);
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-out {
+        animation: fadeOut 0.5s ease-out forwards;
+    }
+
+    @@keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        to {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    }
+</style>
