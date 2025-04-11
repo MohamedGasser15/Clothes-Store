@@ -46,5 +46,27 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 return RedirectToAction("Index");
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> ChangeCurrency(string Currency)
+        {
+            var userId = _userManager.GetUserId(User);
+            var user = await _userManager.FindByIdAsync(userId);
+
+            try
+            {
+                if (user != null)
+                {
+                    user.Currency = Currency;
+                    await _userManager.UpdateAsync(user);
+                }
+                TempData["SuccessMessage"] = "Currency changed successfully!";
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Failed to change currency";
+                return RedirectToAction("Index");
+            }
+        }
     }
 }
