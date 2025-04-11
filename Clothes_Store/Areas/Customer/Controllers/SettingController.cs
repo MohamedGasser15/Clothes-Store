@@ -272,5 +272,9 @@ namespace Clothes_Store.Areas.Customer.Controllers
         {
             return View();
         }
+        public IActionResult Privacy()
+        {
+            return View();
+        }
     }
 }
