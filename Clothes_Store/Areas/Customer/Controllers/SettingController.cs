@@ -68,5 +68,30 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 return RedirectToAction("Index");
             }
         }
+        [HttpPost]
+        public async Task<IActionResult> ChangePayment(string PaymentMethod)
+        {
+            var userId = _userManager.GetUserId(User);
+            var user = await _userManager.FindByIdAsync(userId);
+            try
+            {
+                if (user != null)
+                {
+                    user.PaymentMehtod = PaymentMethod;
+                    await _userManager.UpdateAsync(user);
+                    TempData["SuccessMessage"] = "Payment method updated successfully!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "User not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Failed to update payment method";
+            }
+
+            return RedirectToAction("Index");
+        }
     }
 }
