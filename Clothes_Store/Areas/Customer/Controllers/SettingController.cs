@@ -264,5 +264,9 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        public IActionResult Shipping()
+        {
+            return View();
+        }
     }
 }

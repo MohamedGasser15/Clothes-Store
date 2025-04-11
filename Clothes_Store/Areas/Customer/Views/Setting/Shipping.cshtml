@@ -1,0 +1,295 @@
+﻿@{
+    Layout = "~/Areas/Customer/Views/Shared/_SettingLayout.cshtml";
+}
+<div class="mb-6 lg:mb-8">
+    <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Shipping Settings</h2>
+    <p class="text-gray-500 text-sm lg:text-base">Configure your shipping methods and rates</p>
+</div>
+
+<div class="space-y-4 lg:space-y-8">
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+            <i class="fas fa-shipping-fast text-[#088178] mr-2"></i>
+            Shipping Methods
+        </h3>
+
+        <div class="space-y-3 lg:space-y-4">
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-truck text-green-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">Free Shipping</div>
+                        <div class="text-xs lg:text-sm text-gray-500">Orders over $50</div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <input type="checkbox"
+                           id="freeShippingToggle"
+                           class="sr-only peer"
+                           checked
+                           onchange="updateShippingMethod('free')">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-box text-blue-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">Standard Shipping</div>
+                        <div class="text-xs lg:text-sm text-gray-500">3-5 business days</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="number"
+                           id="standardShippingPrice"
+                           value="5.99"
+                           class="w-20 p-2 border rounded-lg text-right text-sm"
+                           onchange="updateShippingPrice('standard', this.value)">
+                    <div class="relative">
+                        <input type="checkbox"
+                               id="standardShippingToggle"
+                               class="sr-only peer"
+                               checked
+                               onchange="updateShippingMethod('standard')">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                            <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                <div class="flex items-center">
+                    <i class="fas fa-rocket text-purple-500 mr-2 lg:mr-3"></i>
+                    <div>
+                        <div class="text-sm lg:text-base font-medium">Express Shipping</div>
+                        <div class="text-xs lg:text-sm text-gray-500">1-2 business days</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <input type="number"
+                           id="expressShippingPrice"
+                           value="12.99"
+                           class="w-20 p-2 border rounded-lg text-right text-sm"
+                           onchange="updateShippingPrice('express', this.value)">
+                    <div class="relative">
+                        <input type="checkbox"
+                               id="expressShippingToggle"
+                               class="sr-only peer"
+                               onchange="updateShippingMethod('express')">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                            <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+            <i class="fas fa-globe text-[#088178] mr-2"></i>
+            Shipping Zones
+        </h3>
+
+        <div class="space-y-4">
+            <button class="flex items-center text-[#088178] hover:text-[#076b63] font-medium mb-3" onclick="showAddZoneModal()">
+                <i class="fas fa-plus-circle mr-2"></i>
+                Add New Zone
+            </button>
+
+            <div class="border rounded-lg p-3 lg:p-4 hover:bg-gray-50">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="font-medium text-sm lg:text-base">Domestic</h4>
+                    <div class="flex gap-2">
+                        <button class="text-gray-500 hover:text-[#088178]" onclick="editZone(1)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-red-500" onclick="deleteZone(1)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-xs lg:text-sm text-gray-500 mb-2">
+                    <span class="font-medium">Regions:</span> United States
+                </div>
+
+                <div class="text-xs lg:text-sm text-gray-500">
+                    <span class="font-medium">Methods:</span> Free, Standard, Express
+                </div>
+            </div>
+
+            <div class="border rounded-lg p-3 lg:p-4 hover:bg-gray-50">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="font-medium text-sm lg:text-base">International</h4>
+                    <div class="flex gap-2">
+                        <button class="text-gray-500 hover:text-[#088178]" onclick="editZone(2)">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-gray-500 hover:text-red-500" onclick="deleteZone(2)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-xs lg:text-sm text-gray-500 mb-2">
+                    <span class="font-medium">Regions:</span> Canada, Mexico
+                </div>
+
+                <div class="text-xs lg:text-sm text-gray-500">
+                    <span class="font-medium">Methods:</span> Standard, Express
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+            <i class="fas fa-file-alt text-[#088178] mr-2"></i>
+            Shipping Policy
+        </h3>
+
+        <div>
+            <textarea id="shippingPolicyText"
+                      class="w-full h-32 p-3 border rounded-lg focus:ring-2 focus:ring-[#088178] text-sm lg:text-base"
+                      placeholder="Enter your shipping policy here...">Free shipping on orders over $50. Standard shipping takes 3-5 business days. Express shipping available for faster delivery.</textarea>
+            <div class="flex justify-end mt-3">
+                <button type="button"
+                        class="px-4 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#076b63] text-sm lg:text-base"
+                        onclick="saveShippingPolicy()">
+                    Save Policy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="zoneModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-semibold mb-4" id="modalTitle">Add New Shipping Zone</h3>
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Zone Name</label>
+                <input type="text" id="zoneName" class="w-full p-2 border rounded-lg">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Regions</label>
+                <select id="zoneRegions" class="w-full p-2 border rounded-lg" multiple>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="MX">Mexico</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="EU">European Union</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Shipping Methods</label>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="mr-2" value="free"> Free Shipping
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" class="mr-2" value="standard" checked> Standard Shipping
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" class="mr-2" value="express"> Express Shipping
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+            <button type="button"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                    onclick="hideZoneModal()">
+                Cancel
+            </button>
+            <button type="button"
+                    class="px-4 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#076b63]"
+                    onclick="saveZone()">
+                Save Zone
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentZoneId = null;
+
+    function updateShippingMethod(type) {
+        const checkbox = document.getElementById(`${type}ShippingToggle`);
+        console.log(`${type} shipping ${checkbox.checked ? 'enabled' : 'disabled'}`);
+        showMessage(`${type} shipping ${checkbox.checked ? 'enabled' : 'disabled'}`, 'success');
+    }
+
+    function updateShippingPrice(type, price) {
+        console.log(`${type} shipping price updated to $${price}`);
+        showMessage(`${type} shipping price updated`, 'success');
+    }
+
+    function saveShippingPolicy() {
+        const policyText = document.getElementById('shippingPolicyText').value;
+        console.log('Shipping policy saved:', policyText);
+        showMessage('Shipping policy updated', 'success');
+    }
+
+    function showAddZoneModal() {
+        currentZoneId = null;
+        document.getElementById('modalTitle').textContent = 'Add New Shipping Zone';
+        document.getElementById('zoneName').value = '';
+        document.getElementById('zoneModal').classList.remove('hidden');
+    }
+
+    function editZone(zoneId) {
+        currentZoneId = zoneId;
+        document.getElementById('modalTitle').textContent = 'Edit Shipping Zone';
+
+        if (zoneId === 1) {
+            document.getElementById('zoneName').value = 'Domestic';
+        } else if (zoneId === 2) {
+            document.getElementById('zoneName').value = 'International';
+        }
+
+        document.getElementById('zoneModal').classList.remove('hidden');
+    }
+
+    function deleteZone(zoneId) {
+        if (confirm('Are you sure you want to delete this shipping zone?')) {
+            console.log(`Deleting zone ${zoneId}`);
+            showMessage('Shipping zone deleted', 'success');
+        }
+    }
+
+    function saveZone() {
+        const zoneName = document.getElementById('zoneName').value;
+        if (!zoneName) {
+            showMessage('Please enter a zone name', 'error');
+            return;
+        }
+
+        if (currentZoneId) {
+            console.log(`Updating zone ${currentZoneId} to ${zoneName}`);
+            showMessage('Zone updated successfully', 'success');
+        } else {
+            console.log(`Creating new zone: ${zoneName}`);
+            showMessage('Zone created successfully', 'success');
+        }
+
+        hideZoneModal();
+    }
+
+    function hideZoneModal() {
+        document.getElementById('zoneModal').classList.add('hidden');
+    }
+
+    function showMessage(text, type) {
+        alert(`${type.toUpperCase()}: ${text}`);
+    }
+</script>
