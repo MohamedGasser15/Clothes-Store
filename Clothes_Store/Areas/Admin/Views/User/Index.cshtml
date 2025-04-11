@@ -1,75 +1,472 @@
 ﻿@using Clothes_Models.Models
 @model IEnumerable<ApplicationUser>
 
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">User Management</h1>
+            <p class="mt-1 text-sm text-gray-500">Manage all application users and their permissions</p>
+        </div>
 
-<link href="~/css/InProduct.css" rel="stylesheet" />
-
-<div class="main-content">
-    <header>
-        <h2>
-            <label for="nav-toggle">
-                <span class="fa-solid fa-bars"></span>
-            </label> Users
-        </h2>
-        <div class="user-wrapper">
-            <img src="~/img/admin.png" width="70px" alt="">
-
-            <div>
-                <h4>Admin Account</h4>
-                <small>owner</small>
+        <div class="flex gap-3 w-full sm:w-auto">
+            <!-- Search Input -->
+            <div class="relative flex-grow sm:flex-grow-0 sm:w-72">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" id="searchInput" placeholder="Search users..."
+                       class="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm">
             </div>
         </div>
-    </header>
-    <main>
+    </div>
 
-        @if (Model.Count() > 0)
-        {
-            <h4 class="mt-5">All Users</h4>
-            <table class="table table-hover table-striped table-bordered shadow">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>UserName</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @{
-                        var i = 1;
-                    }
-                    @foreach (var item in Model)
-                    {
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-5 mb-8">
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-primary hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Total Users</p>
+                    <p class="text-2xl font-semibold text-gray-900">@Model.Count()</p>
+                </div>
+                <div class="p-3 rounded-full bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-users text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Active Users</p>
+                    <p class="text-2xl font-semibold text-gray-900" id="activeUsers">@Model.Count(u => u.LockoutEnd == null || u.LockoutEnd < DateTime.Now)</p>
+                </div>
+                <div class="p-3 rounded-full bg-blue-500 bg-opacity-10 text-blue-500">
+                    <i class="fas fa-user-check text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Admins</p>
+                    <p class="text-2xl font-semibold text-gray-900">@Model.Count(u => u.Role == "Admin")</p>
+                </div>
+                <div class="p-3 rounded-full bg-green-500 bg-opacity-10 text-green-500">
+                    <i class="fas fa-user-shield text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-500 hover:shadow-md transition-shadow duration-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Locked Users</p>
+                    <p class="text-2xl font-semibold text-gray-900">@Model.Count(u => u.LockoutEnd != null && u.LockoutEnd > DateTime.Now)</p>
+                </div>
+                <div class="p-3 rounded-full bg-purple-500 bg-opacity-10 text-purple-500">
+                    <i class="fas fa-user-lock text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    @if (Model.Count() == 0)
+    {
+        <div class="bg-white shadow-lg rounded-xl p-8 text-center">
+            <div class="mx-auto h-24 w-24 text-gray-300 mb-4">
+                <i class="fas fa-user-slash text-6xl opacity-50"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900">No users found</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by adding your first user account</p>
+        </div>
+    }
+    else
+    {
+        <div class="bg-white shadow rounded-xl overflow-hidden">
+            <!-- Table Header -->
+            <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 rounded-t-xl">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h3 class="text-lg font-medium text-gray-900">User List</h3>
+                    <div class="flex items-center space-x-3">
+                        <div class="relative">
+                            <select id="rowsPerPage" class="appearance-none bg-white border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm">
+                                <option value="5">5 per page</option>
+                                <option value="10" selected>10 per page</option>
+                                <option value="25">25 per page</option>
+                                <option value="50">50 per page</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
                         <tr>
-                            <td>@i</td>
-                            <td>@item.Name</td>
-                            <td>@item.Email</td>
-                            <td>@item.Role</td>
-                            <td>
-                                <a class="btn btn-warning" asp-action="Edit" asp-route-userId="@item.Id">Edit</a>
-                                <a class="btn btn-danger" asp-action="Delete" asp-route-userId="@item.Id">Delete</a>
-                                @if (item.LockoutEnd == null || item.LockoutEnd < DateTime.Now)
-                                {
-                                    <a asp-action="LockUnlock" asp-route-userId="@item.Id" class="btn btn-success text-white"
-                                       style="cursor:pointer">
-                                        <span>&nbsp; Lock &nbsp;</span>
-                                    </a>
-                                }
-                                else
-                                {
-                                    <a asp-action="LockUnlock" asp-route-userId="@item.Id" class="btn btn-warning text-white"
-                                       style="cursor:pointer">
-                                        <span>UnLock</span>
-                                    </a>
-                                }
-                            </td>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-150" onclick="sortTable(0)">
+                                <div class="flex items-center">
+                                    <span>ID</span>
+                                    <i class="fas fa-sort ml-2 text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-150" onclick="sortTable(1)">
+                                <div class="flex items-center">
+                                    <span>Name</span>
+                                    <i class="fas fa-sort ml-2 text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-150" onclick="sortTable(2)">
+                                <div class="flex items-center">
+                                    <span>Email</span>
+                                    <i class="fas fa-sort ml-2 text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors duration-150" onclick="sortTable(3)">
+                                <div class="flex items-center">
+                                    <span>Role</span>
+                                    <i class="fas fa-sort ml-2 text-gray-400"></i>
+                                </div>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
                         </tr>
-                        i++;
-                    }
-                </tbody>
-            </table>
-        }
-    </main>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200" id="tableBody">
+                        @{
+                            var i = 1;
+                        }
+                        @foreach (var user in Model)
+                        {
+                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">@i</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 user-name">@user.Name</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@user.Email</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                        @(user.Role == "Admin" ? "bg-purple-100 text-purple-800" : "bg-green-100 text-green-800")">
+                                        @user.Role
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <div class="flex space-x-2">
+                                        <!-- Edit Button -->
+                                        <a asp-action="Edit" asp-route-userId="@user.Id"
+                                           class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                                            <i class="fas fa-edit mr-2"></i> Edit
+                                        </a>
 
+                                        <!-- Delete Button -->
+                                        <button onclick="confirmDelete('@user.Id', '@user.Name')"
+                                                class="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                                            <i class="fas fa-trash-alt mr-2"></i> Delete
+                                        </button>
+
+                                        <!-- Lock/Unlock Button -->
+                                        @if (user.LockoutEnd == null || user.LockoutEnd < DateTime.Now)
+                                        {
+                                            <a asp-action="LockUnlock" asp-route-userId="@user.Id"
+                                               class="inline-flex items-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                <i class="fas fa-lock mr-2"></i> Lock
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a asp-action="LockUnlock" asp-route-userId="@user.Id"
+                                               class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                <i class="fas fa-unlock mr-2"></i> Unlock
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="px-5 py-4 flex items-center justify-between border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    <button id="prevPageMobile" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                        Previous
+                    </button>
+                    <button id="nextPageMobile" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200">
+                        Next
+                    </button>
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700" id="paginationInfo">
+                            Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of <span class="font-medium">@Model.Count()</span> results
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px" aria-label="Pagination">
+                            <button id="firstPage" class="relative inline-flex items-center px-3 py-2 rounded-l-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                                <span class="sr-only">First</span>
+                                <i class="fas fa-angle-double-left"></i>
+                            </button>
+                            <button id="prevPage" class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                                <span class="sr-only">Previous</span>
+                                <i class="fas fa-angle-left"></i>
+                            </button>
+                            <div id="pageNumbers" class="flex">
+                                <!-- Page numbers will be inserted here by JavaScript -->
+                            </div>
+                            <button id="nextPage" class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                                <span class="sr-only">Next</span>
+                                <i class="fas fa-angle-right"></i>
+                            </button>
+                            <button id="lastPage" class="relative inline-flex items-center px-3 py-2 rounded-r-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors duration-200">
+                                <span class="sr-only">Last</span>
+                                <i class="fas fa-angle-double-right"></i>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 </div>
+
+<!-- Delete Confirmation Modal Script -->
+<script>
+    function confirmDelete(id, name) {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-200 opacity-0';
+        modal.innerHTML = `
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 transform transition-all duration-200 scale-95">
+                <div class="flex items-center mb-4">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">Delete User</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500">
+                            Are you sure you want to delete user <span class="font-semibold">${name}</span>? This action cannot be undone.
+                        </p>
+                    </div>
+                </div>
+                <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                    <button type="button" id="confirmDelete" class="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm transition-colors duration-200">
+                        Delete
+                    </button>
+                    <button type="button" id="cancelDelete" class="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:col-start-1 sm:text-sm transition-colors duration-200">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Trigger animations
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            modal.querySelector('div').classList.remove('scale-95');
+        }, 10);
+
+        modal.querySelector('#confirmDelete').addEventListener('click', () => {
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                window.location.href = `/Admin/User/Delete/${id}`;
+                document.body.removeChild(modal);
+            }, 200);
+        });
+
+        modal.querySelector('#cancelDelete').addEventListener('click', () => {
+            modal.classList.add('opacity-0');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                document.body.removeChild(modal);
+            }, 200);
+        });
+    }
+</script>
+
+<!-- Main Table Functionality Script -->
+<script>
+    // DOM Elements
+    const tableBody = document.getElementById('tableBody');
+    const searchInput = document.getElementById('searchInput');
+    const rowsPerPage = document.getElementById('rowsPerPage');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const pageNumbers = document.getElementById('pageNumbers');
+    const prevPage = document.getElementById('prevPage');
+    const nextPage = document.getElementById('nextPage');
+    const firstPage = document.getElementById('firstPage');
+    const lastPage = document.getElementById('lastPage');
+    const prevPageMobile = document.getElementById('prevPageMobile');
+    const nextPageMobile = document.getElementById('nextPageMobile');
+
+    // State
+    let currentPage = 1;
+    let rowsPerPageValue = 10;
+    let allUsers = Array.from(tableBody.querySelectorAll('tr'));
+    let filteredUsers = [...allUsers];
+    let sortColumn = null;
+    let sortDirection = 1; // 1 for ascending, -1 for descending
+
+    // Initialize
+    function init() {
+        updateTable();
+        setupEventListeners();
+    }
+
+    // Event Listeners
+    function setupEventListeners() {
+        searchInput.addEventListener('input', handleSearch);
+        rowsPerPage.addEventListener('change', handleRowsPerPageChange);
+        prevPage.addEventListener('click', () => changePage(-1));
+        nextPage.addEventListener('click', () => changePage(1));
+        firstPage.addEventListener('click', () => goToPage(1));
+        lastPage.addEventListener('click', () => goToPage(Math.ceil(filteredUsers.length / rowsPerPageValue)));
+        prevPageMobile.addEventListener('click', () => changePage(-1));
+        nextPageMobile.addEventListener('click', () => changePage(1));
+    }
+
+    // Search Functionality
+    function handleSearch() {
+        const searchTerm = searchInput.value.toLowerCase();
+        filteredUsers = allUsers.filter(row => {
+            const userName = row.querySelector('.user-name').textContent.toLowerCase();
+            const userEmail = row.cells[2].textContent.toLowerCase();
+            return userName.includes(searchTerm) || userEmail.includes(searchTerm);
+        });
+        currentPage = 1;
+        updateTable();
+    }
+
+    // Pagination
+    function handleRowsPerPageChange() {
+        rowsPerPageValue = parseInt(rowsPerPage.value);
+        currentPage = 1;
+        updateTable();
+    }
+
+    function changePage(delta) {
+        const newPage = currentPage + delta;
+        const totalPages = Math.ceil(filteredUsers.length / rowsPerPageValue);
+
+        if (newPage > 0 && newPage <= totalPages) {
+            currentPage = newPage;
+            updateTable();
+        }
+    }
+
+    function goToPage(page) {
+        const totalPages = Math.ceil(filteredUsers.length / rowsPerPageValue);
+
+        if (page > 0 && page <= totalPages) {
+            currentPage = page;
+            updateTable();
+        }
+    }
+
+    // Sorting
+    function sortTable(columnIndex) {
+        if (sortColumn === columnIndex) {
+            sortDirection *= -1; // Toggle direction
+        } else {
+            sortColumn = columnIndex;
+            sortDirection = 1;
+        }
+
+        filteredUsers.sort((a, b) => {
+            const aValue = a.cells[columnIndex].textContent;
+            const bValue = b.cells[columnIndex].textContent;
+
+            // Numeric sorting for ID column
+            if (columnIndex === 0) {
+                return (parseInt(aValue) - parseInt(bValue)) * sortDirection;
+            }
+
+            // String sorting for other columns
+            return aValue.localeCompare(bValue) * sortDirection;
+        });
+
+        currentPage = 1;
+        updateTable();
+    }
+
+    // Update Table Display
+    function updateTable() {
+        const startIndex = (currentPage - 1) * rowsPerPageValue;
+        const endIndex = startIndex + rowsPerPageValue;
+        const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+        // Clear table
+        tableBody.innerHTML = '';
+
+        // Add filtered/sorted rows
+        paginatedUsers.forEach(row => tableBody.appendChild(row.cloneNode(true)));
+
+        // Update pagination info
+        updatePaginationInfo();
+
+        // Update pagination controls
+        updatePaginationControls();
+    }
+
+    function updatePaginationInfo() {
+        const startItem = (currentPage - 1) * rowsPerPageValue + 1;
+        const endItem = Math.min(currentPage * rowsPerPageValue, filteredUsers.length);
+
+        paginationInfo.innerHTML = `
+            Showing <span class="font-medium">${startItem}</span> to <span class="font-medium">${endItem}</span> of
+            <span class="font-medium">${filteredUsers.length}</span> results
+        `;
+    }
+
+    function updatePaginationControls() {
+        const totalPages = Math.ceil(filteredUsers.length / rowsPerPageValue);
+
+        // Clear existing page numbers
+        pageNumbers.innerHTML = '';
+
+        // Determine which pages to show (max 5 pages at a time)
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, currentPage + 2);
+
+        if (currentPage <= 3) {
+            endPage = Math.min(5, totalPages);
+        }
+        if (currentPage >= totalPages - 2) {
+            startPage = Math.max(1, totalPages - 4);
+        }
+
+        // Add page number buttons
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('button');
+            pageBtn.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200 ${
+                i === currentPage
+                    ? 'z-10 bg-primary border-primary text-white'
+                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+            }`;
+            pageBtn.textContent = i;
+            pageBtn.addEventListener('click', () => goToPage(i));
+            pageNumbers.appendChild(pageBtn);
+        }
+
+        // Enable/disable navigation buttons
+        prevPage.disabled = currentPage === 1;
+        nextPage.disabled = currentPage === totalPages;
+        firstPage.disabled = currentPage === 1;
+        lastPage.disabled = currentPage === totalPages;
+        prevPageMobile.disabled = currentPage === 1;
+        nextPageMobile.disabled = currentPage === totalPages;
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', init);
+</script>

@@ -1,8 +1,304 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "User Analytics Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">User Analytics Dashboard</h1>
+            <p class="mt-2 text-sm text-gray-500">Visual insights into user behavior and patterns</p>
+        </div>
+        <div class="flex gap-3">
+            <div class="relative">
+                <select id="timeRange" class="appearance-none bg-white border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last year</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+            <a asp-controller="User" asp-action="Index" class="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-users mr-2"></i>
+                <span>View Users</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Chart Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- User Growth Chart -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">User Growth Over Time</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="h-3 w-3 rounded-full bg-primary"></span>
+                    <span class="text-xs text-gray-500">New Users</span>
+                    <span class="h-3 w-3 rounded-full bg-green-500 ml-2"></span>
+                    <span class="text-xs text-gray-500">Total Users</span>
+                </div>
+            </div>
+            <canvas id="userGrowthChart" height="300"></canvas>
+        </div>
+
+        <!-- User Roles Distribution -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">User Roles Distribution</h3>
+                <div class="text-sm text-gray-500">
+                    250 total users
+                </div>
+            </div>
+            <canvas id="rolesChart" height="300"></canvas>
+        </div>
+
+        <!-- Activity Heatmap -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">User Activity Heatmap</h3>
+                <div class="flex items-center text-sm text-gray-500">
+                    <span>Last 30 days</span>
+                </div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <i class="fas fa-chart-area text-4xl text-gray-300 mb-2"></i>
+                <p class="text-gray-500">Activity heatmap visualization would appear here</p>
+                <p class="text-sm text-gray-400 mt-1">(Requires backend integration)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Stats Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Active vs Inactive Users -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Account Status</h3>
+            <canvas id="statusChart" height="200"></canvas>
+            <div class="mt-4 flex justify-center space-x-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600">195</div>
+                    <div class="text-sm text-gray-500">Active</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-red-600">55</div>
+                    <div class="text-sm text-gray-500">Locked</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Sources -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Registration Sources</h3>
+            <canvas id="sourceChart" height="200"></canvas>
+            <div class="mt-4 grid grid-cols-2 gap-2">
+                <div class="flex items-center">
+                    <span class="h-3 w-3 rounded-full bg-blue-500 mr-2"></span>
+                    <span class="text-sm text-gray-500">Website</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="h-3 w-3 rounded-full bg-purple-500 mr-2"></span>
+                    <span class="text-sm text-gray-500">Mobile App</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="h-3 w-3 rounded-full bg-green-500 mr-2"></span>
+                    <span class="text-sm text-gray-500">Admin Created</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="h-3 w-3 rounded-full bg-yellow-500 mr-2"></span>
+                    <span class="text-sm text-gray-500">API</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Recent User Activity</h3>
+            <div class="space-y-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">5 new users</p>
+                        <p class="text-sm text-gray-500">Today</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">124 logins</p>
+                        <p class="text-sm text-gray-500">Last 24 hours</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-500">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">42 purchases</p>
+                        <p class="text-sm text-gray-500">Yesterday</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sample data - all hardcoded
+            const userGrowthData = {
+                labels: ['Jan 1', 'Jan 8', 'Jan 15', 'Jan 22', 'Jan 29', 'Feb 5', 'Feb 12'],
+                newUsers: [15, 32, 28, 41, 36, 52, 47],
+                totalUsers: [15, 47, 75, 116, 152, 204, 251]
+            };
+
+            const rolesData = {
+                labels: ['Admin', 'Customer', 'Editor', 'Manager'],
+                counts: [12, 180, 35, 23],
+                backgroundColors: ['#6366F1', '#10B981', '#3B82F6', '#F59E0B']
+            };
+
+            // User Growth Chart (Line Chart)
+            const growthCtx = document.getElementById('userGrowthChart').getContext('2d');
+            new Chart(growthCtx, {
+                type: 'line',
+                data: {
+                    labels: userGrowthData.labels,
+                    datasets: [
+                        {
+                            label: 'New Users',
+                            data: userGrowthData.newUsers,
+                            borderColor: '#6366F1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Total Users',
+                            data: userGrowthData.totalUsers,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Roles Distribution (Doughnut Chart)
+            const rolesCtx = document.getElementById('rolesChart').getContext('2d');
+            new Chart(rolesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: rolesData.labels,
+                    datasets: [{
+                        data: rolesData.counts,
+                        backgroundColor: rolesData.backgroundColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // Account Status Chart (Pie Chart)
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Active', 'Locked'],
+                    datasets: [{
+                        data: [195, 55],
+                        backgroundColor: ['#10B981', '#EF4444'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Registration Sources (Example data)
+            const sourceCtx = document.getElementById('sourceChart').getContext('2d');
+            new Chart(sourceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Website', 'Mobile', 'Admin', 'API'],
+                    datasets: [{
+                        label: 'Users',
+                        data: [120, 80, 35, 15],
+                        backgroundColor: ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Time range selector (just for show in this demo)
+            document.getElementById('timeRange').addEventListener('change', function() {
+                console.log('Time range changed to:', this.value + ' days');
+                alert('In a real implementation, this would fetch new data based on the selected range');
+            });
+        });
+    </script>
+
+    <style>
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+    </style>
+}
