@@ -74,10 +74,6 @@ namespace Clothes_Store.Controllers
 
             return View(viewModel);
         }
-        public IActionResult Blog()
-        {
-            return View();
-        }
 
         public IActionResult About()
         {
