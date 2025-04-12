@@ -19,23 +19,25 @@
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" integrity="sha512-3pIirOrwegjM6erE5gPSwkUzO+3cTjpnV9lexlNZqvupR64iZBnOOTiiLPb9M36zpMScbmUNIcHUqKD47M719g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 
+    <link href="https://fonts.googleapis.com/css2?family=Spartan:wght@100;200;300;400;500;600;700;800;900;&display:swap">
 </head>
 <body>
     <section id="header">
-        <a asp-controller="Home" asp-action="Home"><img src="~/img/logo.png" alt="logo"></a>
+        <a asp-controller="Home" asp-action="Home" class="logo-link">
+            <img src="~/img/logo.png" alt="logo" class="logo-img">
+        </a>
         <!-- Search -->
-        <form asp-controller="Home" asp-action="Search" method="get">
-            <div class="col-rt-3 equal-height">
-                <div class="sb-example-3">
-                    <div class="search__container">
-                        <input class="search__input" type="search"
-                               placeholder="Need Something ?"
-                               aria-describedby="basic-addon2"
-                               aria-label="Need Something ?"
-                               name="searchTerm"> <!-- Changed from 'key' to 'searchTerm' -->
-                    </div>
+        <form asp-controller="Home" asp-action="Search" method="get" class="search-form">
+            <div class="sb-example-3">
+                <div class="search__container">
+                    <input class="search__input" type="search"
+                           placeholder="Need Something ?"
+                           aria-label="Need Something ?"
+                           name="searchTerm">
                 </div>
             </div>
         </form>
@@ -48,73 +50,95 @@
                 <li><a asp-area="customer" asp-controller="Home" asp-action="Blog" class="@IsActive("Home", "Blog")">Blog</a></li>
                 <li><a asp-area="customer" asp-controller="Home" asp-action="About" class="@IsActive("Home", "About")">About</a></li>
                 <li><a asp-area="customer" asp-controller="Home" asp-action="Contact" class="@IsActive("Home", "Contact")">Contact</a></li>
-                    <partial name="_LoginPartialView" />
+                <li><a href="#" id="close"<i class="far fa-times"></i></a></li>
+                <partial name="_LoginPartialView" />
             </ul>
         </div>
-    </section>
-
-
-    <div>
-        <main role="main" >
-            @RenderBody()
-        </main>
-    </div>
-
-<footer class="section-p1">
-    <div class="col">
-        <img class="logo" src="~/img/logo.png" alt="">
-        <h4> contact</h4>
-        <p><strong>Address: </strong> grandplaza towrs, Elamin street, portsaid </p>
-        <p><strong>Phone: </strong>+201201055894/+201020749292</p>
-        <p><strong>Hours: </strong> 10:00 - 20:00, Sat-thur </p>
-        <div class="follow">
-            <h4>Follow us</h4>
-            <div class="icon">
-                    <a class="iconss" href="facebook.php"><i class="fab fa-facebook-f"></i></a>
-                    <a class="iconss" href="instgram.php"><i class="fab fa-instagram"></i></a>
-                    <a class="iconss" href="whatsapp.php"><i class="fab fa-whatsapp"></i></a>
-                    <a class="iconss" href="twitter.php"><i class="fab fa-twitter"></i></a>
-                    <a class="iconss" href="youtube.php"><i class="fab fa-youtube"></i></a>
-            </div>
+        <div id="mobile">
+            <button id="bar" class="nav-button">
+                <span class="nav-button-text"></span>
+                <div class="nav-button-icon">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </button>
         </div>
-        <br>
+    </section>
+            @RenderBody()
+    <footer class="section-p1">
+        <div class="col">
+            <img class="logo" src="~/img/logo.png" alt="">
+            <h4> contact</h4>
+            <p><strong>Address: </strong> grandplaza towrs, Elamin street, portsaid </p>
+            <p><strong>Phone: </strong>+201201055894/+201020749292</p>
+            <p><strong>Hours: </strong> 10:00 - 20:00, Sat-thur </p>
+            <div class="follow">
+                <h4>Follow us</h4>
+                <div class="icon">
+                    <a class="iconss" href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a class="iconss" href="#"><i class="fab fa-instagram"></i></a>
+                    <a class="iconss" href="#"><i class="fab fa-whatsapp"></i></a>
+                    <a class="iconss" href="#"><i class="fab fa-twitter"></i></a>
+                    <a class="iconss" href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+            <br>
 
-    </div>
-    <div class="col">
-        <h4>About</h4>
-        <a href="#">About Us</a>
-        <a href="#">Delivery Information</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Term & conditions</a>
-        <a href="#">Contact Us</a>
-    </div>
-    <div class="col">
-        <h4>My Account</h4>
-        <a href="#">Sign In</a>
-        <a href="#">View Cart</a>
-        <a href="#">My Wishlist</a>
-        <a href="#">Track My Order</a>
-        <a href="#">Help</a>
-    </div>
-    <div class="col install">
-        <h4> Install App</h4>
-        <p> From App Store or Google Play</p>
-        <div class="row">
-            <a href="google.com"><img src="img/pay/app.jpg" alt=""></a>
-            <a href="apple.com"><img src="img/pay/play.jpg" alt=""></a>
-    </div>
-        <p> Secured Payment Gateways</p>
-        <img src="~/img/pay/pay.png" alt="">
-    </div>
-    <div class="copyright">
-        <p> 2024, Mohamed Gasser - Clothes Store Project</p>
-    </div>
-</footer>
+        </div>
+        <div class="col">
+            <h4>About</h4>
+            <a asp-controller="Home" asp-action="Contact">
+                About Us</a>
+            <a href="#">Delivery Information</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Term & conditions</a>
+            <a asp-controller="Profile" asp-action="ContactUs">Contact Us</a>
+        </div>
+        <div class="col">
+            <h4>My Account</h4>
+            <a asp-controller="Account" asp-action="Login">Sign In</a>
+            <a asp-controller="cart" asp-action="Index">View Cart</a>
+            <a href="#">My Wishlist</a>
+            <a href="#">Track My Order</a>
+            <a href="#">Help</a>
+        </div>
+        <div class="col install">
+            <h4> Install App</h4>
+            <p> From App Store or Google Play</p>
+            <div class="row">
+                <a href="google.com"><img src="~/img/pay/app.jpg" alt=""></a>
+                <a href="apple.com"><img src="~/img/pay/play.jpg" alt=""></a>
+            </div>
+            <p> Secured Payment Gateways</p>
+            <img src="~/img/pay/pay.png" alt="">
+        </div>
+        <div class="copyright">
+            <p> 2024, Mohamed Gasser - Clothes Store Project</p>
+        </div>
+    </footer>
 
 
     <script src="~/js/script.js" asp-append-version="true"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const bar = document.getElementById('bar')
+        const close = document.getElementById('close')
+        const nav = document.getElementById('navbar')
+
+        if (bar) {
+          bar.addEventListener('click', () => {
+            nav.classList.add('active')
+          })
+
+         if (close) {
+           close.addEventListener('click', () => {
+             nav.classList.remove('active')
+           })
+         }
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
