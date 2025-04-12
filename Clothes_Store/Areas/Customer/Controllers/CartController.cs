@@ -2,6 +2,7 @@
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
 using Clothes_Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,7 @@ using Stripe.Checkout;
 namespace Clothes_Store.Areas.Customer.Controllers
 {
     [Area("Customer")]
+    [Authorize]
     public class CartController : BaseController
     {
         public CartController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : base(db, userManager)

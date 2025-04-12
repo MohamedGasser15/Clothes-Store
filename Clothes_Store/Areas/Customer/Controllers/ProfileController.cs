@@ -13,6 +13,7 @@ using System.Security.Cryptography;
 namespace Clothes_Store.Areas.Customer.Controllers
 {
     [Area("Customer")]
+    [Authorize]
     public class ProfileController : BaseController
     {
         private readonly IEmailSender _emailSender;

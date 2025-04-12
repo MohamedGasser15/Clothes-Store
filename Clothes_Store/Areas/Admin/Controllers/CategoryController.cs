@@ -1,12 +1,14 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_DataAccess.Repo.Interfaces;
 using Clothes_Models.Models;
+using Clothes_Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Clothes_Store.Areas.Admin.Controllers
 {
     [Area("Admin")]
-
+    [Authorize(Roles = SD.Admin)]
     public class CategoryController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

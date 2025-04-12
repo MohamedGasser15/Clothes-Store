@@ -3,6 +3,8 @@ using Clothes_DataAccess.Repo;
 using Clothes_DataAccess.Repo.Interfaces;
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
+using Clothes_Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Clothes_Store.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.Admin)]
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

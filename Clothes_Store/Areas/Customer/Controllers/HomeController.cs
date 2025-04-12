@@ -5,6 +5,7 @@ using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
 using Clothes_Store.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SendGrid.Helpers.Mail;
@@ -12,7 +13,7 @@ using SendGrid.Helpers.Mail;
 namespace Clothes_Store.Controllers
 {
     [Area("Customer")]
-
+    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

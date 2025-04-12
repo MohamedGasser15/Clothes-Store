@@ -15,6 +15,7 @@ using System.Text.RegularExpressions;
 namespace Clothes_Store.Areas.Customer.Controllers
 {
     [Area("Customer")]
+    [AllowAnonymous]
     public class AccountController : BaseController
     {
         private readonly SignInManager<ApplicationUser> _signInManager;

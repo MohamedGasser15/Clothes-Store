@@ -1,11 +1,13 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Clothes_Store.Areas.Customer.Controllers
 {
     [Area("Customer")]
+    [Authorize]
     public class SettingController : BaseController
     {
         public SettingController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : base(db, userManager)
