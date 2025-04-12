@@ -214,7 +214,124 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return View(viewModel);
         }
-        
+        [HttpPost]
+        [ActionName("Summary")]
+        public async Task<IActionResult> SummaryPOST(CartViewModel viewModel)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            // Get cart items
+            var cartItems = await _db.CartItems
+                .Include(ci => ci.Product)
+                .Where(ci => ci.UserId == user.Id)
+                .ToListAsync();
+
+            viewModel.Items = cartItems; // Ensure Items is populated
+
+            // Calculate totals
+            var (subtotal, shippingFee, tax, total) = CalculateOrderTotals(cartItems);
+
+
+            // Create order header
+            viewModel.OrderHeader.OrderDate = DateTime.Now;
+            viewModel.OrderHeader.ApplicationUserId = user.Id;
+            viewModel.OrderHeader.OrderStatus = SD.StatusPending;
+            viewModel.OrderHeader.PaymentStatus = SD.PaymentStatusPending;
+            viewModel.OrderHeader.OrderTotal = total;
+            viewModel.OrderHeader.Subtotal = subtotal;
+            viewModel.OrderHeader.ShippingFee = shippingFee;
+            viewModel.OrderHeader.Tax = tax;
+
+            _db.OrderHeaders.Add(viewModel.OrderHeader);
+            await _db.SaveChangesAsync();
+
+            // Create order details
+            foreach (var item in cartItems)
+            {
+                OrderDetail orderDetail = new()
+                {
+                    ProductId = item.ProductId,
+                    OrderHeaderId = viewModel.OrderHeader.Id,
+                    price = (double)item.Product.Product_Price,
+                    Count = item.Quantity
+                };
+                _db.OrderDetails.Add(orderDetail);
+            }
+            _db.CartItems.RemoveRange(cartItems);
+            await _db.SaveChangesAsync();
+            // Stripe configuration
+            var domain = $"{Request.Scheme}://{Request.Host}";
+            var successUrl = $"{domain}/Customer/Cart/OrderConfirmation?id={viewModel.OrderHeader.Id}";
+            var cancelUrl = $"{domain}/Customer/Cart/Index";
+
+            // Verify URLs (important for debugging)
+            if (string.IsNullOrWhiteSpace(domain) ||
+                !Uri.TryCreate(successUrl, UriKind.Absolute, out _) ||
+                !Uri.TryCreate(cancelUrl, UriKind.Absolute, out _))
+            {
+                throw new Exception("Invalid URL configuration");
+            }
+
+            var options = new SessionCreateOptions
+            {
+                SuccessUrl = successUrl,
+                CancelUrl = cancelUrl,
+                Mode = "payment",
+                LineItems = new List<SessionLineItemOptions>()
+            };
+
+            // Add line items
+            foreach (var item in viewModel.Items)
+            {
+                options.LineItems.Add(new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = (long)(item.Product.Product_Price * 100),
+                        Currency = "usd",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = item.Product.Product_Name,
+                            Images = !string.IsNullOrEmpty(item.Product.imgUrl) ?
+                                   new List<string> { item.Product.imgUrl } : null
+                        }
+                    },
+                    Quantity = item.Quantity
+                });
+            }
+
+            // Add shipping if applicable
+            if (viewModel.ShippingFee > 0)
+            {
+                options.LineItems.Add(new SessionLineItemOptions
+                {
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        UnitAmount = (long)(viewModel.ShippingFee * 100),
+                        Currency = "usd",
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = "Shipping Fee"
+                        }
+                    },
+                    Quantity = 1
+                });
+            }
+
+            var service = new SessionService();
+            Session session = service.Create(options);
+
+            // Update Stripe IDs
+            viewModel.OrderHeader.SessionId = session.Id;
+            viewModel.OrderHeader.PaymentIntentId = session.PaymentIntentId;
+            await _db.SaveChangesAsync();
+
+            // Clear cart
+
+
+            return Redirect(session.Url);
+        }
+
         private (double Subtotal, double ShippingFee, double Tax, double Total) CalculateOrderTotals(IEnumerable<CartItem> cartItems)
         {
             double subtotal = (double)cartItems.Sum(i => i.Product.Product_Price * i.Quantity);
