@@ -23,6 +23,7 @@ namespace Clothes_DataAccess.Data
 
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<OrderHeader> OrderHeaders { get; set; }
+        public DbSet<OrderDetail> OrderDetails { get; set; }
 
 
 
