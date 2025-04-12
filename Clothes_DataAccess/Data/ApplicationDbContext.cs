@@ -22,6 +22,8 @@ namespace Clothes_DataAccess.Data
         public DbSet<SecurityActivity> SecurityActivities { get; set; }
 
         public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<OrderHeader> OrderHeaders { get; set; }
+
 
 
 
