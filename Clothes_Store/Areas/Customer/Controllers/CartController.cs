@@ -332,6 +332,47 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return Redirect(session.Url);
         }
 
+        public async Task<IActionResult> OrderConfirmation(int id)
+        {
+            // Get order with user info
+            var orderHeader = await _db.OrderHeaders
+                .Include(oh => oh.ApplicationUser)
+                .FirstOrDefaultAsync(oh => oh.Id == id);
+
+            if (orderHeader == null)
+            {
+                return NotFound();
+            }
+
+            // Process payment if not a delayed payment
+            if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
+            {
+                var service = new SessionService();
+                Session session = service.Get(orderHeader.SessionId);
+
+                if (session.PaymentStatus.ToLower() == "paid")
+                {
+                    // Update payment info directly
+                    orderHeader.SessionId = session.Id;
+                    orderHeader.PaymentIntentId = session.PaymentIntentId;
+                    orderHeader.OrderStatus = SD.StatusApproved;
+                    orderHeader.PaymentStatus = SD.PaymentStatusApproved;
+
+                    await _db.SaveChangesAsync();
+                }
+                // Clear session
+                HttpContext.Session.Clear();
+            }
+            // Clear user's cart
+
+            List<CartItem> shoppingCarts = await _db.CartItems.Where(u => u.UserId == orderHeader.ApplicationUserId)
+                .ToListAsync();
+
+            _db.CartItems.RemoveRange(shoppingCarts);
+            await _db.SaveChangesAsync();
+
+            return View(id);
+        }
         private (double Subtotal, double ShippingFee, double Tax, double Total) CalculateOrderTotals(IEnumerable<CartItem> cartItems)
         {
             double subtotal = (double)cartItems.Sum(i => i.Product.Product_Price * i.Quantity);
