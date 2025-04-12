@@ -174,24 +174,24 @@
                         <div class="p-6 space-y-4">
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Subtotal</span>
-                                <span class="font-medium subtotal-value">@Model.Subtotal.ToString("C")</span>
+                                <span class="font-medium subtotal-value">@Model.OrderHeader.Subtotal.ToString("C")</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Shipping</span>
-                                <span class="font-medium shipping-value">@Model.ShippingFee.ToString("C")</span>
+                                <span class="font-medium shipping-value">@Model.OrderHeader.ShippingFee.ToString("C")</span>
                             </div>
                             <div class="flex justify-between">
                                 <span class="text-gray-600">Tax</span>
-                                <span class="font-medium tax-value">@Model.Tax.ToString("C")</span>
+                                <span class="font-medium tax-value">@Model.OrderHeader.Tax.ToString("C")</span>
                             </div>
                             <div class="border-t border-gray-200 pt-4 flex justify-between">
                                 <span class="font-medium">Total</span>
-                                <span class="font-bold text-lg total-value">@Model.Total.ToString("C")</span>
+                                <span class="font-bold text-lg total-value">@Model.OrderHeader.OrderTotal.ToString("C")</span>
                             </div>
                         </div>
 
                         <div class="p-6 bg-gray-50 rounded-b-xl">
-                            <a asp-area="Customer" asp-controller="Checkout" asp-action="Index"
+                            <a asp-area="Customer" asp-controller="Cart" asp-action="Summary"
                                class="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#088178] hover:bg-[#06615a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
                                 Proceed to Checkout
                             </a>
