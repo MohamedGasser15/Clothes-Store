@@ -8,8 +8,6 @@
 }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-@if (_signInManager.IsSignedIn(User))
-{
     <div class="dropdown m-auto text-center p-auto">
         <button class="btn p-0 border-0 position-relative custom-focus" type="button"
                 id="userDropdown" data-bs-toggle="dropdown"
@@ -84,13 +82,6 @@
             </li>
         </ul>
     </div>
-}
-else
-{
-    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Register">Register</a></li>
-    <li class="nav-item"><a class="nav-link" asp-controller="Account" asp-action="Login">Login</a></li>
-}
-
 <style>
     .custom-focus {
         outline: none !important;
