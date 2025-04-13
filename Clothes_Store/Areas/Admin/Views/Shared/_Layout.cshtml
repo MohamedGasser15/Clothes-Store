@@ -103,6 +103,9 @@
                 <a asp-area="Admin" asp-controller="User" asp-action="Index" class="@IsActive("User","Index","Edit")">
                     <i class="fas fa-user mr-2"></i> Users
                 </a>
+                <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="@IsActive("Order","Index")">
+                    <i class="fas fa-shopping-bag mr-3"></i> Order Managment
+                </a>
                 <a asp-area="Customer" asp-controller="Home" asp-action="Home" class="@IsActive("Home","Home")">
                     <i class="fas fa-house mr-2"></i> Homepage
                 </a>
