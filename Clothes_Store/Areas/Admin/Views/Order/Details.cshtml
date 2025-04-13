@@ -1,0 +1,767 @@
+﻿@using Clothes_Utilities
+@using Microsoft.AspNetCore.Identity
+@using Clothes_Models.ViewModels
+@using Clothes_Models.Models
+
+@inject UserManager<ApplicationUser> UserManager
+@model OrderVM
+
+@{
+    var isAdmin = User.IsInRole(SD.Admin);
+}
+
+<!-- Notification Container -->
+<style>
+    /* Notification styles - same as product details page */
+    .notification-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 1000;
+    }
+
+    .notification {
+        padding: 1rem 1.5rem;
+        color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        transform: translateX(150%);
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .notification.success {
+            background-color: #088178;
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.hide {
+            transform: translateX(150%);
+            opacity: 0;
+        }
+
+    .notification-icon {
+        margin-right: 0.75rem;
+        font-size: 1.25rem;
+    }
+
+    .notification-close {
+        margin-left: 1rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .notification-progress-bar {
+        height: 100%;
+        width: 100%;
+        background: white;
+        animation: progress 3s linear forwards;
+        transform-origin: left;
+    }
+
+    @@keyframes progress {
+        0% {
+            transform: scaleX(0);
+        }
+
+        100% {
+            transform: scaleX(1);
+        }
+    }
+
+    /* Bounce animation for cart button */
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+
+        40% {
+            transform: translateY(-10px);
+        }
+
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .bounce-effect {
+        animation: bounce 1s;
+    }
+
+    /* Existing styles */
+    .pro-cart-button {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 50px;
+        background-color: #e8f6ea;
+        font-weight: 500;
+        color: #088178;
+        border: 1px solid #cce7d0;
+        position: absolute;
+        bottom: 20px;
+        right: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+        .pro-cart-button:hover {
+            background-color: #cce7d0;
+            color: #066156;
+            transform: scale(1.05);
+        }
+
+    /* Print styles */
+    @@media print {
+        body * {
+            visibility: hidden;
+        }
+
+        .print-area, .print-area * {
+            visibility: visible;
+        }
+
+        .print-area {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+        }
+
+        .no-print {
+            display: none !important;
+        }
+    }
+</style>
+
+<div class="notification-container">
+    @if (TempData["Success"] != null)
+    {
+        <div id="successNotification" class="notification success">
+            <i class="fas fa-check-circle notification-icon"></i>
+            <span>@TempData["Success"]</span>
+            <span class="notification-close" onclick="hideNotification('successNotification')">
+                <i class="fas fa-times"></i>
+            </span>
+            <div class="notification-progress">
+                <div class="notification-progress-bar"></div>
+            </div>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div id="errorNotification" class="notification error">
+            <i class="fas fa-exclamation-circle notification-icon"></i>
+            <span>@TempData["Error"]</span>
+            <span class="notification-close" onclick="hideNotification('errorNotification')">
+                <i class="fas fa-times"></i>
+            </span>
+            <div class="notification-progress">
+                <div class="notification-progress-bar"></div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white shadow-lg rounded-xl overflow-hidden print-area">
+        <!-- Order Header -->
+        <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold text-white">
+                        Order #@Model.OrderHeader.Id
+                        <button onclick="copyOrderNumber('@Model.OrderHeader.Id')" class="ml-2 text-white hover:text-gray-200 no-print">
+                            <i class="far fa-copy"></i>
+                        </button>
+                    </h1>
+                    <p class="text-sm text-primary-100">Placed on @Model.OrderHeader.OrderDate.ToString("dd MMM yyyy 'at' h:mm tt")</p>
+                </div>
+                <div class="flex space-x-2">
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold
+                          @(Model.OrderHeader.OrderStatus == SD.StatusApproved ? "bg-green-100 text-green-800" :
+                            Model.OrderHeader.OrderStatus == SD.StatusPending ? "bg-yellow-100 text-yellow-800" :
+                            Model.OrderHeader.OrderStatus == SD.StatusShipped ? "bg-blue-100 text-blue-800" :
+                            "bg-red-100 text-red-800")">
+                        @Model.OrderHeader.OrderStatus
+                    </span>
+                    <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white text-primary-dark">
+                        @(Model.OrderHeader.PaymentStatus == SD.StatusApproved ? "Paid" : "Pending Payment")
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+            <!-- Left Column - Customer & Shipping -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Customer Information Card -->
+                <div class="bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Customer Information</h3>
+                        @if (isAdmin)
+                        {
+                            <button onclick="showModal('customerModal')" class="text-sm text-primary hover:text-primary-dark no-print">
+                                Edit
+                            </button>
+                        }
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Full Name</p>
+                                <p class="mt-1 text-sm text-gray-900">@Model.OrderHeader.Name</p>
+                            </div>
+
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Email</p>
+                                <p class="mt-1 text-sm text-gray-900">@Model.OrderHeader.ApplicationUser.Email</p>
+                            </div>
+
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Phone</p>
+                                <p class="mt-1 text-sm text-gray-900">@Model.OrderHeader.PhoneNumber</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Information Card -->
+                <div class="bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Shipping Information</h3>
+                        @if (isAdmin)
+                        {
+                            <button onclick="showModal('shippingModal')" class="text-sm text-primary hover:text-primary-dark no-print">
+                                Edit
+                            </button>
+                        }
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Address</p>
+                                <p class="mt-1 text-sm text-gray-900">@Model.OrderHeader.StreetAddress</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Country</p>
+                                    <p class="mt-1 text-sm text-gray-900">@Model.OrderHeader.Country</p>
+                                </div>
+
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Postal Code</p>
+                                    <p class="mt-1 text-sm text-gray-900">@Model.OrderHeader.PostalCode</p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p class="text-sm font-medium text-gray-500">Shipping Status</p>
+                                <div class="mt-1 flex items-center">
+                                    @if (Model.OrderHeader.ShippingDate > DateTime.MinValue)
+                                    {
+                                        <span class="h-4 w-4 rounded-full bg-green-500 mr-2"></span>
+                                        <span class="text-sm text-gray-900">
+                                            Shipped on @Model.OrderHeader.ShippingDate.ToString("MMM dd")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="h-4 w-4 rounded-full bg-yellow-500 mr-2"></span>
+                                        <span class="text-sm text-gray-900">Preparing for shipment</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Shipping Timeline Card -->
+                <div class="bg-gray-50 rounded-lg shadow-sm border border-gray-200">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Shipping Timeline</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="relative">
+                            <!-- Timeline line -->
+                            <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
+
+                            <!-- Timeline steps -->
+                            <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus != SD.StatusPending ? "text-primary" : "")">
+                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus != SD.StatusPending ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
+                                <h4 class="font-medium">Order Received</h4>
+                                <p class="text-sm text-gray-500">@Model.OrderHeader.OrderDate.ToString("dd MMM yyyy 'at' h:mm tt")</p>
+                            </div>
+
+                            <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped ? "text-primary" : "")">
+                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
+                                <h4 class="font-medium">Order Processed</h4>
+                                @if (Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped)
+                                {
+                                    <p class="text-sm text-gray-500">@Model.OrderHeader.ShippingDate.ToString("dd MMM yyyy 'at' h:mm tt")</p>
+                                }
+                            </div>
+
+                            <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus == SD.StatusShipped ? "text-primary" : "")">
+                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus == SD.StatusShipped ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
+                                <h4 class="font-medium">Order Shipped</h4>
+                                @if (Model.OrderHeader.OrderStatus == SD.StatusShipped)
+                                {
+                                    <p class="text-sm text-gray-500">@Model.OrderHeader.ShippingDate.ToString("dd MMM yyyy 'at' h:mm tt")</p>
+                                    @if (!string.IsNullOrEmpty(Model.OrderHeader.TrackingNumber))
+                                    {
+                                        <p class="text-sm mt-1">
+                                            <span class="font-medium">Tracking #:</span> @Model.OrderHeader.TrackingNumber
+                                            @if (!string.IsNullOrEmpty(Model.OrderHeader.Carrier))
+                                            {
+                                                <span>(@Model.OrderHeader.Carrier)</span>
+                                            }
+                                        </p>
+                                    }
+                                }
+                            </div>
+
+                            <div class="relative pl-8">
+                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 bg-white border-gray-300"></div>
+                                <h4 class="font-medium">Order Delivered</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Order Items & Summary -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Order Items Card -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Order Items (@Model.OrderDetails.Count())</h3>
+                    </div>
+                    <div class="divide-y divide-gray-200">
+                        @foreach (var detail in Model.OrderDetails)
+                        {
+                            <div class="p-4 flex">
+                                <div class="flex-shrink-0 h-20 w-20 overflow-hidden rounded-md border border-gray-200">
+                                    <img src="@detail.Product.imgUrl" alt="@detail.Product.Product_Name" class="h-full w-full object-cover object-center">
+                                </div>
+                                <div class="ml-4 flex-1 flex flex-col">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-900">@detail.Product.Product_Name</h4>
+                                        <p class="mt-1 text-sm text-gray-500">@detail.Product.Product_Color - @detail.Product.Product_Size</p>
+                                    </div>
+                                    <div class="flex-1 flex items-end justify-between">
+                                        <p class="text-sm text-gray-500">Qty @detail.Count</p>
+                                        <p class="text-sm font-medium text-gray-900">$@((detail.price * detail.Count).ToString("0.00"))</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Order Summary Card -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Order Summary</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Subtotal</span>
+                                <span class="text-sm font-medium text-gray-900">$@Model.OrderHeader.Subtotal.ToString("0.00")</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Shipping</span>
+                                <span class="text-sm font-medium text-gray-900">$@Model.OrderHeader.ShippingFee.ToString("0.00")</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Tax</span>
+                                <span class="text-sm font-medium text-gray-900">$@Model.OrderHeader.Tax.ToString("0.00")</span>
+                            </div>
+                            <div class="border-t border-gray-200 pt-3 mt-3 flex justify-between">
+                                <span class="text-base font-medium text-gray-900">Total</span>
+                                <span class="text-base font-bold text-gray-900">$@Model.OrderHeader.OrderTotal.ToString("0.00")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Information Card -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+                    <div class="px-4 py-3 border-b border-gray-200">
+                        <h3 class="font-medium text-gray-900">Payment Information</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Payment Method</span>
+                                <span class="text-sm font-medium text-gray-900">
+                                    @(Model.OrderHeader.PaymentIntentId != null ? "Credit Card" : "Other")
+                                </span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Payment Status</span>
+                                <span class="text-sm font-medium text-gray-900">@Model.OrderHeader.PaymentStatus</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm text-gray-600">Payment Date</span>
+                                <span class="text-sm font-medium text-gray-900">
+                                    @(Model.OrderHeader.PaymentDate > DateTime.MinValue ?
+                                        Model.OrderHeader.PaymentDate.ToString("MMM dd, yyyy") : "Pending")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Actions -->
+        @if (isAdmin)
+        {
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 no-print">
+                <h3 class="text-lg font-medium text-gray-900 mb-3">Order Actions</h3>
+                <div class="flex flex-wrap gap-3">
+                    @if (Model.OrderHeader.OrderStatus == SD.StatusPending)
+                    {
+                        <!-- Approve Button (only for Pending status) -->
+                        <form asp-action="Approve" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.OrderHeader.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                                <i class="fas fa-check mr-2"></i> Approve Order
+                            </button>
+                        </form>
+
+                        <!-- Cancel Button (for both Pending and Approved status) -->
+                        <form asp-action="Cancel" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.OrderHeader.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                    onclick="return confirm('Are you sure you want to cancel this order?');">
+                                <i class="fas fa-times mr-2"></i> Cancel Order
+                            </button>
+                        </form>
+                    }
+                    else if (Model.OrderHeader.OrderStatus == SD.StatusApproved)
+                    {
+                        <form asp-action="ShipOrder" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.OrderHeader.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-truck mr-2"></i> Ship Order
+                            </button>
+                        </form>
+                        <form asp-action="Cancel" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.OrderHeader.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                    onclick="return confirm('Are you sure you want to cancel this order?');">
+                                <i class="fas fa-times mr-2"></i> Refund
+                            </button>
+                        </form>
+                    }
+
+                    <!-- Tracking Update Modal Trigger -->
+                    <button type="button" onclick="showModal('trackingModal')"
+                            class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                        <i class="fas fa-truck-loading mr-2"></i> Update Tracking
+                    </button>
+
+                    <!-- Send Notification Button -->
+                    <button type="button" onclick="showModal('notificationModal')"
+                            class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-envelope mr-2"></i> Send Notification
+                    </button>
+
+                    <!-- Print Invoice Button -->
+                    <button type="button" onclick="printInvoice()"
+                            class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+                        <i class="fas fa-print mr-2"></i> Print Invoice
+                    </button>
+                </div>
+            </div>
+        }
+
+        <!-- Back Button -->
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 no-print">
+            <a asp-action="Index" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> Back to Orders
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Information Modal -->
+<div id="customerModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Edit Customer Information</h3>
+        <form asp-action="UpdateCustomerInfo" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="orderId" value="@Model.OrderHeader.Id" />
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <input type="text" name="name" value="@Model.OrderHeader.Name"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50"
+                           required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Email(Can't Edit)</label>
+                    <input readonly type="text" name="name" value="@Model.OrderHeader.ApplicationUser.Email"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50"
+                           required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    <input type="text" name="phoneNumber" value="@Model.OrderHeader.PhoneNumber"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50"
+                           required>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        onclick="hideModal('customerModal')">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Shipping Information Modal -->
+<div id="shippingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Edit Shipping Information</h3>
+        <form asp-action="UpdateShippingInfo" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="orderId" value="@Model.OrderHeader.Id" />
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                    <input type="text" name="streetAddress" value="@Model.OrderHeader.StreetAddress"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50"
+                           required>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                        <input type="text" name="country" value="@Model.OrderHeader.Country"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50"
+                               required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                        <input type="text" name="postalCode" value="@Model.OrderHeader.PostalCode"
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50"
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        onclick="hideModal('shippingModal')">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+                    Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tracking Modal -->
+<div id="trackingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Update Tracking Information</h3>
+        <form asp-action="UpdateTracking" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.OrderHeader.Id" />
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
+                    <input type="text" name="trackingNumber" value="@Model.OrderHeader.TrackingNumber"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Carrier</label>
+                    <input type="text" name="carrier" value="@Model.OrderHeader.Carrier"
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-gray-50">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                        onclick="hideModal('trackingModal')">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+                    Update
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Notification Modal -->
+<div id="notificationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold mb-4">Send Customer Notification</h3>
+        <form id="sendNotificationForm">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notification Type</label>
+                    <select id="notificationType" class="w-full p-3 border border-gray-300 rounded-lg">
+                        <option value="status">Order Status Update</option>
+                        <option value="shipping">Shipping Update</option>
+                        <option value="other">Custom Message</option>
+                    </select>
+                </div>
+
+                <div id="messageField" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                    <textarea id="notificationMessage" class="w-full p-3 border border-gray-300 rounded-lg" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="hideModal('notificationModal')"
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button type="button" onclick="sendCustomerNotification()"
+                        class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
+                    Send Notification
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Show modal function
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+        }
+
+        // Hide modal function
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+         function confirmCancel() {
+            return confirm('Are you sure you want to cancel this order? This action cannot be undone.');
+        }
+        // Notification functions
+                // In your Scripts section
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show success notification if exists
+            const successNotification = document.getElementById('successNotification');
+            if (successNotification) {
+                showNotification(successNotification);
+            }
+
+            // Show error notification if exists
+            const errorNotification = document.getElementById('errorNotification');
+            if (errorNotification) {
+                showNotification(errorNotification);
+            }
+        });
+
+        function showNotification(notification) {
+            notification.classList.add('show');
+
+            // Auto-hide after 5 seconds (longer for errors)
+            const hideTime = notification.classList.contains('error') ? 5000 : 3000;
+            const autoHide = setTimeout(() => {
+                hideNotification(notification.id);
+            }, hideTime);
+
+            // Pause on hover
+            notification.addEventListener('mouseenter', () => {
+                clearTimeout(autoHide);
+                notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
+            });
+
+            notification.addEventListener('mouseleave', () => {
+                const progressBar = notification.querySelector('.notification-progress-bar');
+                const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
+                const remainingTime = remainingWidth * hideTime;
+
+                progressBar.style.animationPlayState = 'running';
+                setTimeout(() => {
+                    hideNotification(notification.id);
+                }, remainingTime);
+            });
+        }
+
+        window.hideNotification = function(id) {
+            const notification = document.getElementById(id);
+            if (notification) {
+                notification.classList.remove('show');
+                notification.classList.add('hide');
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 500);
+            }
+        };
+    </script>
+}
