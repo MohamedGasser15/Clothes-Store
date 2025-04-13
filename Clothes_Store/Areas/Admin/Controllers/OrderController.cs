@@ -5,6 +5,7 @@ using Clothes_Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 
 namespace Clothes_Store.Areas.Admin.Controllers
 {
@@ -101,6 +102,139 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Details), new { id });
             }
         }
+        [HttpPost("Admin/Order/Approve/{id}")]
+        [Authorize(Roles = SD.Admin)]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Approve(int id, string returnUrl = null)
+        {
+            var orderFromDb = await _db.OrderHeaders
+                .Include(o => o.ApplicationUser)
+                .FirstOrDefaultAsync(o => o.Id == id);
 
+            if (orderFromDb == null)
+            {
+                TempData["Error"] = "Order not found";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                orderFromDb.OrderStatus = SD.StatusApproved;
+                orderFromDb.PaymentStatus = SD.PaymentStatusApproved;
+                orderFromDb.PaymentDate = DateTime.Now;
+
+                await _db.SaveChangesAsync();
+
+                TempData["Success"] = $"Order #{orderFromDb.Id} approved successfully";
+                return Redirect(returnUrl ?? Url.Action(nameof(Index), new { id }));
+
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                TempData["Error"] = "Error approving order. Please try again.";
+                return Redirect(returnUrl ?? Url.Action(nameof(Index), new { id }));
+
+            }
+        }
+
+        [HttpPost("Admin/Order/Cancel/{id}")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = SD.Admin)]
+        public async Task<IActionResult> Cancel(int id, string returnUrl = null)
+        {
+            try
+            {
+                var orderHeader = await _db.OrderHeaders
+                    .Include(o => o.ApplicationUser)
+                    .FirstOrDefaultAsync(o => o.Id == id);
+
+                if (orderHeader == null)
+                {
+                    TempData["Error"] = "Order not found";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Validate order can be cancelled
+                if (orderHeader.OrderStatus != SD.StatusPending &&
+                    orderHeader.OrderStatus != SD.StatusApproved)
+                {
+                    TempData["Error"] = $"Cannot cancel order with status: {orderHeader.OrderStatus}";
+                    return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+                }
+
+                // Process Stripe refund if payment was made
+                if (!string.IsNullOrEmpty(orderHeader.PaymentIntentId))
+                {
+                    var refundService = new RefundService();
+                    var refundOptions = new RefundCreateOptions
+                    {
+                        PaymentIntent = orderHeader.PaymentIntentId,
+                        Reason = RefundReasons.RequestedByCustomer
+                    };
+
+                    try
+                    {
+                        var refund = await refundService.CreateAsync(refundOptions);
+                        orderHeader.PaymentStatus = SD.StatusRefunded;
+                    }
+                    catch (StripeException stripeEx)
+                    {
+                        // Log Stripe-specific error
+                        TempData["Error"] = "Refund failed. Please check Stripe dashboard.";
+                        return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
+                    }
+                }
+
+                // Update order status
+                orderHeader.OrderStatus = SD.StatusCancelled;
+
+                await _db.SaveChangesAsync();
+
+                // Optional: Send cancellation email
+
+                TempData["Success"] = $"Order #{orderHeader.Id} cancelled and refund processed";
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error processing cancellation. Please try again.";
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ShipOrder(int id)
+        {
+            try
+            {
+                var order = await _db.OrderHeaders.FindAsync(id);
+                if (order == null)
+                {
+                    TempData["Error"] = "Order not found";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                if (order.OrderStatus != SD.StatusApproved)
+                {
+                    TempData["Error"] = "Only approved orders can be shipped";
+                    return RedirectToAction(nameof(Index), new { id });
+                }
+
+                order.OrderStatus = SD.StatusShipped;
+                order.ShippingDate = DateTime.Now;
+
+                await _db.SaveChangesAsync();
+
+                TempData["Success"] = $"Order #{order.Id} shipped successfully";
+                return RedirectToAction(nameof(Index), new { id });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error shipping order. Please try again.";
+                return RedirectToAction(nameof(Index), new { id });
+            }
+        }
     }
 }
