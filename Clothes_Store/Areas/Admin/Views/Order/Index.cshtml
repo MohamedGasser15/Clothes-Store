@@ -219,7 +219,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-gray-500">Cancelled</p>
-                    <p class="text-2xl font-semibold text-gray-900">@Model.Count(o => o.OrderStatus == "Cancelled")</p>
+                    <p class="text-2xl font-semibold text-gray-900">@Model.Count(o => o.OrderStatus == SD.StatusCancelled)</p>
                 </div>
                 <div class="p-3 rounded-full bg-red-500 bg-opacity-10 text-red-500">
                     <i class="fas fa-times-circle text-xl"></i>
@@ -249,15 +249,21 @@
                     <div class="flex items-center space-x-3">
                         <!-- Status Filter Buttons -->
                         <div class="flex space-x-2">
-                            <button id="filterAll" class="px-3 py-2 text-xs font-medium rounded-lg bg-primary text-white">
+                            <button id="filterAll" class="px-3 py-2 text-xs font-medium rounded-lg bg-primary text-white hover:bg-primary-dark">
                                 All Orders
                             </button>
+
+                            <!-- Pending (Yellow) -->
                             <button id="filterPending" class="px-3 py-2 text-xs font-medium rounded-lg bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
                                 Pending
                             </button>
+
+                            <!-- Approved (Green) -->
                             <button id="filterApproved" class="px-3 py-2 text-xs font-medium rounded-lg bg-green-100 text-green-800 hover:bg-green-200">
                                 Approved
                             </button>
+
+                            <!-- In Progress/Shipped (Blue) -->
                             <button id="filterInProgress" class="px-3 py-2 text-xs font-medium rounded-lg bg-blue-100 text-blue-800 hover:bg-blue-200">
                                 In Progress
                             </button>
@@ -306,11 +312,12 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">$@order.OrderTotal</td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                    @(order.OrderStatus == SD.PaymentStatusApproved ? "bg-green-100 text-green-800" :
+                                    @(order.OrderStatus == SD.StatusApproved ? "bg-green-100 text-green-800" :
                                       order.OrderStatus == SD.StatusPending ? "bg-yellow-100 text-yellow-800" :
                                       order.OrderStatus == SD.StatusShipped ? "bg-blue-100 text-blue-800" :
-                                      "bg-red-100 text-red-800")">
-                                        @(order.OrderStatus == "Shipped" ? "In Progress" : order.OrderStatus)
+                                      order.OrderStatus == SD.StatusCancelled ? "bg-red-100 text-red-800" :
+                                      "bg-gray-100 text-gray-800")">
+                                        @(order.OrderStatus == SD.StatusShipped ? "In Progress" : order.OrderStatus)
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -320,7 +327,19 @@
                                            class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
                                             <i class="fas fa-eye mr-2"></i> Details
                                         </a>
-
+                                        @if (order.OrderStatus == SD.StatusCancelled || order.OrderStatus == SD.StatusRefunded)
+                                        {
+                                            <form asp-action="RemoveCanceledRefundedOrders" method="post" >
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                                <button type="submit"
+                                                        class="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md"
+                                                        onclick="return confirm('Are you sure you want to permanently remove this order?')">
+                                                    <i class="fas fa-times mr-2"></i> Remove
+                                                </button>
+                                            </form>
+                                        }
                                         <!-- Status Buttons -->
                                         @if (order.OrderStatus == SD.StatusPending)
                                         {
@@ -342,6 +361,15 @@
                                         }
                                         else if (order.OrderStatus == SD.StatusApproved)
                                         {
+                                            <form asp-action="ShipOrder" method="post" class="inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@order.Id" />
+                                                <button type="submit"
+                                                        class="inline-flex items-center px-4 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md">
+                                                    <i class="fas fa-truck mr-2"></i> Ship Order
+                                                </button>
+                                            </form>
+
                                             <form asp-action="Cancel" method="post" class="inline">
                                                 <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
                                                 <button asp-action="Cancel" asp-route-id="@order.Id"
@@ -349,6 +377,7 @@
                                                     <i class="fas fa-times mr-2"></i> Refund
                                                 </button>
                                             </form>
+
                                         }
 
                                     </div>
@@ -478,26 +507,47 @@
             btn.classList.add('bg-opacity-100');
         });
 
-        // Style the active button
         const activeButton = {
-            'All': filterAll,
-            'Pending': filterPending,
-            'Approved': filterApproved,
-            'InProgress': filterInProgress
-        }[status];
+        'All': filterAll,
+        'Pending': filterPending,
+        'Approved': filterApproved,
+        'InProgress': filterInProgress
+    }[status];
 
-        activeButton.classList.add('text-white');
-        activeButton.classList.add('bg-primary');
-        activeButton.classList.remove('bg-opacity-100');
+    // Reset ALL buttons to their original colors first
+    filterAll.classList.remove('text-white', 'bg-primary');
+    filterAll.classList.add('bg-primary', 'text-white'); // Special case for "All" button
+
+    filterPending.classList.remove('text-white', 'bg-primary');
+    filterPending.classList.add('bg-yellow-100', 'text-yellow-800');
+
+    filterApproved.classList.remove('text-white', 'bg-primary');
+    filterApproved.classList.add('bg-green-100', 'text-green-800');
+
+    filterInProgress.classList.remove('text-white', 'bg-primary');
+    filterInProgress.classList.add('bg-blue-100', 'text-blue-800');
+
+    // Now apply active state to the selected button
+    if (activeButton) {
+        activeButton.classList.remove(
+            'bg-yellow-100', 'text-yellow-800',
+            'bg-green-100', 'text-green-800',
+            'bg-blue-100', 'text-blue-800'
+        );
+        activeButton.classList.add('text-white', 'bg-primary');
+    }
 
         if (status === 'All') {
             filteredOrders = [...allOrders];
         } else {
-            filteredOrders = allOrders.filter(row => {
-                const rowStatus = row.cells[6].textContent.trim();
-                return rowStatus === status;
-            });
-        }
+        filteredOrders = allOrders.filter(row => {
+            const rowStatus = row.cells[6].textContent.trim();
+            if (status === 'InProgress') {
+                return rowStatus === 'In Progress'; // Match the displayed text
+            }
+            return rowStatus === status;
+        });
+    }
 
         currentPage = 1;
         updateTable();

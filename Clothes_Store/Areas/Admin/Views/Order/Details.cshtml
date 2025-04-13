@@ -1,4 +1,5 @@
 ﻿@using Clothes_Utilities
+@using Microsoft.AspNetCore.Http.Extensions
 @using Microsoft.AspNetCore.Identity
 @using Clothes_Models.ViewModels
 @using Clothes_Models.Models
@@ -453,6 +454,7 @@
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 no-print">
                 <h3 class="text-lg font-medium text-gray-900 mb-3">Order Actions</h3>
                 <div class="flex flex-wrap gap-3">
+
                     @if (Model.OrderHeader.OrderStatus == SD.StatusPending)
                     {
                         <!-- Approve Button (only for Pending status) -->
@@ -470,7 +472,7 @@
                         <form asp-action="Cancel" method="post" class="inline">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="id" value="@Model.OrderHeader.Id" />
-                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.GetEncodedPathAndQuery()" />
                             <button type="submit"
                                     class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                                     onclick="return confirm('Are you sure you want to cancel this order?');">
@@ -500,7 +502,19 @@
                             </button>
                         </form>
                     }
-
+                    @if (Model.OrderHeader.OrderStatus == SD.StatusCancelled || Model.OrderHeader.OrderStatus == SD.StatusRefunded)
+                    {
+                        <form asp-action="RemoveCanceledRefundedOrders" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.OrderHeader.Id" />
+                            <input type="hidden" name="returnUrl" value="@Url.Action("Details", new { id = Model.OrderHeader.Id })" />
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                                    onclick="return confirm('Permanently remove this order?')">
+                                <i class="fas fa-trash-alt mr-2"></i> Remove Order
+                            </button>
+                        </form>
+                    }
                     <!-- Tracking Update Modal Trigger -->
                     <button type="button" onclick="showModal('trackingModal')"
                             class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
@@ -697,39 +711,77 @@
 
 @section Scripts {
     <script>
-        // Show modal function
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
-        }
-
-        // Hide modal function
-        function hideModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
-        }
-         function confirmCancel() {
-            return confirm('Are you sure you want to cancel this order? This action cannot be undone.');
-        }
-        // Notification functions
-                // In your Scripts section
+        // DOM Ready Handler
         document.addEventListener('DOMContentLoaded', function() {
-            // Show success notification if exists
-            const successNotification = document.getElementById('successNotification');
-            if (successNotification) {
-                showNotification(successNotification);
-            }
-
-            // Show error notification if exists
-            const errorNotification = document.getElementById('errorNotification');
-            if (errorNotification) {
-                showNotification(errorNotification);
-            }
+            initializePage();
         });
 
-        function showNotification(notification) {
-            notification.classList.add('show');
+        function initializePage() {
+            // Initialize notifications
+            initNotifications();
 
-            // Auto-hide after 5 seconds (longer for errors)
+            // Setup modal event listeners
+            setupModals();
+
+            // Setup notification type change handler
+            setupNotificationTypeHandler();
+        }
+
+        // Modal Management
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+        }
+
+        function setupModals() {
+            // Close modals when clicking outside content
+            document.querySelectorAll('.fixed.inset-0').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        hideModal(this.id);
+                    }
+                });
+            });
+
+            // Close modals with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.fixed.inset-0').forEach(modal => {
+                        if (!modal.classList.contains('hidden')) {
+                            hideModal(modal.id);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Notification System
+        function initNotifications() {
+            // Show existing notifications
+            const successNotification = document.getElementById('successNotification');
+            const errorNotification = document.getElementById('errorNotification');
+
+            if (successNotification) showNotification(successNotification);
+            if (errorNotification) showNotification(errorNotification);
+        }
+
+        function showNotification(notification) {
+            if (!notification) return;
+
+            notification.classList.add('show');
             const hideTime = notification.classList.contains('error') ? 5000 : 3000;
+
             const autoHide = setTimeout(() => {
                 hideNotification(notification.id);
             }, hideTime);
@@ -737,31 +789,160 @@
             // Pause on hover
             notification.addEventListener('mouseenter', () => {
                 clearTimeout(autoHide);
-                notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
+                const progressBar = notification.querySelector('.notification-progress-bar');
+                if (progressBar) progressBar.style.animationPlayState = 'paused';
             });
 
             notification.addEventListener('mouseleave', () => {
                 const progressBar = notification.querySelector('.notification-progress-bar');
-                const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
-                const remainingTime = remainingWidth * hideTime;
+                if (progressBar) {
+                    const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
+                    const remainingTime = remainingWidth * hideTime;
+                    progressBar.style.animationPlayState = 'running';
 
-                progressBar.style.animationPlayState = 'running';
-                setTimeout(() => {
-                    hideNotification(notification.id);
-                }, remainingTime);
+                    setTimeout(() => {
+                        if (notification && notification.isConnected) {
+                            hideNotification(notification.id);
+                        }
+                    }, remainingTime);
+                }
             });
         }
 
-        window.hideNotification = function(id) {
+        function hideNotification(id) {
             const notification = document.getElementById(id);
             if (notification) {
                 notification.classList.remove('show');
                 notification.classList.add('hide');
 
                 setTimeout(() => {
-                    notification.remove();
+                    if (notification && notification.isConnected) {
+                        notification.remove();
+                    }
                 }, 500);
             }
-        };
+        }
+
+        function showToast(message, type) {
+            const container = document.querySelector('.notification-container');
+            if (!container) return;
+
+            const id = 'toast-' + Date.now();
+            const toast = document.createElement('div');
+            toast.id = id;
+            toast.className = `notification ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} notification-icon"></i>
+                <span>${message}</span>
+                <span class="notification-close" onclick="hideNotification('${id}')">
+                    <i class="fas fa-times"></i>
+                </span>
+                <div class="notification-progress">
+                    <div class="notification-progress-bar"></div>
+                </div>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            setTimeout(() => {
+                hideNotification(id);
+            }, 5000);
+        }
+
+        // Notification Type Handling
+        function setupNotificationTypeHandler() {
+            const notificationType = document.getElementById('notificationType');
+            if (!notificationType) return;
+
+            notificationType.addEventListener('change', function() {
+                const messageField = document.getElementById('messageField');
+                if (!messageField) return;
+
+                messageField.classList.toggle('hidden', this.value !== 'other');
+            });
+        }
+
+        // Order Actions
+        function sendCustomerNotification() {
+            const type = document.getElementById('notificationType')?.value;
+            const message = type === 'other' ? document.getElementById('notificationMessage')?.value : '';
+            const sendBtn = document.querySelector('#notificationModal [onclick="sendCustomerNotification()"]');
+
+            if (!sendBtn) return;
+
+            const originalText = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+            sendBtn.disabled = true;
+
+            fetch('/Admin/Orders/SendNotification', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('[name="__RequestVerificationToken"]')?.value || ''
+                },
+                body: JSON.stringify({
+                    orderId: @Model.OrderHeader.Id,
+                    notificationType: type,
+                    message: message
+                })
+            })
+            .then(handleNotificationResponse)
+            .catch(handleNotificationError)
+            .finally(() => {
+                sendBtn.innerHTML = originalText;
+                sendBtn.disabled = false;
+            });
+        }
+
+        function handleNotificationResponse(response) {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json().then(data => {
+                if (data.success) {
+                    showToast('Notification sent successfully!', 'success');
+                    hideModal('notificationModal');
+                } else {
+                    showToast(data.message || 'Failed to send notification', 'error');
+                }
+            });
+        }
+
+        function handleNotificationError(error) {
+            console.error('Error:', error);
+            showToast('An error occurred while sending notification', 'error');
+        }
+
+
+
+        // Utility Functions
+        function copyOrderNumber(orderNumber) {
+            navigator.clipboard.writeText(orderNumber).then(() => {
+                showToast('Order number copied to clipboard!', 'success');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                showToast('Failed to copy order number', 'error');
+            });
+        }
+
+        function confirmCancel() {
+            return confirm('Are you sure you want to cancel this order? This action cannot be undone.');
+        }
+
+        function confirmRefund() {
+            return confirm('Are you sure you want to process a refund for this order?');
+        }
+
+        // Make functions available globally
+        window.showModal = showModal;
+        window.hideModal = hideModal;
+        window.hideNotification = hideNotification;
+        window.sendCustomerNotification = sendCustomerNotification;
+        window.printInvoice = printInvoice;
+        window.copyOrderNumber = copyOrderNumber;
+        window.confirmCancel = confirmCancel;
+        window.confirmRefund = confirmRefund;
     </script>
 }

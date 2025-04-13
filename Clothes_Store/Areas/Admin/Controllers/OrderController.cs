@@ -138,7 +138,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
             }
         }
 
-        [HttpPost("Admin/Order/Cancel/{id}")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = SD.Admin)]
         public async Task<IActionResult> Cancel(int id, string returnUrl = null)
@@ -152,7 +152,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 if (orderHeader == null)
                 {
                     TempData["Error"] = "Order not found";
-                    return RedirectToAction(nameof(Index));
+                    return Redirect(returnUrl ?? Url.Action(nameof(Index)));
                 }
 
                 // Validate order can be cancelled
@@ -160,10 +160,10 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     orderHeader.OrderStatus != SD.StatusApproved)
                 {
                     TempData["Error"] = $"Cannot cancel order with status: {orderHeader.OrderStatus}";
-                    return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+                    return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
                 }
 
-                // Process Stripe refund if payment was made
+                // Process refund if needed
                 if (!string.IsNullOrEmpty(orderHeader.PaymentIntentId))
                 {
                     var refundService = new RefundService();
@@ -178,9 +178,8 @@ namespace Clothes_Store.Areas.Admin.Controllers
                         var refund = await refundService.CreateAsync(refundOptions);
                         orderHeader.PaymentStatus = SD.StatusRefunded;
                     }
-                    catch (StripeException stripeEx)
+                    catch (StripeException)
                     {
-                        // Log Stripe-specific error
                         TempData["Error"] = "Refund failed. Please check Stripe dashboard.";
                         return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
                     }
@@ -188,18 +187,15 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
                 // Update order status
                 orderHeader.OrderStatus = SD.StatusCancelled;
-
                 await _db.SaveChangesAsync();
 
-                // Optional: Send cancellation email
-
-                TempData["Success"] = $"Order #{orderHeader.Id} cancelled and refund processed";
-                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+                TempData["Success"] = $"Order #{orderHeader.Id} cancelled successfully";
+                return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
             }
             catch (Exception ex)
             {
-                TempData["Error"] = "Error processing cancellation. Please try again.";
-                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+                TempData["Error"] = "Error cancelling order";
+                return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
             }
         }
 
@@ -236,5 +232,53 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index), new { id });
             }
         }
-    }
+            [HttpPost]
+            [Authorize(Roles = SD.Admin)]
+            [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RemoveCanceledRefundedOrders(int id, string returnUrl = null)
+            {
+                try
+                {
+                    var orderToRemove = await _db.OrderHeaders
+                        .FirstOrDefaultAsync(o => o.Id == id &&
+                                               (o.OrderStatus == SD.StatusCancelled ||
+                                                o.OrderStatus == SD.StatusRefunded));
+
+                    if (orderToRemove == null)
+                    {
+                        TempData["Error"] = "Order not found or not eligible for removal";
+                        return RedirectToAction(nameof(Details), new { id });
+                    }
+
+                    // Remove order details first
+                    var orderDetails = await _db.OrderDetails
+                        .Where(od => od.OrderHeaderId == id)
+                        .ToListAsync();
+
+                    if (orderDetails.Any())
+                    {
+                        _db.OrderDetails.RemoveRange(orderDetails);
+                    }
+
+                    _db.OrderHeaders.Remove(orderToRemove);
+                    await _db.SaveChangesAsync();
+
+                    TempData["Success"] = $"Successfully removed order #{orderToRemove.Id}";
+
+                    // Handle return URL more intelligently
+                    if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("/Order/Details/"))
+                    {
+                        // If coming from Details page, redirect to Index since the order no longer exists
+                        return RedirectToAction(nameof(Index));
+                    }
+
+                    return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = "Error removing order - please try again";
+                    return RedirectToAction(nameof(Details), new { id });
+                }
+            }
+        }
 }
