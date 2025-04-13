@@ -40,6 +40,67 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
             return View(orderVM);
         }
+        [HttpPost]
+        [Authorize(Roles = SD.Admin)]
+        public IActionResult UpdateCustomerInfo(int orderId, string name, string phoneNumber)
+        {
+            var orderFromDb = _db.OrderHeaders.Find(orderId);
+            if (orderFromDb == null)
+            {
+                return NotFound();
+            }
+
+            orderFromDb.Name = name;
+            orderFromDb.PhoneNumber = phoneNumber;
+            _db.SaveChanges();
+            TempData["Success"] = "Customer information updated successfully";
+            return RedirectToAction(nameof(Details), new { id = orderId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = SD.Admin)]
+        public IActionResult UpdateShippingInfo(int orderId, string streetAddress, string country, string postalCode)
+        {
+            var orderFromDb = _db.OrderHeaders.Find(orderId);
+            if (orderFromDb == null)
+            {
+                return NotFound();
+            }
+            orderFromDb.StreetAddress = streetAddress;
+            orderFromDb.Country = country;
+            orderFromDb.PostalCode = postalCode;
+            _db.SaveChanges();
+            TempData["Success"] = "Shipping information updated successfully";
+            return RedirectToAction(nameof(Details), new { id = orderId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateTracking(int id, string trackingNumber, string carrier)
+        {
+            try
+            {
+                var order = await _db.OrderHeaders.FindAsync(id);
+                if (order == null)
+                {
+                    TempData["Error"] = "Order not found";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                order.TrackingNumber = trackingNumber;
+                order.Carrier = carrier;
+
+                await _db.SaveChangesAsync();
+
+                TempData["Success"] = "Tracking information updated successfully";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error updating tracking information";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
 
     }
 }
