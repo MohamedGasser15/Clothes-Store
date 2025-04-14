@@ -11,6 +11,7 @@ namespace Clothes_Models.ViewModels
  {
      public IEnumerable<CartItem> Items { get; set; }
      public OrderHeader OrderHeader { get; set; }
+     public ApplicationUser User { get; set; }
 
      // Calculated properties
      public double Subtotal => (double)(Items?.Sum(i => i.Product.Product_Price * i.Quantity) ?? 0);

@@ -1,4 +1,4 @@
-﻿@model Clothes_Models.Models.OrderHeader
+﻿@model Clothes_Models.ViewModels.OrderVM
 
 <script src="https://cdn.tailwindcss.com"></script>
 
@@ -13,7 +13,7 @@
             </div>
             <h1 class="mt-4 text-3xl font-bold text-gray-900">Order Confirmed!</h1>
             <p class="mt-2 text-lg text-gray-600">Thank you for your purchase</p>
-            <p class="mt-2 text-sm text-gray-500">Order #@Model.Id • @Model.OrderDate.ToString("MMMM dd, yyyy")</p>
+            <p class="mt-2 text-sm text-gray-500">Order #@Model.OrderHeader.Id • @Model.OrderHeader.OrderDate.ToString("MMMM dd, yyyy")</p>
         </div>
 
         <!-- Order Details Card -->
@@ -24,7 +24,7 @@
 
             <div class="p-6">
                 <!-- Tracking Info -->
-                @if (!string.IsNullOrEmpty(Model.TrackingNumber))
+                @if (!string.IsNullOrEmpty(Model.OrderHeader.TrackingNumber))
                 {
                     <div class="mb-6 p-4 bg-blue-50 rounded-lg">
                         <h3 class="text-sm font-medium text-blue-800 mb-2">Tracking Information</h3>
@@ -32,8 +32,8 @@
                             <svg class="h-5 w-5 text-blue-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                             </svg>
-                            <span class="font-medium">@Model.Carrier: </span>
-                            <span class="ml-2 text-blue-600">@Model.TrackingNumber</span>
+                            <span class="font-medium">@Model.OrderHeader.Carrier: </span>
+                            <span class="ml-2 text-blue-600">@Model.OrderHeader.TrackingNumber</span>
                         </div>
                     </div>
                 }
@@ -42,10 +42,10 @@
                 <div class="mb-6">
                     <h3 class="text-sm font-medium text-gray-500 mb-2">Shipping Address</h3>
                     <div class="bg-gray-50 p-4 rounded-lg">
-                        <p class="font-medium">@Model.Name</p>
-                        <p class="text-gray-600">@Model.StreetAddress</p>
-                        <p class="text-gray-600">@Model.Country, @Model.PostalCode</p>
-                        <p class="text-gray-600 mt-1">@Model.PhoneNumber</p>
+                        <p class="font-medium">@Model.OrderHeader.Name</p>
+                        <p class="text-gray-600">@Model.OrderHeader.StreetAddress</p>
+                        <p class="text-gray-600">@Model.OrderHeader.Country, @Model.OrderHeader.PostalCode</p>
+                        <p class="text-gray-600 mt-1">@Model.OrderHeader.PhoneNumber</p>
                     </div>
                 </div>
 
@@ -53,20 +53,20 @@
                 <div class="grid grid-cols-2 gap-4 mb-6">
                     <div>
                         <h3 class="text-sm font-medium text-gray-500">Order Status</h3>
-                        <p class="font-medium">@Model.OrderStatus</p>
+                        <p class="font-medium">@Model.OrderHeader.OrderStatus</p>
                     </div>
                     <div>
                         <h3 class="text-sm font-medium text-gray-500">Payment Status</h3>
-                        <p class="font-medium">@Model.PaymentStatus</p>
+                        <p class="font-medium">@Model.OrderHeader.PaymentStatus</p>
                     </div>
                 </div>
 
                 <!-- Expected Delivery -->
-                @if (Model.ShippingDate > DateTime.Now)
+                @if (Model.OrderHeader.ShippingDate > DateTime.Now)
                 {
                     <div class="mb-6">
                         <h3 class="text-sm font-medium text-gray-500">Expected Delivery</h3>
-                        <p class="font-medium">@Model.ShippingDate.ToString("MMMM dd, yyyy")</p>
+                        <p class="font-medium">@Model.OrderHeader.ShippingDate.ToString("MMMM dd, yyyy")</p>
                     </div>
                 }
             </div>
@@ -83,28 +83,28 @@
                     <!-- Subtotal (sum of all items) -->
                     @{
                         // Calculate subtotal from order details (should ideally be passed from controller)
-                        var subtotal = Model.OrderTotal / 1.08; // Reverse calculate subtotal from total (if tax is included)
+                        var subtotal = Model.OrderHeader.OrderTotal / 1.08; // Reverse calculate subtotal from total (if tax is included)
                         // OR better - pass these values from controller in ViewData/ViewModel
-                        var shippingFee = Model.OrderTotal > 100 ? 0 : 10;
+                        var shippingFee = Model.OrderHeader.OrderTotal > 100 ? 0 : 10;
                         var tax = subtotal * 0.08;
                         var calculatedTotal = subtotal + shippingFee + tax;
                     }
 
                     <div class="flex justify-between">
                         <span class="text-gray-600">Subtotal</span>
-                        <span class="font-medium">@Model.Subtotal.ToString("C")</span>
+                        <span class="font-medium">@Model.OrderHeader.Subtotal.ToString("C")</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">Shipping</span>
-                        <span class="font-medium">@Model.ShippingFee.ToString("C")</span>
+                        <span class="font-medium">@Model.OrderHeader.ShippingFee.ToString("C")</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">Tax (8%)</span>
-                        <span class="font-medium">@Model.Tax.ToString("C")</span>
+                        <span class="font-medium">@Model.OrderHeader.Tax.ToString("C")</span>
                     </div>
                     <div class="border-t border-gray-200 pt-4 flex justify-between">
                         <span class="font-medium">Total</span>
-                        <span class="font-bold text-lg">@Model.OrderTotal.ToString("C")</span>
+                        <span class="font-bold text-lg">@Model.OrderHeader.OrderTotal.ToString("C")</span>
                     </div>
                 </div>
             </div>
@@ -116,7 +116,7 @@
                class="flex-1 inline-flex justify-center items-center px-6 py-3 border border-gray-300 shadow-sm text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
                 Continue Shopping
             </a>
-            <a asp-controller="Order" asp-action="Details" asp-route-id="@Model.Id"
+            <a asp-controller="Order" asp-action="Details" asp-route-id="@Model.OrderHeader.Id"
                class="flex-1 inline-flex justify-center items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-[#088178] hover:bg-[#06615a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
                 View Order Details
             </a>

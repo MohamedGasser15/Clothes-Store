@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 using Stripe.Checkout;
 
 namespace Clothes_Store.Areas.Customer.Controllers
@@ -181,6 +182,32 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+        [HttpPost]
+        public async Task<IActionResult> ChangePayment(string PaymentMethod)
+        {
+            var userId = _userManager.GetUserId(User);
+            var user = await _userManager.FindByIdAsync(userId);
+            try
+            {
+                if (user != null)
+                {
+                    user.PaymentMehtod = PaymentMethod;
+                    await _userManager.UpdateAsync(user);
+                    TempData["SuccessMessage"] = "Payment method updated successfully!";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "User not found";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Failed to update payment method";
+            }
+
+            return RedirectToAction(nameof(Summary));
+        }
+
         [HttpGet]
         public async Task<IActionResult> Summary()
         {
@@ -211,16 +238,19 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     StreetAddress = user.StreetAddress,
                     Country = user.Country,
                     PostalCode = user.PostalCode
-                }
+                },
+                User = user // Add this line to set the User property
             };
 
             return View(viewModel);
         }
-        [HttpPost]
-        [ActionName("Summary")]
+        [HttpPost] // Ensure this attribute exists
+        [ActionName("Summary")] // This means it responds to "Summary" URL
+        [Route("Customer/Cart/Summary")]
         public async Task<IActionResult> SummaryPOST(CartViewModel viewModel)
         {
             var user = await _userManager.GetUserAsync(User);
+            viewModel.User = user;
 
             // Get cart items
             var cartItems = await _db.CartItems
@@ -256,81 +286,94 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 });
             }
 
-            // Stripe configuration - FIXED URL FORMAT
-            var domain = "https://" + Request.Host.Value;
-            var options = new SessionCreateOptions
+            // Stripe configuration - FIXED URL FORMAT 
+            if (user.PaymentMehtod == "credit")
             {
-                SuccessUrl = domain + "/Customer/Cart/OrderConfirmation/" + viewModel.OrderHeader.Id,
-                CancelUrl = domain + "/Customer/Cart/Index",
-                Mode = "payment",
-                LineItems = cartItems.Select(item => new SessionLineItemOptions
+                var domain = "https://" + Request.Host.Value;
+                var options = new SessionCreateOptions
                 {
-                    PriceData = new SessionLineItemPriceDataOptions
+                    SuccessUrl = domain + "/Customer/Cart/OrderConfirmation/" + viewModel.OrderHeader.Id,
+                    CancelUrl = domain + "/Customer/Cart/Index",
+                    Mode = "payment",
+                    LineItems = cartItems.Select(item => new SessionLineItemOptions
                     {
-                        UnitAmount = (long)(item.Product.Product_Price * 100),
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        PriceData = new SessionLineItemPriceDataOptions
                         {
-                            Name = item.Product.Product_Name
-                        }
-                    },
-                    Quantity = item.Quantity
-                }).ToList()
-            };
+                            UnitAmount = (long)(item.Product.Product_Price * 100),
+                            Currency = "usd",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = item.Product.Product_Name
+                            }
+                        },
+                        Quantity = item.Quantity
+                    }).ToList()
+                };
 
-            // Add shipping fee if needed
-            if (shippingFee > 0)
-            {
-                options.LineItems.Add(new SessionLineItemOptions
+                // Add shipping fee if needed
+                if (shippingFee > 0)
                 {
-                    PriceData = new SessionLineItemPriceDataOptions
+                    options.LineItems.Add(new SessionLineItemOptions
                     {
-                        UnitAmount = (long)(shippingFee * 100), // Shipping fee in cents
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        PriceData = new SessionLineItemPriceDataOptions
                         {
-                            Name = "Shipping Fee"
-                        }
-                    },
-                    Quantity = 1
-                });
+                            UnitAmount = (long)(shippingFee * 100), // Shipping fee in cents
+                            Currency = "usd",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = "Shipping Fee"
+                            }
+                        },
+                        Quantity = 1
+                    });
+                }
+
+                // Add tax if needed
+                if (tax > 0)
+                {
+                    options.LineItems.Add(new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = (long)(tax * 100), // Tax amount in cents
+                            Currency = "usd",
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = "Tax"
+                            }
+                        },
+                        Quantity = 1
+                    });
+                }
+                var service = new SessionService();
+                Session session = service.Create(options);
+
+                // Update order with Stripe IDs
+                viewModel.OrderHeader.SessionId = session.Id;
+                viewModel.OrderHeader.PaymentIntentId = session.PaymentIntentId;
+                await _db.SaveChangesAsync();
+
+                // Clear cart
+                _db.CartItems.RemoveRange(cartItems);
+                await _db.SaveChangesAsync();
+
+                return Redirect(session.Url);
+            }else
+            {
+                await _db.SaveChangesAsync();
+
+                // Clear cart
+                _db.CartItems.RemoveRange(cartItems);
+                await _db.SaveChangesAsync();
+
+                // Redirect to confirmation with order ID
+                return RedirectToAction("OrderConfirmation", new { id = viewModel.OrderHeader.Id });
             }
-
-            // Add tax if needed
-            if (tax > 0)
-            {
-                options.LineItems.Add(new SessionLineItemOptions
-                {
-                    PriceData = new SessionLineItemPriceDataOptions
-                    {
-                        UnitAmount = (long)(tax * 100), // Tax amount in cents
-                        Currency = "usd",
-                        ProductData = new SessionLineItemPriceDataProductDataOptions
-                        {
-                            Name = "Tax"
-                        }
-                    },
-                    Quantity = 1
-                });
-            }
-            var service = new SessionService();
-            Session session = service.Create(options);
-
-            // Update order with Stripe IDs
-            viewModel.OrderHeader.SessionId = session.Id;
-            viewModel.OrderHeader.PaymentIntentId = session.PaymentIntentId;
-            await _db.SaveChangesAsync();
-
-            // Clear cart
-            _db.CartItems.RemoveRange(cartItems);
-            await _db.SaveChangesAsync();
-
-            return Redirect(session.Url);
         }
 
         public async Task<IActionResult> OrderConfirmation(int id)
         {
-            // Get order with user info
+            // Get the order header with its details and products
             var orderHeader = await _db.OrderHeaders
                 .Include(oh => oh.ApplicationUser)
                 .FirstOrDefaultAsync(oh => oh.Id == id);
@@ -340,34 +383,61 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 return NotFound();
             }
 
-            // Process payment if not a delayed payment
-            if (orderHeader.PaymentStatus != SD.PaymentStatusDelayedPayment)
-            {
-                var service = new SessionService();
-                Session session = service.Get(orderHeader.SessionId);
-
-                if (session.PaymentStatus.ToLower() == "paid")
-                {
-                    // Update payment info directly
-                    orderHeader.SessionId = session.Id;
-                    orderHeader.PaymentIntentId = session.PaymentIntentId;
-                    orderHeader.OrderStatus = SD.StatusApproved;
-                    orderHeader.PaymentStatus = SD.PaymentStatusApproved;
-
-                    await _db.SaveChangesAsync();
-                }
-                // Clear session
-                HttpContext.Session.Clear();
-            }
-            // Clear user's cart
-
-            List<CartItem> shoppingCarts = await _db.CartItems.Where(u => u.UserId == orderHeader.ApplicationUserId)
+            // Get all order details for this order
+            var orderDetails = await _db.OrderDetails
+                .Include(od => od.Product)
+                .Where(od => od.OrderHeaderId == id)
                 .ToListAsync();
 
-            _db.CartItems.RemoveRange(shoppingCarts);
+            // Create a view model to pass to the view
+            var viewModel = new OrderVM
+            {
+                OrderHeader = orderHeader,
+                OrderDetails = orderDetails
+            };
+
+            // Handle different payment methods
+            if (orderHeader.ApplicationUser.PaymentMehtod == "cash")
+            {
+                // Cash payment specific logic
+                orderHeader.PaymentStatus = SD.PaymentStatusPending;
+                orderHeader.OrderStatus = SD.StatusPending;
+            }
+            else if (!string.IsNullOrEmpty(orderHeader.SessionId))
+            {
+                // Credit card payment processing
+                try
+                {
+                    var service = new SessionService();
+                    Session session = service.Get(orderHeader.SessionId);
+
+                    if (session.PaymentStatus.ToLower() == "paid")
+                    {
+                        orderHeader.PaymentStatus = SD.PaymentStatusApproved;
+                        orderHeader.OrderStatus = SD.StatusApproved;
+                    }
+                }
+                catch (StripeException e)
+                {
+                    // Log the error but don't prevent order confirmation
+                }
+            }
+
             await _db.SaveChangesAsync();
 
-            return View(orderHeader);
+            // Clear the user's cart
+            var userId = _userManager.GetUserId(User);
+            var cartItems = await _db.CartItems
+                .Where(ci => ci.UserId == userId)
+                .ToListAsync();
+
+            if (cartItems.Any())
+            {
+                _db.CartItems.RemoveRange(cartItems);
+                await _db.SaveChangesAsync();
+            }
+
+            return View(viewModel);
         }
         private (double Subtotal, double ShippingFee, double Tax, double Total) CalculateOrderTotals(IEnumerable<CartItem> cartItems)
         {
