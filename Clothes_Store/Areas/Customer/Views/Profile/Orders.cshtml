@@ -1,511 +1,916 @@
-﻿@{
+﻿@using Clothes_Models.ViewModels
+@using Clothes_Utilities
+@model List<OrderVM>
+@{
     Layout = "~/Areas/Customer/Views/Shared/_ProfileLayout.cshtml";
 }
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div id="successMessage" class="fixed top-4 right-4 z-50 animate-fade-in">
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center justify-between">
-            <span class="flex items-center">
-                <i class="fas fa-check-circle mr-2"></i>
-                @TempData["SuccessMessage"]
-            </span>
-            <button type="button" class="text-green-700 hover:text-green-900" onclick="closeMessage('successMessage')">
+<!-- Notification Container -->
+<style>
+    /* Notification styles - same as product details page */
+    .notification-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+    }
+
+    .notification {
+    padding: 1rem 1.5rem;
+    color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    transform: translateX(150%);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+    }
+
+    .notification.success {
+    background-color: #088178;
+    }
+
+    .notification.error {
+    background-color: #ef4444;
+    }
+
+    .notification.show {
+    transform: translateX(0);
+    }
+
+    .notification.hide {
+    transform: translateX(150%);
+    opacity: 0;
+    }
+
+    .notification-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+    }
+
+    .notification-close {
+    margin-left: 1rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    }
+
+    .notification-close:hover {
+    opacity: 1;
+    }
+
+    .notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.3);
+    }
+
+    .notification-progress-bar {
+    height: 100%;
+    width: 100%;
+    background: white;
+    animation: progress 3s linear forwards;
+    transform-origin: left;
+    }
+
+    @@keyframes progress {
+    0% {
+    transform: scaleX(0);
+    }
+
+    100% {
+    transform: scaleX(1);
+    }
+    }
+
+    /* Bounce animation for cart button */
+    @@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+    }
+
+    40% {
+    transform: translateY(-10px);
+    }
+
+    60% {
+    transform: translateY(-5px);
+    }
+    }
+
+    .bounce-effect {
+    animation: bounce 1s;
+    }
+
+    /* Existing styles */
+    .pro-cart-button {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50px;
+    background-color: #e8f6ea;
+    font-weight: 500;
+    color: #088178;
+    border: 1px solid #cce7d0;
+    position: absolute;
+    bottom: 20px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    }
+
+    .pro-cart-button:hover {
+    background-color: #cce7d0;
+    color: #066156;
+    transform: scale(1.05);
+    }
+</style>
+
+<div class="notification-container">
+    @if (TempData["Success"] != null)
+    {
+        <div id="successNotification" class="notification success">
+            <i class="fas fa-check-circle notification-icon"></i>
+            <span>@TempData["Success"]</span>
+            <span class="notification-close" onclick="hideNotification('successNotification')">
                 <i class="fas fa-times"></i>
-            </button>
+            </span>
+            <div class="notification-progress">
+                <div class="notification-progress-bar"></div>
+            </div>
         </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div id="errorNotification" class="notification error">
+            <i class="fas fa-exclamation-circle notification-icon"></i>
+            <span>@TempData["Error"]</span>
+            <span class="notification-close" onclick="hideNotification('errorNotification')">
+                <i class="fas fa-times"></i>
+            </span>
+            <div class="notification-progress">
+                <div class="notification-progress-bar"></div>
+            </div>
+        </div>
+    }
+</div>
+
+
+<div class="mb-6 lg:mb-8">
+    <h1 class="text-2xl lg:text-3xl font-bold text-gray-900">Order History</h1>
+    <p class="text-gray-500 text-sm lg:text-base mt-1">Review your past purchases and track shipments</p>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="bg-white p-8 rounded-xl shadow-sm border border-gray-100 text-center max-w-md mx-auto">
+        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-box-open text-3xl text-gray-400"></i>
+        </div>
+        <h3 class="text-lg font-medium text-gray-800 mb-2">No orders yet</h3>
+        <p class="text-gray-600 mb-6">When you place orders, they'll appear here</p>
+        <a href="/" class="inline-block px-6 py-3 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors duration-200">
+            Start Shopping
+        </a>
+    </div>
+}
+else
+{
+    <div class="space-y-6">
+        <!-- Enhanced Filter Bar -->
+        <div class="bg-white p-5 rounded-xl shadow-xs border border-gray-100">
+            <div class="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <!-- Status and Date Filters -->
+                <div class="flex space-x-4 w-full sm:w-auto">
+                    <div class="relative flex-1 min-w-[200px]">
+                        <select class="appearance-none w-full p-3 pr-8 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm bg-white">
+                            <option>All Status</option>
+                            <option>Processing</option>
+                            <option>Shipped</option>
+                            <option>Delivered</option>
+                            <option>Cancelled</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div class="relative flex-1 min-w-[200px]">
+                        <select class="appearance-none w-full p-3 pr-8 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm bg-white">
+                            <option>All Time</option>
+                            <option>Last 30 Days</option>
+                            <option>Last 6 Months</option>
+                            <option>2023</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Per Page Selector -->
+                <div class="flex items-center gap-3 w-full sm:w-auto">
+                    <span class="text-sm text-gray-600 whitespace-nowrap">Items per page:</span>
+                    <div class="relative">
+                        <select id="pageSizeSelect"
+                        onchange="changePageSize(this)"
+                        class="appearance-none w-full p-3 pr-8 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm bg-white">
+                            <option value="5" selected="@(ViewBag.PageSize == 5)">5</option>
+                            <option value="10" selected="@(ViewBag.PageSize == 10)">10</option>
+                            <option value="20" selected="@(ViewBag.PageSize == 20)">20</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders List -->
+        <div class="space-y-5">
+            @foreach (var orderVM in Model)
+            {
+                <div class="bg-white rounded-xl shadow-xs border border-gray-100 overflow-hidden transition-all duration-200 hover:shadow-md">
+                    <!-- Order Summary Header -->
+                    <div class="bg-gray-50 p-5 flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white p-2 rounded-lg border border-gray-200">
+                                <i class="fas fa-box-open text-primary text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">ORDER PLACED</p>
+                                <p class="text-sm font-medium text-gray-800">@orderVM.OrderHeader.OrderDate.ToString("MMM dd, yyyy")</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-gray-500">TOTAL</p>
+                            <p class="text-sm font-bold text-gray-900">$@orderVM.OrderHeader.OrderTotal.ToString("0.00")</p>
+                        </div>
+
+                        <div>
+                            <p class="text-xs text-gray-500">ORDER #</p>
+                            <p class="text-sm font-medium text-gray-800 font-mono">@orderVM.OrderHeader.Id</p>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            @{
+                                var statusBadge = orderVM.OrderHeader.OrderStatus switch
+                                {
+                                    "Delivered" => "bg-green-100 text-green-800",
+                                    "Shipped" => "bg-blue-100 text-blue-800",
+                                    "Processing" => "bg-yellow-100 text-yellow-800",
+                                    "Cancelled" => "bg-red-100 text-red-800",
+                                    _ => "bg-gray-100 text-gray-800"
+                                };
+                            }
+                            <span class="px-3 py-1 rounded-full text-xs font-medium @statusBadge">
+                                @orderVM.OrderHeader.OrderStatus
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Order Items -->
+                    <div class="p-5 divide-y divide-gray-100">
+                        @foreach (var detail in orderVM.OrderDetails)
+                        {
+                            <div class="py-4 flex flex-col sm:flex-row gap-4">
+                                <div class="w-full sm:w-20 flex-shrink-0">
+                                    <img src="@(detail.Product?.imgUrl ?? "/images/placeholder-product.jpg")"
+                                    alt="@detail.Product?.Product_Name"
+                                    class="w-full h-auto rounded-lg object-cover aspect-square border border-gray-100">
+                                </div>
+                                <div class="flex-grow">
+                                    <h3 class="text-base font-medium text-gray-900 mb-1">@detail.Product?.Product_Name</h3>
+                                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                                        <p class="text-gray-600">Qty: @detail.Count</p>
+                                        <p class="text-gray-600">Price: $@detail.price.ToString("0.00")</p>
+                                        <p class="text-gray-600">Total: $@((detail.price * detail.Count).ToString("0.00"))</p>
+                                    </div>
+                                </div>
+                                <div class="flex sm:flex-col justify-end gap-2 sm:w-32">
+                                    <form asp-controller="Cart" asp-action="AddToCart" method="post"
+                                    onsubmit="return handleBuyAgain(event, '@detail.Product.Product_Id')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@detail.Product.Product_Id" />
+                                        <input type="hidden" name="count" value="1" />
+                                        <button type="submit" class="text-primary hover:text-primary-dark text-sm font-medium flex items-center gap-1">
+                                            <i class="fas fa-shopping-cart text-xs"></i>
+                                            Buy again
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Order Actions -->
+                    <div class="bg-gray-50 p-4 flex flex-col sm:flex-row justify-between items-center gap-3 border-t border-gray-100">
+                        <button onclick="showTrackingInfo('order-@orderVM.OrderHeader.Id')"
+                        class="text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center gap-2">
+                            <i class="fas fa-map-marker-alt"></i>
+                            Track package
+                        </button>
+                        <div class="flex gap-2">
+                            <a asp-controller="Profile"asp-action="ContactUs" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm font-medium transition-colors">
+                                Contact support
+                            </a>
+                            <button onclick="showOrderDetails('order-@orderVM.OrderHeader.Id')" class="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-colors">
+                                View Order details
+                            </button>
+                        </div>
+                    </div>
+                    <div id="order-@orderVM.OrderHeader.Id-tracking" class="hidden p-5 bg-gray-50 border-t border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <i class="fas fa-map-marked-alt text-primary"></i>
+                            Tracking Information
+                        </h3>
+
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="flex flex-col sm:flex-row justify-between gap-4 mb-6">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Carrier</p>
+                                    <p class="text-gray-800 font-medium">@orderVM.OrderHeader.Carrier</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Tracking Number</p>
+                                    <p class="text-gray-800 font-mono">@orderVM.OrderHeader.TrackingNumber</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-500">Status</p>
+                                    <p class="text-gray-800 font-medium">@orderVM.OrderHeader.OrderStatus</p>
+                                </div>
+                            </div>
+
+                            <!-- Tracking Timeline -->
+                            <div class="relative pl-8 pb-2 border-l-2 border-primary">
+                                @if (orderVM.OrderHeader.OrderStatus == SD.StatusDelivered)
+                                {
+
+                                    <div class="mb-6">
+                                        <!-- Delivered - Active, green circle with white border -->
+                                        <div class="absolute w-5 h-5 rounded-full bg-primary border-2 border-white -left-2.5"></div>
+                                        <p class="text-sm font-medium">Delivered</p>
+                                        <p class="text-xs text-gray-500">
+                                            @(orderVM.OrderHeader.ShippingDate.AddDays(2).ToString("MMM dd, yyyy 'at' h:mm tt"))
+                                        </p>
+                                    </div>
+
+                                }
+
+                                @if (orderVM.OrderHeader.OrderStatus == SD.StatusShipped)
+                                {
+                                    <div class="mb-6">
+                                        <!-- Delivered - White circle with border -->
+                                        <div class="absolute w-4 h-4 rounded-full border-2 border-primary bg-white -left-2.5"></div>
+                                        <p class="text-sm font-medium text-gray-400">Delivered</p>
+                                        <p class="text-xs text-gray-500"></p>
+                                    </div>
+                                    <div class="mb-6">
+                                        <!-- Out for delivery - Green circle -->
+                                        <div class="absolute w-4 h-4 rounded-full bg-primary border-2 border-white -left-2.5"></div>
+                                        <p class="text-sm">Out for delivery</p>
+                                        <p class="text-xs text-gray-500">
+                                            @(orderVM.OrderHeader.ShippingDate.AddDays(1).ToString("MMM dd, yyyy 'at' h:mm tt"))
+                                        </p>
+                                    </div>
+
+                                    <div class="mb-6">
+                                        <!-- At local facility - Green circle -->
+                                        <div class="absolute w-4 h-4 rounded-full bg-primary border-2 border-white -left-2.5"></div>
+                                        <p class="text-sm">At local facility</p>
+                                        <p class="text-xs text-gray-500">
+                                            @orderVM.OrderHeader.ShippingDate.ToString("MMM dd, yyyy 'at' h:mm tt")
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div class="absolute w-4 h-4 rounded-full bg-primary border-2 border-white -left-2.5"></div>
+                                        <p class="text-sm">Order processed</p>
+                                        <p class="text-xs text-gray-500">
+                                            @orderVM.OrderHeader.OrderDate.ToString("MMM dd, yyyy 'at' h:mm tt")
+                                        </p>
+                                    </div>
+                                }
+
+                                @if (orderVM.OrderHeader.OrderStatus == SD.StatusApproved )
+                                {
+                                    <div class="mb-6">
+                                        <!-- Delivered - White circle with border -->
+                                        <div class="absolute w-4 h-4 rounded-full border-2 border-primary bg-white -left-2.5"></div>
+                                        <p class="text-sm font-medium text-gray-400">Delivered</p>
+                                        <p class="text-xs text-gray-500"></p>
+                                    </div>
+                                    <div class="mb-6">
+                                        <!-- Out for delivery - Green circle -->
+                                        <div class="absolute w-4 h-4 rounded-full border-2 border-primary bg-white -left-2.5"></div>
+                                        <p class="text-sm font-medium text-gray-400">Out for delivery</p>
+                                        <p class="text-xs text-gray-500">
+                                        </p>
+                                    </div>
+
+                                    <div class="mb-6">
+                                        <!-- At local facility - Green circle -->
+                                        <div class="absolute w-4 h-4 rounded-full border-2 border-primary bg-white -left-2.5"></div>
+                                        <p class="text-sm font-medium text-gray-400">At local facility</p>
+                                        <p class="text-xs text-gray-500">
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div class="absolute w-4 h-4 rounded-full bg-primary border-2 border-white -left-2.5"></div>
+                                        <p class="text-sm">Order processed</p>
+                                        <p class="text-xs text-gray-500">
+                                            @orderVM.OrderHeader.OrderDate.ToString("MMM dd, yyyy 'at' h:mm tt")
+                                        </p>
+                                    </div>
+                                }
+                                @if (orderVM.OrderHeader.OrderStatus == SD.StatusPending)
+                                {
+                                    <div class="mb-6">
+                                        <!-- Delivered - White circle with border -->
+                                        <div class="absolute w-4 h-4 rounded-full border-2 border-primary bg-white -left-2.5"></div>
+                                        <p class="text-sm font-medium text-gray-400">Delivered</p>
+                                        <p class="text-xs text-gray-500"></p>
+                                    </div>
+                                    <div class="mb-6">
+                                        <!-- Out for delivery - Green circle -->
+                                        <div class="absolute w-4 h-4 rounded-full border-2 border-primary bg-white -left-2.5"></div>
+                                        <p class="text-sm font-medium text-gray-400">Out for delivery</p>
+                                        <p class="text-xs text-gray-500">
+                                        </p>
+                                    </div>
+
+                                    <div class="mb-6">
+                                        <!-- At local facility - Green circle -->
+                                        <div class="absolute w-4 h-4 rounded-full border-2 border-primary bg-white -left-2.5"></div>
+                                        <p class="text-sm font-medium text-gray-400">At local facility</p>
+                                        <p class="text-xs text-gray-500">
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <div class="absolute w-4 h-4 rounded-full border-2 border-primary bg-white -left-2.5"></div>
+                                        <p class="text-sm font-medium text-gray-400">Order processed</p>
+                                        <p class="text-xs text-gray-500">
+                                        </p>
+                                    </div>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="order-@orderVM.OrderHeader.Id-details" class="hidden p-5 bg-gray-50 border-t border-gray-200">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Shipping Information -->
+                            <div class="bg-white p-5 rounded-lg shadow-xs border border-gray-100">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <i class="fas fa-truck text-primary"></i>
+                                    Shipping Information
+                                </h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-500 mb-1">Shipping Address</h4>
+                                        <address class="text-sm text-gray-800 not-italic">
+                                            @orderVM.OrderHeader.Name<br>
+                                            @orderVM.OrderHeader.StreetAddress<br>
+                                            @orderVM.OrderHeader.PostalCode, @orderVM.OrderHeader.Country<br>
+                                            <span class="text-primary">@orderVM.OrderHeader.PhoneNumber</span>
+                                        </address>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-500 mb-1">Shipping Method</h4>
+                                        <p class="text-sm text-gray-800">
+                                            @(orderVM.OrderHeader.Carrier ?? "Standard Shipping")
+                                            @if (orderVM.OrderHeader.ShippingDate != default)
+                                            {
+                                                <span class="block text-gray-500">Shipped on @orderVM.OrderHeader.ShippingDate.ToString("MMM dd, yyyy")</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Payment Information -->
+                            <div class="bg-white p-5 rounded-lg shadow-xs border border-gray-100">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                    <i class="fas fa-credit-card text-primary"></i>
+                                    Payment Information
+                                </h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <h4 class="text-sm font-medium text-gray-500 mb-1">Payment Method</h4>
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-6 bg-gray-100 rounded flex items-center justify-center">
+                                                <i class="fab fa-cc-visa text-gray-500"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm text-gray-800">Ending in •••• 4242</p>
+                                                <p class="text-xs text-gray-500">
+                                                    @if (orderVM.OrderHeader.PaymentDate != default)
+                                                    {
+                                                        <span>Paid on @orderVM.OrderHeader.PaymentDate.ToString("MMM dd, yyyy")</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>Payment @orderVM.OrderHeader.PaymentStatus</span>
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-4 text-sm">
+                                        <div>
+                                            <p class="text-gray-500">Subtotal</p>
+                                            <p class="text-gray-800 font-medium">$@orderVM.OrderHeader.Subtotal.ToString("0.00")</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500">Shipping</p>
+                                            <p class="text-gray-800 font-medium">$@orderVM.OrderHeader.ShippingFee.ToString("0.00")</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-gray-500">Tax</p>
+                                            <p class="text-gray-800 font-medium">$@orderVM.OrderHeader.Tax.ToString("0.00")</p>
+                                        </div>
+                                    </div>
+                                    <div class="pt-4 border-t border-gray-200 flex justify-between">
+                                        <p class="font-medium text-gray-800">Total</p>
+                                        <p class="font-bold text-gray-900">$@orderVM.OrderHeader.OrderTotal.ToString("0.00")</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.Count > 0)
+        {
+            <div class="mt-8 flex justify-center">
+                <nav class="flex items-center gap-2">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <a asp-action="Orders" asp-route-page="@(ViewBag.CurrentPage - 1)"
+                           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-chevron-left mr-1"></i> Previous
+                        </a>
+                    }
+
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <a asp-action="Orders" asp-route-page="@i"
+                           class="px-4 py-2 border @(i == ViewBag.CurrentPage ? "bg-primary text-white border-primary" : "border-gray-300") rounded-lg hover:bg-gray-50 transition-colors">
+                            @i
+                        </a>
+                    }
+
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <a asp-action="Orders" asp-route-page="@(ViewBag.CurrentPage + 1)"
+                           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                            Next <i class="fas fa-chevron-right ml-1"></i>
+                        </a>
+                    }
+                </nav>
+            </div>
+        }
     </div>
 }
 
-<div class="mb-6 lg:mb-8">
-    <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Your Orders</h2>
-    <p class="text-gray-500 text-sm lg:text-base">View and manage your order history</p>
-</div>
-
-<div class="space-y-4 lg:space-y-6">
-    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
-        <div class="flex flex-col sm:flex-row gap-4">
-            <div class="relative flex-grow">
-                <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base">
-                    <option>All Orders</option>
-                    <option>Past 30 Days</option>
-                    <option>Past 6 Months</option>
-                    <option>2023</option>
-                </select>
-                <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
-            </div>
-            <div class="relative flex-grow">
-                <input type="text" placeholder="Search orders..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base">
-                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="bg-gray-50 p-4 lg:p-6 flex flex-col md:flex-row justify-between border-b border-gray-200">
-            <div class="mb-3 md:mb-0">
-                <p class="text-gray-500 text-sm">Order Placed</p>
-                <p class="text-gray-800 font-medium">June 15, 2023</p>
-            </div>
-            <div class="mb-3 md:mb-0">
-                <p class="text-gray-500 text-sm">Total</p>
-                <p class="text-gray-800 font-medium">$149.99</p>
-            </div>
-            <div class="mb-3 md:mb-0">
-                <p class="text-gray-500 text-sm">Order #</p>
-                <p class="text-gray-800 font-medium">112-5567892-4101234</p>
-            </div>
-            <div>
-                <p class="text-gray-500 text-sm">Status</p>
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                    <span class="text-green-700 font-medium">Delivered</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="p-4 lg:p-6">
-            <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <div class="w-full sm:w-24 flex-shrink-0">
-                    <img src="https://via.placeholder.com/150" alt="Product" class="w-full h-auto rounded-lg">
-                </div>
-                <div class="flex-grow">
-                    <h3 class="text-lg font-medium text-gray-800">Wireless Bluetooth Headphones</h3>
-                    <p class="text-gray-500 text-sm mb-2">Color: Black | Size: One Size</p>
-                    <p class="text-gray-800 font-medium">$79.99</p>
-                    <p class="text-gray-500 text-sm">Quantity: 1</p>
-                </div>
-                <div class="flex sm:flex-col justify-between sm:justify-start gap-3 sm:w-32">
-                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
-                        Buy it again
-                    </button>
-                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
-                        View item
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-4">
-                <div class="w-full sm:w-24 flex-shrink-0">
-                    <img src="https://via.placeholder.com/150" alt="Product" class="w-full h-auto rounded-lg">
-                </div>
-                <div class="flex-grow">
-                    <h3 class="text-lg font-medium text-gray-800">Phone Charging Stand</h3>
-                    <p class="text-gray-500 text-sm mb-2">Color: White</p>
-                    <p class="text-gray-800 font-medium">$29.99</p>
-                    <p class="text-gray-500 text-sm">Quantity: 2</p>
-                </div>
-                <div class="flex sm:flex-col justify-between sm:justify-start gap-3 sm:w-32">
-                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
-                        Buy it again
-                    </button>
-                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
-                        View item
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-gray-50 p-4 lg:p-6 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-200">
-            <button onclick="showOrderDetail('order1')"
-                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-sm lg:text-base">
-                Track package
-            </button>
-            <button class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-[#076b63] transition-colors text-sm lg:text-base">
-                Leave seller feedback
-            </button>
-        </div>
-
-        <div id="order1-detail" class="hidden p-4 lg:p-6 border-t border-gray-200 bg-gray-50">
-            <h3 class="text-lg font-semibold mb-4">Order Details</h3>
-
-            <div class="mb-6">
-                <h4 class="font-medium text-gray-800 mb-2">Shipping Information</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white p-4 rounded-lg border border-gray-200">
-                        <p class="font-medium text-gray-800 mb-1">Shipping Address</p>
-                        <p class="text-gray-600">John Doe</p>
-                        <p class="text-gray-600">123 Main Street</p>
-                        <p class="text-gray-600">Apartment 4B</p>
-                        <p class="text-gray-600">New York, NY 10001</p>
-                        <p class="text-gray-600">United States</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg border border-gray-200">
-                        <p class="font-medium text-gray-800 mb-1">Shipping Method</p>
-                        <p class="text-gray-600">Standard Shipping</p>
-                        <p class="text-gray-600">Estimated delivery: June 18-20, 2023</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <h4 class="font-medium text-gray-800 mb-2">Payment Information</h4>
-                <div class="bg-white p-4 rounded-lg border border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <i class="fab fa-cc-visa text-2xl text-blue-500"></i>
-                        <div>
-                            <p class="text-gray-800">Visa ending in 4242</p>
-                            <p class="text-gray-500 text-sm">Expires 04/2025</p>
-                        </div>
-                    </div>
-                    <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-gray-500 text-sm">Subtotal</p>
-                            <p class="text-gray-800">$139.97</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500 text-sm">Shipping</p>
-                            <p class="text-gray-800">$5.99</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500 text-sm">Tax</p>
-                            <p class="text-gray-800">$4.03</p>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between">
-                        <p class="text-gray-800 font-medium">Total</p>
-                        <p class="text-gray-800 font-medium">$149.99</p>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="font-medium text-gray-800 mb-2">Tracking Information</h4>
-                <div class="bg-white p-4 rounded-lg border border-gray-200">
-                    <div class="relative pl-8 pb-6 border-l-2 border-primary">
-                        <div class="mb-6">
-                            <div class="absolute w-4 h-4 rounded-full bg-primary border-2 border-white -left-2"></div>
-                            <p class="text-sm font-medium">Delivered</p>
-                            <p class="text-xs text-gray-500">June 18, 2023 at 2:30 PM</p>
-                            <p class="text-sm mt-1">Left at front door</p>
-                        </div>
-
-                        <div class="mb-6">
-                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
-                            <p class="text-sm">Out for delivery</p>
-                            <p class="text-xs text-gray-500">June 18, 2023 at 8:15 AM</p>
-                        </div>
-
-                        <div class="mb-6">
-                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
-                            <p class="text-sm">At local facility</p>
-                            <p class="text-xs text-gray-500">June 17, 2023 at 11:45 PM</p>
-                        </div>
-
-                        <div>
-                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
-                            <p class="text-sm">Order processed</p>
-                            <p class="text-xs text-gray-500">June 15, 2023 at 5:10 PM</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <p class="text-sm font-medium text-gray-800">Carrier: USPS</p>
-                        <p class="text-sm text-gray-600">Tracking number: <span class="font-mono">9405511202536197845123</span></p>
-                        <button class="mt-2 text-primary hover:text-[#076b63] text-sm font-medium">
-                            View carrier website
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="bg-gray-50 p-4 lg:p-6 flex flex-col md:flex-row justify-between border-b border-gray-200">
-            <div class="mb-3 md:mb-0">
-                <p class="text-gray-500 text-sm">Order Placed</p>
-                <p class="text-gray-800 font-medium">May 2, 2023</p>
-            </div>
-            <div class="mb-3 md:mb-0">
-                <p class="text-gray-500 text-sm">Total</p>
-                <p class="text-gray-800 font-medium">$89.98</p>
-            </div>
-            <div class="mb-3 md:mb-0">
-                <p class="text-gray-500 text-sm">Order #</p>
-                <p class="text-gray-800 font-medium">112-1234567-8910111</p>
-            </div>
-            <div>
-                <p class="text-gray-500 text-sm">Status</p>
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                    <span class="text-blue-700 font-medium">Shipped</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="p-4 lg:p-6">
-            <div class="flex flex-col sm:flex-row gap-4">
-                <div class="w-full sm:w-24 flex-shrink-0">
-                    <img src="https://via.placeholder.com/150" alt="Product" class="w-full h-auto rounded-lg">
-                </div>
-                <div class="flex-grow">
-                    <h3 class="text-lg font-medium text-gray-800">Smart Watch</h3>
-                    <p class="text-gray-500 text-sm mb-2">Color: Midnight Black</p>
-                    <p class="text-gray-800 font-medium">$89.98</p>
-                    <p class="text-gray-500 text-sm">Quantity: 1</p>
-                </div>
-                <div class="flex sm:flex-col justify-between sm:justify-start gap-3 sm:w-32">
-                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
-                        Buy it again
-                    </button>
-                    <button class="text-primary hover:text-[#076b63] text-sm font-medium text-left">
-                        View item
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-gray-50 p-4 lg:p-6 flex flex-col sm:flex-row justify-end gap-3 border-t border-gray-200">
-            <button onclick="showOrderDetail('order2')"
-                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-sm lg:text-base">
-                Track package
-            </button>
-            <button onclick="showReturnForm('order2')"
-                    class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-sm lg:text-base">
-                Return items
-            </button>
-        </div>
-
-        <div id="order2-detail" class="hidden p-4 lg:p-6 border-t border-gray-200 bg-gray-50">
-            <h3 class="text-lg font-semibold mb-4">Order Details</h3>
-
-            <div class="mb-6">
-                <h4 class="font-medium text-gray-800 mb-2">Shipping Information</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white p-4 rounded-lg border border-gray-200">
-                        <p class="font-medium text-gray-800 mb-1">Shipping Address</p>
-                        <p class="text-gray-600">John Doe</p>
-                        <p class="text-gray-600">123 Main Street</p>
-                        <p class="text-gray-600">Apartment 4B</p>
-                        <p class="text-gray-600">New York, NY 10001</p>
-                        <p class="text-gray-600">United States</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-lg border border-gray-200">
-                        <p class="font-medium text-gray-800 mb-1">Shipping Method</p>
-                        <p class="text-gray-600">Express Shipping</p>
-                        <p class="text-gray-600">Estimated delivery: May 5-7, 2023</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <h4 class="font-medium text-gray-800 mb-2">Payment Information</h4>
-                <div class="bg-white p-4 rounded-lg border border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <i class="fab fa-cc-mastercard text-2xl text-red-500"></i>
-                        <div>
-                            <p class="text-gray-800">Mastercard ending in 5555</p>
-                            <p class="text-gray-500 text-sm">Expires 08/2024</p>
-                        </div>
-                    </div>
-                    <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <p class="text-gray-500 text-sm">Subtotal</p>
-                            <p class="text-gray-800">$89.98</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500 text-sm">Shipping</p>
-                            <p class="text-gray-800">$0.00</p>
-                        </div>
-                        <div>
-                            <p class="text-gray-500 text-sm">Tax</p>
-                            <p class="text-gray-800">$0.00</p>
-                        </div>
-                    </div>
-                    <div class="mt-3 pt-3 border-t border-gray-200 flex justify-between">
-                        <p class="text-gray-800 font-medium">Total</p>
-                        <p class="text-gray-800 font-medium">$89.98</p>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <h4 class="font-medium text-gray-800 mb-2">Tracking Information</h4>
-                <div class="bg-white p-4 rounded-lg border border-gray-200">
-                    <div class="relative pl-8 pb-6 border-l-2 border-primary">
-                        <div class="mb-6">
-                            <div class="absolute w-4 h-4 rounded-full bg-primary border-2 border-white -left-2"></div>
-                            <p class="text-sm font-medium">In transit</p>
-                            <p class="text-xs text-gray-500">May 4, 2023 at 3:20 PM</p>
-                            <p class="text-sm mt-1">Departed from Chicago, IL</p>
-                        </div>
-
-                        <div class="mb-6">
-                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
-                            <p class="text-sm">Arrived at facility</p>
-                            <p class="text-xs text-gray-500">May 3, 2023 at 11:45 PM</p>
-                        </div>
-
-                        <div>
-                            <div class="absolute w-3 h-3 rounded-full bg-gray-300 border-2 border-white -left-1.5"></div>
-                            <p class="text-sm">Order processed</p>
-                            <p class="text-xs text-gray-500">May 2, 2023 at 5:10 PM</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <p class="text-sm font-medium text-gray-800">Carrier: FedEx</p>
-                        <p class="text-sm text-gray-600">Tracking number: <span class="font-mono">78451236985214789632</span></p>
-                        <button class="mt-2 text-primary hover:text-[#076b63] text-sm font-medium">
-                            View carrier website
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="order2-return" class="hidden p-4 lg:p-6 border-t border-gray-200 bg-gray-50">
-            <h3 class="text-lg font-semibold mb-4">Request Return</h3>
-            <form class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason for return</label>
-                    <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base">
-                        <option>Select a reason</option>
-                        <option>Arrived too late</option>
-                        <option>Wrong item was sent</option>
-                        <option>Item defective or doesn't work</option>
-                        <option>No longer needed</option>
-                        <option>Better price available</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Return method</label>
-                    <div class="space-y-2">
-                        <label class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <div class="flex items-center">
-                                <i class="fas fa-box text-primary mr-2"></i>
-                                <span>Drop-off at carrier location</span>
-                            </div>
-                            <div class="relative">
-                                <input type="radio" name="returnMethod" value="dropoff" class="sr-only" checked>
-                                <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors border-primary bg-primary">
-                                    <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </label>
-
-                        <label class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <div class="flex items-center">
-                                <i class="fas fa-truck text-primary mr-2"></i>
-                                <span>Schedule a pickup</span>
-                            </div>
-                            <div class="relative">
-                                <input type="radio" name="returnMethod" value="pickup" class="sr-only">
-                                <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors border-gray-300">
-                                </div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Refund method</label>
-                    <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base">
-                        <option>Original payment method</option>
-                        <option>Store credit</option>
-                        <option>Gift card</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Comments (optional)</label>
-                    <textarea class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-sm lg:text-base" rows="3"></textarea>
-                </div>
-
-                <div class="flex justify-end gap-3 pt-2">
-                    <button type="button" onclick="hideReturnForm('order2')" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors text-sm lg:text-base">
-                        Cancel
-                    </button>
-                    <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-[#076b63] transition-colors text-sm lg:text-base">
-                        Submit Return Request
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<div class="mt-6 flex justify-center">
-    <nav class="flex items-center gap-1">
-        <button class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
-            <i class="fas fa-chevron-left"></i>
-        </button>
-        <button class="px-3 py-1 rounded-lg bg-primary text-white">1</button>
-        <button class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">2</button>
-        <button class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">3</button>
-        <span class="px-2">...</span>
-        <button class="px-3 py-1 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100">
-            <i class="fas fa-chevron-right"></i>
-        </button>
-    </nav>
-</div>
-
 <script>
-    function closeMessage(id) {
-        let element = document.getElementById(id);
-        if (element) {
-            element.classList.add('animate-fade-out');
-            setTimeout(() => element.remove(), 1000);
+    // Initialize when DOM is loaded
+      document.addEventListener("DOMContentLoaded", function() {
+          initializeSearch();
+          initializeFilters();
+          showExistingNotifications();
+      });
+
+      // Search functionality
+         function initializeSearch() {
+        const searchInput = document.querySelector('input[placeholder="Search orders..."]');
+        console.log('Search input found:', searchInput); // Debug
+
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                console.log('Search term:', this.value); // Debug
+                const searchTerm = this.value.toLowerCase();
+                const orderCards = document.querySelectorAll('.bg-white.rounded-xl.shadow-xs.border.border-gray-100');
+                const filterBar = this.closest('.bg-white.p-5.rounded-xl.shadow-xs.border.border-gray-100');
+
+                console.log('Order cards found:', orderCards.length); // Debug
+                console.log('Filter bar found:', filterBar); // Debug
+
+                if (filterBar) {
+                    filterBar.style.display = '';
+                    console.log('Filter bar display set to default'); // Debug
+                }
+
+                orderCards.forEach(card => {
+                    const orderText = card.textContent.toLowerCase();
+                    const shouldShow = orderText.includes(searchTerm);
+                    console.log('Card:', card, 'Visible:', shouldShow); // Debug
+                    card.style.display = shouldShow ? '' : 'none';
+                });
+            });
         }
     }
 
-    function showOrderDetail(orderId) {
-        document.querySelectorAll('[id$="-detail"], [id$="-return"]').forEach(el => {
+      // Filter functionality
+      function initializeFilters() {
+          // Status filter - first select element
+          const statusFilter = document.querySelector('.bg-white.p-5.rounded-xl.shadow-xs.border.border-gray-100 select:first-of-type');
+          if (statusFilter) {
+              statusFilter.addEventListener('change', function() {
+                  const status = this.value;
+                  filterOrdersByStatus(status);
+              });
+          }
+
+          // Time period filter - second select element
+          const timeFilter = document.querySelector('.bg-white.p-5.rounded-xl.shadow-xs.border.border-gray-100 select:last-of-type');
+          if (timeFilter) {
+              timeFilter.addEventListener('change', function() {
+                  const period = this.value;
+                  filterOrdersByDate(period);
+              });
+          }
+      }
+
+      function filterOrdersByStatus(status) {
+          const orderCards = document.querySelectorAll('.bg-white.rounded-xl.shadow-xs.border.border-gray-100'); // Select all order cards
+
+          orderCards.forEach(card => {
+              if (status === 'All Status') {
+                  card.style.display = '';
+              } else {
+                  // Find the status badge within the card
+                  const statusBadge = card.querySelector('.px-3.py-1.rounded-full.text-xs.font-medium');
+                  if (statusBadge) {
+                      const cardStatus = statusBadge.textContent.trim();
+                      card.style.display = cardStatus === status ? '' : 'none';
+                  }
+              }
+          });
+      }
+
+      function filterOrdersByDate(period) {
+          const now = new Date();
+          const orderCards = document.querySelectorAll('.bg-white.rounded-xl.shadow-xs.border.border-gray-100'); // Select all order cards
+
+          orderCards.forEach(card => {
+              // Find the order date element - looking for the date after "ORDER PLACED"
+              const orderDateElement = card.querySelector('p.text-xs.text-gray-500:contains("ORDER PLACED") + p.text-sm.font-medium.text-gray-800');
+
+              if (orderDateElement) {
+                  const dateText = orderDateElement.textContent.trim();
+                  const orderDate = new Date(dateText);
+
+                  if (period === 'All Time') {
+                      card.style.display = '';
+                  } else if (period === 'Last 30 Days') {
+                      const thirtyDaysAgo = new Date(now);
+                      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                      card.style.display = orderDate >= thirtyDaysAgo ? '' : 'none';
+                  } else if (period === 'Last 6 Months') {
+                      const sixMonthsAgo = new Date(now);
+                      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+                      card.style.display = orderDate >= sixMonthsAgo ? '' : 'none';
+                  } else if (period === '2023') {
+                      card.style.display = orderDate.getFullYear() === 2023 ? '' : 'none';
+                  }
+              }
+          });
+      }
+
+      // Add a contains polyfill for text matching
+      if (!Element.prototype.matches) {
+          Element.prototype.matches =
+              Element.prototype.msMatchesSelector ||
+              Element.prototype.webkitMatchesSelector;
+      }
+
+      if (!Element.prototype.closest) {
+          Element.prototype.closest = function(s) {
+              var el = this;
+              if (!document.documentElement.contains(el)) return null;
+              do {
+                  if (el.matches(s)) return el;
+                  el = el.parentElement || el.parentNode;
+              } while (el !== null && el.nodeType === 1);
+              return null;
+          };
+      }
+
+      // Helper function for :contains selector
+      function contains(selector, text) {
+          var elements = document.querySelectorAll(selector);
+          return Array.prototype.filter.call(elements, function(element){
+              return RegExp(text).test(element.textContent);
+          });
+      }
+
+    // Show existing notifications from TempData
+    function showExistingNotifications() {
+        const successNotification = document.getElementById('successNotification');
+        if (successNotification) {
+            showNotification(successNotification);
+        }
+
+        const errorNotification = document.getElementById('errorNotification');
+        if (errorNotification) {
+            showNotification(errorNotification);
+        }
+    }
+
+    // Notification functions
+    function showNotification(notification) {
+        notification.classList.add('show');
+
+        const hideTime = notification.classList.contains('error') ? 5000 : 3000;
+        const autoHide = setTimeout(() => {
+            hideNotification(notification.id);
+        }, hideTime);
+
+        notification.addEventListener('mouseenter', () => {
+            clearTimeout(autoHide);
+            notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
+        });
+
+        notification.addEventListener('mouseleave', () => {
+            const progressBar = notification.querySelector('.notification-progress-bar');
+            const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
+            const remainingTime = remainingWidth * hideTime;
+
+            progressBar.style.animationPlayState = 'running';
+            setTimeout(() => {
+                hideNotification(notification.id);
+            }, remainingTime);
+        });
+    }
+
+    window.hideNotification = function(id) {
+        const notification = document.getElementById(id);
+        if (notification) {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
+        }
+    };
+
+    // Order details and tracking functions
+    function showOrderDetails(orderId) {
+        document.querySelectorAll('[id$="-details"], [id$="-tracking"]').forEach(el => {
             el.classList.add('hidden');
         });
-        document.getElementById(`${orderId}-detail`).classList.remove('hidden');
+
+        const detailsSection = document.getElementById(`${orderId}-details`);
+        if (detailsSection) {
+            detailsSection.classList.remove('hidden');
+            detailsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     }
 
-    function showReturnForm(orderId) {
-        document.querySelectorAll('[id$="-detail"], [id$="-return"]').forEach(el => {
+    function showTrackingInfo(orderId) {
+        document.querySelectorAll('[id$="-details"], [id$="-tracking"]').forEach(el => {
             el.classList.add('hidden');
         });
-        document.getElementById(`${orderId}-return`).classList.remove('hidden');
+
+        const trackingSection = document.getElementById(`${orderId}-tracking`);
+        if (trackingSection) {
+            trackingSection.classList.remove('hidden');
+            trackingSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
     }
 
-    function hideReturnForm(orderId) {
-        document.getElementById(`${orderId}-return`).classList.add('hidden');
-    }
+    // Buy Again functionality
+    async function handleBuyAgain(event, productId) {
+        event.preventDefault();
 
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('input[name="returnMethod"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                document.querySelectorAll('input[name="returnMethod"]').forEach(r => {
-                    const indicator = r.nextElementSibling;
-                    indicator.classList.remove('border-primary', 'bg-primary');
-                    indicator.classList.add('border-gray-300');
-                    indicator.innerHTML = '';
-                });
+        const form = event.target;
+        const button = form.querySelector('button[type="submit"]');
+        const originalContent = button.innerHTML;
 
-                if (this.checked) {
-                    const indicator = this.nextElementSibling;
-                    indicator.classList.add('border-primary', 'bg-primary');
-                    indicator.classList.remove('border-gray-300');
-                    indicator.innerHTML = `
-                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    `;
+        // Show loading state
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+        button.disabled = true;
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                 }
             });
-        });
-    });
 
-    document.addEventListener("DOMContentLoaded", function() {
-        setTimeout(() => {
-            closeMessage('successMessage');
-        }, 5000);
-    });
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                showCustomNotification(result.message || 'Item added to cart!', 'success');
+                updateCartCount(result.cartCount);
+            } else {
+                throw new Error(result.message || 'Failed to add to cart');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showCustomNotification(error.message || 'Failed to add to cart', 'error');
+        } finally {
+            button.innerHTML = originalContent;
+            button.disabled = false;
+        }
+
+        return false;
+    }
+
+    function showCustomNotification(message, type) {
+        const container = document.querySelector('.notification-container') || createNotificationContainer();
+        const notificationId = `notification-${Date.now()}`;
+
+        const notification = document.createElement('div');
+        notification.id = notificationId;
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} notification-icon"></i>
+            <span>${message}</span>
+            <span class="notification-close" onclick="hideNotification('${notificationId}')">
+                <i class="fas fa-times"></i>
+            </span>
+            <div class="notification-progress">
+                <div class="notification-progress-bar"></div>
+            </div>
+        `;
+
+        container.appendChild(notification);
+        setTimeout(() => notification.classList.add('show'), 10);
+
+        const hideTime = type === 'error' ? 5000 : 3000;
+        const autoHide = setTimeout(() => hideNotification(notificationId), hideTime);
+
+        notification.addEventListener('mouseenter', () => {
+            clearTimeout(autoHide);
+            notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
+        });
+
+        notification.addEventListener('mouseleave', () => {
+            const progressBar = notification.querySelector('.notification-progress-bar');
+            const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
+            const remainingTime = remainingWidth * hideTime;
+
+            progressBar.style.animationPlayState = 'running';
+            setTimeout(() => hideNotification(notificationId), remainingTime);
+        });
+    }
+
+    function createNotificationContainer() {
+        const container = document.createElement('div');
+        container.className = 'notification-container';
+        document.body.appendChild(container);
+        return container;
+    }
+
+    function updateCartCount(count) {
+        const cartCountElements = document.querySelectorAll('.cart-count, .cart-badge');
+        cartCountElements.forEach(el => {
+            el.textContent = count;
+            el.classList.add('bounce-effect');
+
+            setTimeout(() => {
+                el.classList.remove('bounce-effect');
+            }, 1000);
+        });
+    }
+    function changePageSize(select) {
+        const pageSize = select.value;
+        const url = new URL(window.location.href);
+        url.searchParams.set('pageSize', pageSize);
+        url.searchParams.set('page', 1); // Reset to first page
+        window.location.href = url.toString();
+    }
 </script>
 
 <style>
     .animate-fade-in {
-        opacity: 0;
-        transform: translateY(-10px);
-        animation: fadeIn 0.5s ease-out forwards;
+        animation: fadeIn 0.3s ease-out forwards;
     }
 
     @@keyframes fadeIn {
@@ -521,7 +926,7 @@
     }
 
     .animate-fade-out {
-        animation: fadeOut 1s ease-out forwards;
+        animation: fadeOut 0.3s ease-out forwards;
     }
 
     @@keyframes fadeOut {
@@ -535,4 +940,23 @@
             transform: translateY(-10px);
         }
     }
+
+    .shadow-xs {
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .primary-dark {
+        background-color: #076b63;
+    }
+
+    /* Transition for smooth expansion/collapse */
+    [id$="-detail"] {
+        transition: all 0.3s ease;
+        max-height: 0;
+        overflow: hidden;
+    }
+
+        [id$="-detail"]:not(.hidden) {
+            max-height: 2000px; /* Adjust based on your content */
+        }
 </style>

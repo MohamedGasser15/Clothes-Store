@@ -205,7 +205,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendEmailVerificationCode()
         {
@@ -231,8 +230,8 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return RedirectToAction("VerifyEmailCode", new { userId = user.Id });
         }
+
         [HttpGet]
-        [AllowAnonymous]
         public async Task<IActionResult> VerifyEmailCode(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -248,7 +247,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerifyEmailCode(VerifyEmailCodeViewModel model)
         {
@@ -432,6 +430,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
         {
             return View(new ChangePasswordViewModel());
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
@@ -908,9 +907,44 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View();
         }
 
-        public IActionResult Orders()
+        [HttpGet]
+        public async Task<IActionResult> Orders(int page = 1, int pageSize = 5)
         {
-            return View();
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToPage("/Account/Login");
+            }
+
+            // Get total count of orders for pagination
+            var totalOrders = await _db.OrderHeaders
+                .CountAsync(oh => oh.ApplicationUserId == user.Id);
+
+            // Fetch paginated OrderHeaders
+            var orderHeaders = await _db.OrderHeaders
+                .Where(oh => oh.ApplicationUserId == user.Id)
+                .OrderByDescending(oh => oh.OrderDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            // Fetch OrderDetails for the paginated headers
+            var orderDetails = await _db.OrderDetails
+                .Include(od => od.Product)
+                .Where(od => orderHeaders.Select(oh => oh.Id).Contains(od.OrderHeaderId))
+                .ToListAsync();
+
+            var orderVMs = orderHeaders.Select(oh => new OrderVM
+            {
+                OrderHeader = oh,
+                OrderDetails = orderDetails.Where(od => od.OrderHeaderId == oh.Id).ToList()
+            }).ToList();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalOrders / (double)pageSize);
+            ViewBag.PageSize = pageSize;
+
+            return View(orderVMs);
         }
 
         public IActionResult ContactUs()
