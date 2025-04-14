@@ -280,5 +280,62 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Details), new { id });
                 }
             }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAsDelivered(int id, string returnUrl = null)
+        {
+            try
+            {
+                // 1. Get the order directly from the database
+                var orderFromDb = await _db.OrderHeaders.FirstOrDefaultAsync(o => o.Id == id);
+
+                // 2. Make sure the order exists
+                if (orderFromDb == null)
+                {
+                    TempData["Error"] = "Order not found!";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // 3. Make sure the order status is 'Shipped' before changing to 'Delivered'
+                if (orderFromDb.OrderStatus != SD.StatusShipped)
+                {
+                    TempData["Error"] = "Cannot mark the order as 'Delivered' unless its status is 'Shipped'";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // 4. Change status to 'Delivered'
+                orderFromDb.OrderStatus = SD.StatusDelivered;
+
+                // 5. Optionally add delivery date
+                //orderFromDb.DeliveryDate = DateTime.Now;
+
+                // 6. Update the order in the database
+                _db.OrderHeaders.Update(orderFromDb);
+                await _db.SaveChangesAsync();
+
+                // 7. Optionally notify the user
+                /*
+                var user = await _userManager.FindByIdAsync(orderFromDb.UserId);
+                if (user != null)
+                {
+                    string message = $"Your order #{orderFromDb.Id} has been delivered successfully";
+                    await _emailSender.SendEmailAsync(user.Email, "Order Delivered", message);
+                }
+                */
+
+                // 8. Show success message
+                TempData["Success"] = $"Order #{id} status updated to 'Delivered' successfully";
+
+                // 9. Return to the same page we came from
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
+            }
+            catch (Exception ex)
+            {
+                // In case of any error
+                TempData["Error"] = $"An error occurred: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
         }
+
+    }
 }

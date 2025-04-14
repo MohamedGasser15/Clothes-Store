@@ -210,11 +210,17 @@
                 </div>
                 <div class="flex space-x-2">
                     <span class="px-3 py-1 rounded-full text-xs font-semibold
-                          @(Model.OrderHeader.OrderStatus == SD.StatusApproved ? "bg-green-100 text-green-800" :
-                            Model.OrderHeader.OrderStatus == SD.StatusPending ? "bg-yellow-100 text-yellow-800" :
-                            Model.OrderHeader.OrderStatus == SD.StatusShipped ? "bg-blue-100 text-blue-800" :
-                            "bg-red-100 text-red-800")">
-                        @Model.OrderHeader.OrderStatus
+                      @(Model.OrderHeader.OrderStatus == SD.StatusApproved ? "bg-green-100 text-green-800" :
+                        Model.OrderHeader.OrderStatus == SD.StatusPending ? "bg-yellow-100 text-yellow-800" :
+                        Model.OrderHeader.OrderStatus == SD.StatusShipped ? "bg-blue-100 text-blue-800" :
+                        Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "bg-purple-100 text-purple-800" :
+                        "bg-red-100 text-red-800")">
+    
+                        @(Model.OrderHeader.OrderStatus == SD.StatusApproved ? "Approved" :
+                          Model.OrderHeader.OrderStatus == SD.StatusPending ? "Pending" :
+                          Model.OrderHeader.OrderStatus == SD.StatusShipped ? "Shipped" :
+                          Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "Delivered" :
+                          "Unknown")
                     </span>
                     <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white text-primary-dark">
                         @(Model.OrderHeader.PaymentStatus == SD.StatusApproved ? "Paid" : "Pending Payment")
@@ -291,7 +297,14 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Shipping Status</p>
                                 <div class="mt-1 flex items-center">
-                                    @if (Model.OrderHeader.ShippingDate > DateTime.MinValue)
+                                    @if (Model.OrderHeader.OrderStatus == SD.StatusDelivered)
+                                    {
+                                        <span class="h-4 w-4 rounded-full bg-purple-500 mr-2"></span>
+                                        <span class="text-sm text-gray-900">
+                                            Delivered on @DateTime.Now.ToString("MMM dd")
+                                        </span>
+                                    }
+                                    else if (Model.OrderHeader.ShippingDate > DateTime.MinValue)
                                     {
                                         <span class="h-4 w-4 rounded-full bg-green-500 mr-2"></span>
                                         <span class="text-sm text-gray-900">
@@ -305,6 +318,7 @@
                                     }
                                 </div>
                             </div>
+
                         </div>
                     </div>
                 </div>
@@ -318,26 +332,28 @@
                             <!-- Timeline line -->
                             <div class="absolute left-4 top-0 h-full w-0.5 bg-gray-200"></div>
 
-                            <!-- Timeline steps -->
+                            <!-- Order Received -->
                             <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus != SD.StatusPending ? "text-primary" : "")">
                                 <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus != SD.StatusPending ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
                                 <h4 class="font-medium">Order Received</h4>
                                 <p class="text-sm text-gray-500">@Model.OrderHeader.OrderDate.ToString("dd MMM yyyy 'at' h:mm tt")</p>
                             </div>
 
-                            <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped ? "text-primary" : "")">
-                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
+                            <!-- Order Processed -->
+                            <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped || Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "text-primary" : "")">
+                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped || Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
                                 <h4 class="font-medium">Order Processed</h4>
-                                @if (Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped)
+                                @if (Model.OrderHeader.OrderStatus == SD.StatusApproved || Model.OrderHeader.OrderStatus == SD.StatusShipped || Model.OrderHeader.OrderStatus == SD.StatusDelivered)
                                 {
                                     <p class="text-sm text-gray-500">@Model.OrderHeader.ShippingDate.ToString("dd MMM yyyy 'at' h:mm tt")</p>
                                 }
                             </div>
 
-                            <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus == SD.StatusShipped ? "text-primary" : "")">
-                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus == SD.StatusShipped ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
+                            <!-- Order Shipped -->
+                            <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus == SD.StatusShipped || Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "text-primary" : "")">
+                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus == SD.StatusShipped || Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
                                 <h4 class="font-medium">Order Shipped</h4>
-                                @if (Model.OrderHeader.OrderStatus == SD.StatusShipped)
+                                @if (Model.OrderHeader.OrderStatus == SD.StatusShipped || Model.OrderHeader.OrderStatus == SD.StatusDelivered)
                                 {
                                     <p class="text-sm text-gray-500">@Model.OrderHeader.ShippingDate.ToString("dd MMM yyyy 'at' h:mm tt")</p>
                                     @if (!string.IsNullOrEmpty(Model.OrderHeader.TrackingNumber))
@@ -353,13 +369,19 @@
                                 }
                             </div>
 
-                            <div class="relative pl-8">
-                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 bg-white border-gray-300"></div>
+                            <!-- Order Delivered -->
+                            <div class="relative mb-6 pl-8 @(Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "text-primary" : "")">
+                                <div class="absolute left-0 top-0 h-4 w-4 rounded-full border-2 @(Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "bg-primary border-primary" : "bg-white border-gray-300")"></div>
                                 <h4 class="font-medium">Order Delivered</h4>
+                                @if (Model.OrderHeader.OrderStatus == SD.StatusDelivered)
+                                {
+                                    <p class="text-sm text-gray-500">@DateTime.Now.ToString("dd MMM yyyy 'at' h:mm tt")</p>
+                                }
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
 
             <!-- Right Column - Order Items & Summary -->
@@ -512,6 +534,18 @@
                                     class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                                     onclick="return confirm('Permanently remove this order?')">
                                 <i class="fas fa-trash-alt mr-2"></i> Remove Order
+                            </button>
+                        </form>
+                    }
+                    @if (Model.OrderHeader.OrderStatus == SD.StatusShipped)
+                    {
+                        <form asp-action="MarkAsDelivered" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.OrderHeader.Id" />
+                            <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                            <button type="submit"
+                                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-check-circle mr-2"></i> Mark as Delivered
                             </button>
                         </form>
                     }

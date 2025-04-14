@@ -14,6 +14,7 @@
         public const string StatusShipped = "Shipped";
         public const string StatusCancelled = "Cancelled";
         public const string StatusRefunded = "Refunded";
+        public static string StatusDelivered = "Delivered";
 
         public const string PaymentStatusPending = "Pending";
         public const string PaymentStatusApproved = "Approved";
