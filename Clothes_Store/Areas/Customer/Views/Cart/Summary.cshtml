@@ -5,214 +5,368 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="min-h-screen bg-white py-8 px-4 sm:px-6 lg:px-8">
-    <!-- Success Notification -->
-    @if (TempData["SuccessMessage"] != null)
+<style>
+    /* Notification styles - same as product details page */
+    .notification-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 1000;
+    }
+
+    .notification {
+        padding: 1rem 1.5rem;
+        color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        transform: translateX(150%);
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .notification.success {
+            background-color: #088178;
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.hide {
+            transform: translateX(150%);
+            opacity: 0;
+        }
+
+    .notification-icon {
+        margin-right: 0.75rem;
+        font-size: 1.25rem;
+    }
+
+    .notification-close {
+        margin-left: 1rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .notification-progress-bar {
+        height: 100%;
+        width: 100%;
+        background: white;
+        animation: progress 3s linear forwards;
+        transform-origin: left;
+    }
+
+    @@keyframes progress {
+        0% {
+            transform: scaleX(0);
+        }
+
+        100% {
+            transform: scaleX(1);
+        }
+    }
+
+    /* Bounce animation for cart button */
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+
+        40% {
+            transform: translateY(-10px);
+        }
+
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    .bounce-effect {
+        animation: bounce 1s;
+    }
+
+    /* Existing styles */
+    .pro-cart-button {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 50px;
+        background-color: #e8f6ea;
+        font-weight: 500;
+        color: #088178;
+        border: 1px solid #cce7d0;
+        position: absolute;
+        bottom: 20px;
+        right: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+        .pro-cart-button:hover {
+            background-color: #cce7d0;
+            color: #066156;
+            transform: scale(1.05);
+        }
+</style>
+<div class="notification-container">
+    @if (TempData["Success"] != null)
     {
-        <div id="successMessage" class="fixed top-6 right-6 z-50 animate-fade-in">
-            <div class="bg-[#e6f7f5] border border-[#088178] text-[#088178] px-6 py-4 rounded-lg shadow-lg flex items-center justify-between max-w-md">
-                <span class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    @TempData["SuccessMessage"]
-                </span>
-                <button type="button" class="text-[#088178] hover:text-[#06615a]" onclick="closeMessage('successMessage')">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
+        <div id="successNotification" class="notification success">
+            <i class="fas fa-check-circle notification-icon"></i>
+            <span>@TempData["Success"]</span>
+            <span class="notification-close" onclick="hideNotification('successNotification')">
+                <i class="fas fa-times"></i>
+            </span>
+            <div class="notification-progress">
+                <div class="notification-progress-bar"></div>
             </div>
         </div>
     }
-
-    <!-- Main Container -->
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Order Summary</h1>
-            <p class="text-gray-500">Review your order before checkout</p>
+    @if (TempData["Error"] != null)
+    {
+        <div id="errorNotification" class="notification error">
+            <i class="fas fa-exclamation-circle notification-icon"></i>
+            <span>@TempData["Error"]</span>
+            <span class="notification-close" onclick="hideNotification('errorNotification')">
+                <i class="fas fa-times"></i>
+            </span>
+            <div class="notification-progress">
+                <div class="notification-progress-bar"></div>
+            </div>
         </div>
-
-            <div class="flex flex-col lg:flex-row gap-8">
-                <!-- Order Details -->
-                <div class="lg:w-2/3">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <!-- Shipping Information -->
-                        <div class="p-6 border-b border-gray-100">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Shipping Information</h2>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                                    <input asp-for="OrderHeader.Name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                                    <input asp-for="OrderHeader.PhoneNumber" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
-                                    <input asp-for="OrderHeader.StreetAddress" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
-                                    <input asp-for="OrderHeader.Country" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
-                                    <input asp-for="OrderHeader.PostalCode" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
-                                </div>
-                            </div>
+    }
+</div>
+<!-- Main Container -->
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <div class="text-center mb-12">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Order Summary</h1>
+        <p class="text-gray-500">Review your order before checkout</p>
+    </div>
+    @if (Model.Items.Count() == 0)
+    {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-12 text-center">
+                <div class="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-gray-100 mb-6">
+                    <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-medium text-gray-900 mb-2">Your cart is empty</h2>
+                <p class="text-gray-500 mb-6">Looks like you haven't added any items to your cart yet.</p>
+                <a asp-controller="Home" asp-action="Shope" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-[#088178] hover:bg-[#06615a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
+                    Continue Shopping
+                    <svg class="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    }
+    <div class="flex flex-col lg:flex-row gap-8">
+        <!-- Order Details -->
+        <div class="lg:w-2/3">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <!-- Shipping Information -->
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Shipping Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                            <input asp-for="OrderHeader.Name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
                         </div>
-
-                        <!-- Order Items -->
-                        <div class="p-6">
-                            <h2 class="text-lg font-medium text-gray-900 mb-4">Order Items</h2>
-                            <div class="space-y-4">
-                                @foreach (var item in Model.Items)
-                                {
-                                    <div class="flex items-start p-4 border border-gray-100 rounded-lg">
-                                        <div class="flex-shrink-0">
-                                            @if (!string.IsNullOrEmpty(item.Product.imgUrl))
-                                            {
-                                                <img src="@item.Product.imgUrl" alt="@item.Product.Product_Name" class="w-16 h-16 object-cover rounded-lg">
-                                            }
-                                            else
-                                            {
-                                                <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                                                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                                    </svg>
-                                                </div>
-                                            }
-                                        </div>
-                                        <div class="ml-4 flex-1">
-                                            <h3 class="font-medium text-gray-900">@item.Product.Product_Name</h3>
-                                            <p class="text-sm text-gray-500">@item.Product.Product_Description</p>
-                                            <div class="mt-2 flex items-center text-sm text-gray-500">
-                                                <span>Size: @item.Product.Product_Size</span>
-                                                <span class="mx-2">•</span>
-                                                <span>Qty: @item.Quantity</span>
-                                            </div>
-                                        </div>
-                                        <div class="ml-4 text-right">
-                                            <p class="font-medium">@((item.Quantity * item.Product.Product_Price).ToString("C"))</p>
-                                        </div>
-                                    </div>
-                                }
-                            </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                            <input asp-for="OrderHeader.PhoneNumber" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
                         </div>
-                    </div>
-
-                    <!-- Back to Cart Button -->
-                    <div class="mt-6">
-                        <a asp-action="Index" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
-                            <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                            </svg>
-                            Back to Cart
-                        </a>
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Street Address</label>
+                            <input asp-for="OrderHeader.StreetAddress" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                            <input asp-for="OrderHeader.Country" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
+                            <input asp-for="OrderHeader.PostalCode" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-[#088178] focus:border-[#088178]">
+                        </div>
                     </div>
                 </div>
 
-                <!-- Order Summary -->
-                <div class="lg:w-1/3">
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 sticky top-6">
-                        <div class="p-6 border-b border-gray-100">
-                            <h2 class="text-lg font-medium text-gray-900">Order Summary</h2>
-                        </div>
-
-                        <div class="p-6 space-y-4">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Subtotal</span>
-                                <span class="font-medium">@Model.OrderHeader.Subtotal.ToString("C")</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Shipping</span>
-                                <span class="font-medium">@Model.OrderHeader.ShippingFee.ToString("C")</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Tax</span>
-                                <span class="font-medium">@Model.OrderHeader.Tax.ToString("C")</span>
-                            </div>
-                            <div class="border-t border-gray-200 pt-4 flex justify-between">
-                                <span class="font-medium">Total</span>
-                                <span class="font-bold text-lg">@Model.OrderHeader.OrderTotal.ToString("C")</span>
-                            </div>
-                        </div>
-
-                        <!-- Payment Method Selection -->
-                        <div class="p-6 border-t border-gray-100">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Payment Method</h3>
-                            <div class="space-y-3">
-                                <form asp-action="ChangePayment" method="post" id="paymentForm">
-                                    <label class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                                        <div class="flex items-center">
-                                            <i class="fas fa-money-bill-wave text-[#088178] mr-2 lg:mr-3"></i>
-                                            <span class="text-sm lg:text-base">Cash on Delivery</span>
+                <!-- Order Items -->
+                <div class="p-6">
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">Order Items</h2>
+                    <div class="space-y-4">
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="flex items-start p-4 border border-gray-100 rounded-lg">
+                                <div class="flex-shrink-0">
+                                    @if (!string.IsNullOrEmpty(item.Product.imgUrl))
+                                    {
+                                        <img src="@item.Product.imgUrl" alt="@item.Product.Product_Name" class="w-16 h-16 object-cover rounded-lg">
+                                    }
+                                    else
+                                    {
+                                        <div class="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
+                                            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                            </svg>
                                         </div>
-                                        <div class="relative">
-                                            <input type="radio"
-                                                   name="PaymentMethod"
-                                                   value="cash"
-                                                   class="sr-only"
-                                            @(Model.User.PaymentMehtod == "cash" ? "checked" : "")
-                                                   onchange="document.getElementById('paymentForm').submit()">
-                                            <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
-                                                 @(Model.User.PaymentMehtod == "cash" ? "border-[#088178] bg-[#088178]" : "border-gray-300")">
-                                                @if (Model.User.PaymentMehtod == "cash")
-                                                {
-                                                    <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                                    </svg>
-                                                }
-                                            </div>
-                                        </div>
-                                    </label>
-
-                                    <label class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                                        <div class="flex items-center">
-                                            <i class="fab fa-cc-visa text-blue-500 mr-2 lg:mr-3"></i>
-                                            <span class="text-sm lg:text-base">Credit/Debit Card</span>
-                                        </div>
-                                        <div class="relative">
-                                            <input type="radio"
-                                                   name="PaymentMethod"
-                                                   value="credit"
-                                                   class="sr-only"
-                                            @(Model.User.PaymentMehtod == "credit" ? "checked" : "")
-                                                   onchange="document.getElementById('paymentForm').submit()">
-                                            <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
-                                                 @(Model.User.PaymentMehtod == "credit" ? "border-[#088178] bg-[#088178]" : "border-gray-300")">
-                                                @if (Model.User.PaymentMehtod == "credit")
-                                                {
-                                                    <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                                    </svg>
-                                                }
-                                            </div>
-                                        </div>
-                                    </label>
-                                </form>
+                                    }
+                                </div>
+                                <div class="ml-4 flex-1">
+                                    <h3 class="font-medium text-gray-900">@item.Product.Product_Name</h3>
+                                    <p class="text-sm text-gray-500">@item.Product.Product_Description</p>
+                                    <div class="mt-2 flex items-center text-sm text-gray-500">
+                                        <span>Size: @item.Product.Product_Size</span>
+                                        <span class="mx-2">•</span>
+                                        <span>Qty: @item.Quantity</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4 text-right">
+                                    <p class="font-medium">@((item.Quantity * item.Product.Product_Price).ToString("C"))</p>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- Place Order Button -->
-                        <div class="p-6 bg-gray-50 rounded-b-xl">
-                            <button type="button" onclick="showPaymentConfirmation()" class="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#088178] hover:bg-[#06615a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
-                                Place Order
-                            </button>
-                            <div class="mt-4 flex items-center justify-center text-sm text-gray-500">
-                                <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                </svg>
-                                Secure checkout
-                            </div>
-                        </div>
+                        }
                     </div>
                 </div>
             </div>
+
+            <!-- Back to Cart Button -->
+            <div class="mt-6">
+                <a asp-action="Index" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
+                    <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Cart
+                </a>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="lg:w-1/3">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 sticky top-6">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-lg font-medium text-gray-900">Order Summary</h2>
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Subtotal</span>
+                        <span class="font-medium">@Model.OrderHeader.Subtotal.ToString("C")</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Shipping</span>
+                        <span class="font-medium">@Model.OrderHeader.ShippingFee.ToString("C")</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Tax</span>
+                        <span class="font-medium">@Model.OrderHeader.Tax.ToString("C")</span>
+                    </div>
+                    <div class="border-t border-gray-200 pt-4 flex justify-between">
+                        <span class="font-medium">Total</span>
+                        <span class="font-bold text-lg">@Model.OrderHeader.OrderTotal.ToString("C")</span>
+                    </div>
+                </div>
+
+                <!-- Payment Method Selection -->
+                <div class="p-6 border-t border-gray-100">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4">Payment Method</h3>
+                    <div class="space-y-3">
+                        <label class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fas fa-money-bill-wave text-[#088178] mr-2 lg:mr-3"></i>
+                                <span class="text-sm lg:text-base">Cash on Delivery</span>
+                            </div>
+                            <div class="relative">
+                                <input type="radio"
+                                       name="PaymentMethod"
+                                       value="cash"
+                                       class="sr-only"
+                                @(Model.User.PaymentMehtod == "cash" ? "checked" : "")
+                                       onchange="updatePaymentMethod('cash')">
+                                <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
+                                         @(Model.User.PaymentMehtod == "cash" ? "border-[#088178] bg-[#088178]" : "border-gray-300")">
+                                    @if (Model.User.PaymentMehtod == "cash")
+                                    {
+                                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    }
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <div class="flex items-center">
+                                <i class="fab fa-cc-visa text-blue-500 mr-2 lg:mr-3"></i>
+                                <span class="text-sm lg:text-base">Credit/Debit Card</span>
+                            </div>
+                            <div class="relative">
+                                <input type="radio"
+                                       name="PaymentMethod"
+                                       value="credit"
+                                       class="sr-only"
+                                @(Model.User.PaymentMehtod == "credit" ? "checked" : "")
+                                       onchange="updatePaymentMethod('credit')">
+                                <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
+                                         @(Model.User.PaymentMehtod == "credit" ? "border-[#088178] bg-[#088178]" : "border-gray-300")">
+                                    @if (Model.User.PaymentMehtod == "credit")
+                                    {
+                                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    }
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Place Order Button -->
+                <div class="p-6 bg-gray-50 rounded-b-xl">
+                    <button type="button" onclick="validateAndShowConfirmation()" class="w-full flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-[#088178] hover:bg-[#06615a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
+                        Place Order
+                    </button>
+                    <div class="mt-4 flex items-center justify-center text-sm text-gray-500">
+                        <svg class="flex-shrink-0 mr-1.5 h-4 w-4 text-[#088178]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        Secure checkout
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 </div>
 
 <!-- Payment Confirmation Modal -->
@@ -220,7 +374,7 @@
     <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4">
         <h3 class="text-lg font-semibold mb-4">Confirm Your Order</h3>
         <div class="space-y-4">
-            <p>You've selected <strong>@(Model.User.PaymentMehtod == "cash" ? "Cash on Delivery" : "Credit/Debit Card")</strong> as your payment method.</p>
+            <p>You've selected <strong id="selectedPaymentMethod">@(Model.User.PaymentMehtod == "cash" ? "Cash on Delivery" : "Credit/Debit Card")</strong> as your payment method.</p>
             <p>Total Amount: <strong>@Model.OrderHeader.OrderTotal.ToString("C")</strong></p>
         </div>
         <div class="flex justify-end gap-3 mt-6">
@@ -229,46 +383,173 @@
                     onclick="hideModal('paymentConfirmationModal')">
                 Cancel
             </button>
-            <!-- In your Payment Confirmation Modal -->
-            <form asp-area="Customer" asp-controller="Cart" asp-action="Summary" method="post" id="orderForm">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="paymentMethod" value="@Model.User.PaymentMehtod" />
-                @Html.HiddenFor(m => m.OrderHeader.Name)
-                @Html.HiddenFor(m => m.OrderHeader.PhoneNumber)
-                @Html.HiddenFor(m => m.OrderHeader.StreetAddress)
-                @Html.HiddenFor(m => m.OrderHeader.Country)
-                @Html.HiddenFor(m => m.OrderHeader.PostalCode)
-                <button type="submit" class="px-4 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#076b63] transition-colors">
-                    Confirm Order
-                </button>
-            </form>
+            <button type="button" onclick="submitOrder()" class="px-4 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#076b63] transition-colors">
+                Confirm Order
+            </button>
         </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
-        function closeMessage(id) {
-            let element = document.getElementById(id);
-            if (element) {
-                element.classList.add('animate-fade-out');
-                setTimeout(() => element.remove(), 1000);
-            }
+        let selectedPaymentMethod = '@Model.User.PaymentMehtod';
+        let shippingInfo = {};
+
+        // Initialize
+            document.addEventListener('DOMContentLoaded', init);
+             // Notification functions
+                        // In your Scripts section
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Show success notification if exists
+                    const successNotification = document.getElementById('successNotification');
+                    if (successNotification) {
+                        showNotification(successNotification);
+                    }
+
+                    // Show error notification if exists
+                    const errorNotification = document.getElementById('errorNotification');
+                    if (errorNotification) {
+                        showNotification(errorNotification);
+                    }
+                });
+
+                function showNotification(notification) {
+                    notification.classList.add('show');
+
+                    // Auto-hide after 5 seconds (longer for errors)
+                    const hideTime = notification.classList.contains('error') ? 5000 : 3000;
+                    const autoHide = setTimeout(() => {
+                        hideNotification(notification.id);
+                    }, hideTime);
+
+                    // Pause on hover
+                    notification.addEventListener('mouseenter', () => {
+                        clearTimeout(autoHide);
+                        notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
+                    });
+
+                    notification.addEventListener('mouseleave', () => {
+                        const progressBar = notification.querySelector('.notification-progress-bar');
+                        const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
+                        const remainingTime = remainingWidth * hideTime;
+
+                        progressBar.style.animationPlayState = 'running';
+                        setTimeout(() => {
+                            hideNotification(notification.id);
+                        }, remainingTime);
+                    });
+                }
+
+                window.hideNotification = function(id) {
+                    const notification = document.getElementById(id);
+                    if (notification) {
+                        notification.classList.remove('show');
+                        notification.classList.add('hide');
+
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 500);
+                    }
+                };
+
+        function updatePaymentMethod(method) {
+            selectedPaymentMethod = method;
+            document.getElementById('selectedPaymentMethod').textContent =
+                method === 'cash' ? 'Cash on Delivery' : 'Credit/Debit Card';
+
+            // Update the UI immediately
+            document.querySelectorAll('input[name="PaymentMethod"]').forEach(radio => {
+                const parentDiv = radio.nextElementSibling;
+                if (radio.value === method) {
+                    parentDiv.classList.add('border-[#088178]', 'bg-[#088178]');
+                    parentDiv.innerHTML = `
+                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                        </svg>
+                    `;
+                } else {
+                    parentDiv.classList.remove('border-[#088178]', 'bg-[#088178]');
+                    parentDiv.innerHTML = '';
+                }
+            });
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(() => {
-                closeMessage('successMessage');
-            }, 5000);
-        });
+        function validateAndShowConfirmation() {
+            // Collect shipping info
+            shippingInfo = {
+                Name: document.querySelector('[name="OrderHeader.Name"]').value,
+                PhoneNumber: document.querySelector('[name="OrderHeader.PhoneNumber"]').value,
+                StreetAddress: document.querySelector('[name="OrderHeader.StreetAddress"]').value,
+                Country: document.querySelector('[name="OrderHeader.Country"]').value,
+                PostalCode: document.querySelector('[name="OrderHeader.PostalCode"]').value
+            };
 
-        function showPaymentConfirmation() {
-            // Validate payment method is selected
-            if (!document.querySelector('input[name="PaymentMethod"]:checked')) {
+            // Validate shipping info
+            let isValid = true;
+            Object.keys(shippingInfo).forEach(key => {
+                const field = document.querySelector(`[name="OrderHeader.${key}"]`);
+                if (!field.value.trim()) {
+                    isValid = false;
+                    field.classList.add('border-red-500');
+                    field.addEventListener('input', function() {
+                        this.classList.remove('border-red-500');
+                    });
+                }
+            });
+
+            if (!isValid) {
+                alert('Please fill in all required shipping information');
+                return;
+            }
+
+            // Validate payment method
+            if (!selectedPaymentMethod) {
                 alert('Please select a payment method');
                 return;
             }
+
             document.getElementById('paymentConfirmationModal').classList.remove('hidden');
+        }
+
+               function submitOrder() {
+            // Create a form dynamically
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '@Url.Action("Summary", "Cart", new { area = "Customer" })';
+
+            // Add CSRF token
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = '__RequestVerificationToken';
+            csrfToken.value = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            form.appendChild(csrfToken);
+
+            // Add payment method (use the selectedPaymentMethod from the UI, not from DB)
+            const paymentMethod = document.createElement('input');
+            paymentMethod.type = 'hidden';
+            paymentMethod.name = 'selectedPaymentMethod';
+            paymentMethod.value = selectedPaymentMethod;
+            form.appendChild(paymentMethod);
+
+            // Add final submission flag
+            const finalSubmission = document.createElement('input');
+            finalSubmission.type = 'hidden';
+            finalSubmission.name = 'isFinalSubmission';
+            finalSubmission.value = 'true';
+            form.appendChild(finalSubmission);
+
+            // Add shipping info
+            Object.keys(shippingInfo).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = `OrderHeader.${key}`;
+                input.value = shippingInfo[key];
+                form.appendChild(input);
+            });
+
+            // Submit the form
+            document.body.appendChild(form);
+            form.submit();
         }
 
         function hideModal(modalId) {
@@ -280,10 +561,6 @@
             if (event.target.id === 'paymentConfirmationModal') {
                 hideModal('paymentConfirmationModal');
             }
-        });
-             document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('orderForm');
-            console.log("Form action:", form?.action);
         });
     </script>
 }
@@ -321,5 +598,9 @@
             opacity: 0;
             transform: translateY(-10px);
         }
+    }
+
+    .border-red-500 {
+        border-color: #ef4444;
     }
 </style>
