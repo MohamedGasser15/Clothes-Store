@@ -51,7 +51,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return View(viewModel);
         }
-        
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1)
@@ -244,13 +244,46 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return View(viewModel);
         }
-        [HttpPost] // Ensure this attribute exists
-        [ActionName("Summary")] // This means it responds to "Summary" URL
+
+        [HttpPost]
+        [ActionName("Summary")]
         [Route("Customer/Cart/Summary")]
-        public async Task<IActionResult> SummaryPOST(CartViewModel viewModel)
+        public async Task<IActionResult> SummaryPOST(CartViewModel viewModel, string selectedPaymentMethod, bool isFinalSubmission = false)
         {
             var user = await _userManager.GetUserAsync(User);
             viewModel.User = user;
+
+            // Handle payment method update (not final submission)
+            if (!isFinalSubmission && !string.IsNullOrEmpty(selectedPaymentMethod))
+            {
+                // Get or create payment method
+                var paymentMethod = await _db.PaymentMethods
+                    .FirstOrDefaultAsync(p => p.UserId == user.Id && p.IsDefault)
+                    ?? new Clothes_Models.Models.PaymentMethod
+                    {
+                        UserId = user.Id,
+                        IsDefault = true,
+                        CreatedAt = DateTime.UtcNow
+                    };
+
+                // Update payment method type
+                paymentMethod.CardBrand = selectedPaymentMethod == "credit" ? "card" : null;
+                paymentMethod.Last4 = selectedPaymentMethod == "credit" ? "4242" : null;
+
+                if (paymentMethod.Id == 0)
+                {
+                    _db.PaymentMethods.Add(paymentMethod);
+                }
+                else
+                {
+                    _db.PaymentMethods.Update(paymentMethod);
+                }
+
+                await _db.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Payment method updated successfully!";
+                return RedirectToAction(nameof(Summary));
+            }
+
 
             // Get cart items
             var cartItems = await _db.CartItems
@@ -271,6 +304,27 @@ namespace Clothes_Store.Areas.Customer.Controllers
             viewModel.OrderHeader.ShippingFee = shippingFee;
             viewModel.OrderHeader.Tax = tax;
 
+            // Save shipping info to PaymentMethod instead of ApplicationUser
+            var paymentMethodForOrder = await _db.PaymentMethods
+                .FirstOrDefaultAsync(p => p.UserId == user.Id && p.IsDefault)
+                ?? new Clothes_Models.Models.PaymentMethod
+                {
+                    UserId = user.Id,
+                    IsDefault = true,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+            paymentMethodForOrder.BillingName = viewModel.OrderHeader.Name;
+            paymentMethodForOrder.PhoneNumber = viewModel.OrderHeader.PhoneNumber;
+            paymentMethodForOrder.AddressLine1 = viewModel.OrderHeader.StreetAddress;
+            paymentMethodForOrder.Country = viewModel.OrderHeader.Country;
+            paymentMethodForOrder.PostalCode = viewModel.OrderHeader.PostalCode;
+
+            if (paymentMethodForOrder.Id == 0)
+            {
+                _db.PaymentMethods.Add(paymentMethodForOrder);
+            }
+
             _db.OrderHeaders.Add(viewModel.OrderHeader);
             await _db.SaveChangesAsync();
 
@@ -285,14 +339,14 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     Count = item.Quantity
                 });
             }
-
-            // Stripe configuration - FIXED URL FORMAT 
-            if (user.PaymentMehtod == "credit")
+            await _db.SaveChangesAsync();
+            // Use the selectedPaymentMethod parameter
+            if (selectedPaymentMethod == "credit")
             {
                 var domain = "https://" + Request.Host.Value;
                 var options = new SessionCreateOptions
                 {
-                    SuccessUrl = domain + "/Customer/Cart/OrderConfirmation/" + viewModel.OrderHeader.Id,
+                    SuccessUrl = domain + $"/Customer/Cart/OrderConfirmation/{viewModel.OrderHeader.Id}?session_id={{CHECKOUT_SESSION_ID}}",
                     CancelUrl = domain + "/Customer/Cart/Index",
                     Mode = "payment",
                     LineItems = cartItems.Select(item => new SessionLineItemOptions
@@ -310,14 +364,13 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     }).ToList()
                 };
 
-                // Add shipping fee if needed
                 if (shippingFee > 0)
                 {
                     options.LineItems.Add(new SessionLineItemOptions
                     {
                         PriceData = new SessionLineItemPriceDataOptions
                         {
-                            UnitAmount = (long)(shippingFee * 100), // Shipping fee in cents
+                            UnitAmount = (long)(shippingFee * 100),
                             Currency = "usd",
                             ProductData = new SessionLineItemPriceDataProductDataOptions
                             {
@@ -328,14 +381,13 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     });
                 }
 
-                // Add tax if needed
                 if (tax > 0)
                 {
                     options.LineItems.Add(new SessionLineItemOptions
                     {
                         PriceData = new SessionLineItemPriceDataOptions
                         {
-                            UnitAmount = (long)(tax * 100), // Tax amount in cents
+                            UnitAmount = (long)(tax * 100),
                             Currency = "usd",
                             ProductData = new SessionLineItemPriceDataProductDataOptions
                             {
@@ -345,6 +397,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
                         Quantity = 1
                     });
                 }
+
                 var service = new SessionService();
                 Session session = service.Create(options);
 
@@ -354,81 +407,117 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 await _db.SaveChangesAsync();
 
                 // Clear cart
-                _db.CartItems.RemoveRange(cartItems);
-                await _db.SaveChangesAsync();
-
                 return Redirect(session.Url);
-            }else
+            }
+            else
             {
+                // For cash payment
                 await _db.SaveChangesAsync();
 
                 // Clear cart
                 _db.CartItems.RemoveRange(cartItems);
                 await _db.SaveChangesAsync();
 
-                // Redirect to confirmation with order ID
                 return RedirectToAction("OrderConfirmation", new { id = viewModel.OrderHeader.Id });
             }
         }
 
-        public async Task<IActionResult> OrderConfirmation(int id)
+        public async Task<IActionResult> OrderConfirmation(int id, string session_id)
         {
-            // Get the order header with its details and products
             var orderHeader = await _db.OrderHeaders
                 .Include(oh => oh.ApplicationUser)
                 .FirstOrDefaultAsync(oh => oh.Id == id);
 
-            if (orderHeader == null)
-            {
-                return NotFound();
-            }
+            if (orderHeader == null) return NotFound();
 
-            // Get all order details for this order
-            var orderDetails = await _db.OrderDetails
-                .Include(od => od.Product)
-                .Where(od => od.OrderHeaderId == id)
-                .ToListAsync();
+            var user = orderHeader.ApplicationUser;
 
-            // Create a view model to pass to the view
-            var viewModel = new OrderVM
+            if (!string.IsNullOrEmpty(session_id))
             {
-                OrderHeader = orderHeader,
-                OrderDetails = orderDetails
-            };
-
-            // Handle different payment methods
-            if (orderHeader.ApplicationUser.PaymentMehtod == "cash")
-            {
-                // Cash payment specific logic
-                orderHeader.PaymentStatus = SD.PaymentStatusPending;
-                orderHeader.OrderStatus = SD.StatusPending;
-            }
-            else if (!string.IsNullOrEmpty(orderHeader.SessionId))
-            {
-                // Credit card payment processing
                 try
                 {
-                    var service = new SessionService();
-                    Session session = service.Get(orderHeader.SessionId);
+                    var sessionService = new SessionService();
+                    var session = sessionService.Get(session_id);
 
-                    if (session.PaymentStatus.ToLower() == "paid")
+                    if (session.PaymentStatus == "paid")
                     {
+                        orderHeader.SessionId = session_id;
+                        orderHeader.PaymentIntentId = session.PaymentIntentId;
                         orderHeader.PaymentStatus = SD.PaymentStatusApproved;
                         orderHeader.OrderStatus = SD.StatusApproved;
+
+                        var paymentIntentService = new PaymentIntentService();
+                        var paymentIntent = paymentIntentService.Get(session.PaymentIntentId);
+
+                        // NEW: Get the payment method with expand to include card details
+                        var options = new PaymentMethodGetOptions
+                        {
+                            Expand = new List<string> { "card" }
+                        };
+                        var stripePaymentMethod = new PaymentMethodService().Get(paymentIntent.PaymentMethodId, options);
+
+                        // DEBUG: Log the payment method details
+
+                        var paymentMethod = await _db.PaymentMethods
+                            .FirstOrDefaultAsync(p => p.StripePaymentMethodId == paymentIntent.PaymentMethodId);
+
+                        if (paymentMethod == null)
+                        {
+                            paymentMethod = new Clothes_Models.Models.PaymentMethod
+                            {
+                                UserId = user.Id,
+                                StripePaymentMethodId = paymentIntent.PaymentMethodId,
+                                StripeCustomerId = session.CustomerId,
+                                IsDefault = true,
+                                CreatedAt = DateTime.UtcNow
+                            };
+                            _db.PaymentMethods.Add(paymentMethod);
+                        }
+
+                        // Ensure we have card details
+                        if (stripePaymentMethod?.Card != null)
+                        {
+                            paymentMethod.CardBrand = stripePaymentMethod.Card.Brand;
+                            paymentMethod.Last4 = stripePaymentMethod.Card.Last4;
+                            paymentMethod.ExpMonth = (int)stripePaymentMethod.Card.ExpMonth;
+                            paymentMethod.ExpYear = (int)stripePaymentMethod.Card.ExpYear;
+
+                            // DEBUG: Log the saved card details
+                        }
+
+                        if (stripePaymentMethod?.BillingDetails != null)
+                        {
+                            paymentMethod.BillingName = stripePaymentMethod.BillingDetails.Name;
+                            paymentMethod.PhoneNumber = stripePaymentMethod.BillingDetails.Phone;
+
+                            if (stripePaymentMethod.BillingDetails.Address != null)
+                            {
+                                paymentMethod.AddressLine1 = stripePaymentMethod.BillingDetails.Address.Line1;
+                                paymentMethod.AddressLine2 = stripePaymentMethod.BillingDetails.Address.Line2;
+                                paymentMethod.City = stripePaymentMethod.BillingDetails.Address.City;
+                                paymentMethod.State = stripePaymentMethod.BillingDetails.Address.State;
+                                paymentMethod.PostalCode = stripePaymentMethod.BillingDetails.Address.PostalCode;
+                                paymentMethod.Country = stripePaymentMethod.BillingDetails.Address.Country;
+                            }
+                        }
+
+                        await _db.SaveChangesAsync();
                     }
                 }
-                catch (StripeException e)
+                catch (Exception ex)
                 {
-                    // Log the error but don't prevent order confirmation
                 }
             }
+            else if (user.PaymentMehtod == "cash")
+            {
+                orderHeader.PaymentStatus = SD.PaymentStatusPending;
+                orderHeader.OrderStatus = SD.StatusPending;
+                await _db.SaveChangesAsync();
+            }
 
-            await _db.SaveChangesAsync();
-
-            // Clear the user's cart
-            var userId = _userManager.GetUserId(User);
+            // Clear cart
             var cartItems = await _db.CartItems
-                .Where(ci => ci.UserId == userId)
+                .Where(ci => ci.UserId == user.Id)
                 .ToListAsync();
 
             if (cartItems.Any())
@@ -437,8 +526,16 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            return View(viewModel);
+            return View(new OrderVM
+            {
+                OrderHeader = orderHeader,
+                OrderDetails = await _db.OrderDetails
+                       .Include(od => od.Product)
+                       .Where(od => od.OrderHeaderId == id)
+                       .ToListAsync()
+            });
         }
+
         private (double Subtotal, double ShippingFee, double Tax, double Total) CalculateOrderTotals(IEnumerable<CartItem> cartItems)
         {
             double subtotal = (double)cartItems.Sum(i => i.Product.Product_Price * i.Quantity);
