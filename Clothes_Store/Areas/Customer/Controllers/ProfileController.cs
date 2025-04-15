@@ -1,11 +1,13 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
+using Clothes_Utilities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Stripe;
 using System.Globalization;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -945,6 +947,73 @@ namespace Clothes_Store.Areas.Customer.Controllers
             ViewBag.PageSize = pageSize;
 
             return View(orderVMs);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Area("Customer")] // Add this attribute
+        public async Task<IActionResult> CancelOrder(int id, string returnUrl = null)
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null)
+                {
+                    TempData["Error"] = "You must be logged in to cancel an order";
+                    return RedirectToPage("/Account/Login");
+                }
+
+                var orderHeader = await _db.OrderHeaders
+                    .Include(o => o.ApplicationUser)
+                    .FirstOrDefaultAsync(o => o.Id == id && o.ApplicationUserId == user.Id);
+
+                if (orderHeader == null)
+                {
+                    TempData["Error"] = "Order not found or you don't have permission to cancel this order";
+                    return Redirect(Url.Action(nameof(Orders), new { area = "Customer" }));
+                }
+
+                // Validate order can be cancelled
+                if (orderHeader.OrderStatus != SD.StatusPending &&
+                    orderHeader.OrderStatus != SD.StatusApproved)
+                {
+                    TempData["Error"] = $"Cannot cancel order with status: {orderHeader.OrderStatus}";
+                    return Redirect(Url.Action(nameof(Orders), new { area = "Customer" }));
+                }
+
+                // Process refund if needed
+                if (!string.IsNullOrEmpty(orderHeader.PaymentIntentId))
+                {
+                    var refundService = new RefundService();
+                    var refundOptions = new RefundCreateOptions
+                    {
+                        PaymentIntent = orderHeader.PaymentIntentId,
+                        Reason = RefundReasons.RequestedByCustomer
+                    };
+
+                    try
+                    {
+                        var refund = await refundService.CreateAsync(refundOptions);
+                        orderHeader.PaymentStatus = SD.StatusRefunded;
+                    }
+                    catch (StripeException)
+                    {
+                        TempData["Error"] = "Refund failed. Please check Stripe dashboard.";
+                        return Redirect(Url.Action(nameof(Orders), new { area = "Customer" }));
+                    }
+                }
+
+                // Update order status
+                orderHeader.OrderStatus = SD.StatusCancelled;
+                await _db.SaveChangesAsync();
+
+                TempData["Success"] = $"Order #{orderHeader.Id} cancelled successfully";
+                return Redirect(Url.Action(nameof(Orders), new { area = "Customer" }));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error cancelling order";
+                return Redirect(Url.Action(nameof(Orders), new { area = "Customer" }));
+            }
         }
 
         public IActionResult ContactUs()
