@@ -29,7 +29,8 @@ namespace Clothes_Models.Models
         public string? Currency { get; set; } = "USD";
         public string? PaymentMehtod { get; set; } = "Cash";
         public string? PreferredCarriers { get; set; } = "Bosta";
-
+        public string StripeCustomerId { get; set; }
+        public List<PaymentMethod> PaymentMethods { get; set; }
 
 
         [NotMapped]
