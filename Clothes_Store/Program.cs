@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using Clothes_Utilities;
 using Stripe;
+using static Clothes_Store.Services.IOrderAnalyticsService;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -54,6 +55,8 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // In ConfigureServices method
 builder.Services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
+builder.Services.AddScoped<IOrderAnalyticsService, OrderAnalyticsService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
