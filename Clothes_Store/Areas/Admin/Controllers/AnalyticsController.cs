@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Clothes_Models.ViewModels;
 using Clothes_Store.Models;
 using Clothes_Store.Services;
 using Clothes_Utilities;
@@ -14,15 +15,19 @@ namespace Clothes_Store.Controllers
     {
         // Controllers/AnalyticsController.cs
         private readonly IUserAnalyticsService _userAnalyticsService;
+        private readonly IOrderAnalyticsService _orderAnalytics;
 
-        public AnalyticsController(IUserAnalyticsService userAnalyticsService)
+        public AnalyticsController(IUserAnalyticsService userAnalyticsService, IOrderAnalyticsService orderAnalytics)
         {
             _userAnalyticsService = userAnalyticsService;
+            _orderAnalytics = orderAnalytics;
         }
+
         public async Task<IActionResult> Index()
         {
             return View();
         }
+
         public async Task<IActionResult> UserDashboard(int? days)
         {
             // Default to 30 days if not specified
@@ -43,5 +48,36 @@ namespace Clothes_Store.Controllers
 
             return Json(data);
         }
+
+        [HttpGet("orders")]
+        public async Task<IActionResult> OrderDashboard([FromQuery] int days = 30)
+        {
+            var endDate = DateTime.UtcNow;
+            var startDate = endDate.AddDays(-days);
+
+            var filter = new OrderAnalyticsFilter
+            {
+                Days = days,
+                StartDate = startDate,
+                EndDate = endDate
+            };
+
+            var model = await _orderAnalytics.GetDashboardData(filter);
+
+            // Add debug information
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+
+            return View(model);
+        }
+
+        [HttpGet("orders/data")]
+        public async Task<IActionResult> GetOrderAnalyticsData([FromQuery] OrderAnalyticsFilter filter)
+        {
+            var data = await _orderAnalytics.GetDashboardData(filter);
+            return Json(data);
+        }
+
+
     }
 }
