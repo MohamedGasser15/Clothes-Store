@@ -153,10 +153,11 @@
             }
         }
     </style>
+    @RenderSection("Styles", required: false)
 </head>
 <body class="bg-gray-50">
     <div class="lg:hidden bg-white shadow p-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-primary">🏬 Cara Store</h1>
+        <h1 class="text-xl font-bold text-primary"> Cara Store</h1>
         <button id="menuToggle" class="text-gray-600">
             <i class="fas fa-bars text-2xl"></i>
         </button>
@@ -170,8 +171,8 @@
                 </h1>
             </div>
             <nav class="mt-4">
-                <a asp-area="Admin" asp-controller="Dash" asp-action="Index" class="@IsActive("Dash","Index")block py-2 px-4 text-gray-600 hover:bg-gray-100">
-                    <i class="fas fa-chart-simple mr-2"></i> Charts
+                <a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@IsActive("Analytics","Index")block py-2 px-4 text-gray-600 hover:bg-gray-100">
+                    <i class="fas fa-chart-line mr-2"></i> Analytics
                 </a>
                 <a asp-area="Admin" asp-controller="Product" asp-action="Index" class="@IsActive("Product","Index","Upsert")">
                     <i class="fas fa-shirt mr-2"></i> Products
@@ -223,12 +224,21 @@
                     </div>
                 }
             </div>
-                @RenderBody()
+            @RenderBody()
         </div>
     </div>
     @RenderSection("Scripts", required: false)
     <!-- notifications js -->
     <script>
+                document.getElementById('menuToggle').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('hidden');
+        });
+
+        document.getElementById('overlay').addEventListener('click', function() {
+            document.getElementById('mobileMenu').classList.remove('active');
+            this.classList.add('hidden');
+        });
             // Initialize
         document.addEventListener('DOMContentLoaded', init);
          // Notification functions

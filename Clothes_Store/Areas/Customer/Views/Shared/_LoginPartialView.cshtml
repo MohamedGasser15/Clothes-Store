@@ -8,80 +8,80 @@
 }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <div class="dropdown m-auto text-center p-auto">
-        <button class="btn p-0 border-0 position-relative custom-focus" type="button"
-                id="userDropdown" data-bs-toggle="dropdown"
-                aria-expanded="false">
-            @if (user != null)
-            {
-                <img src="https://api.dicebear.com/7.x/initials/svg?seed=@(user.Name?[0])&backgroundColor=088178&textColor=ffffff"
-                     class="rounded-circle rotate-on-focus"
-                     width="36" height="36" alt="User">
-            }
-        </button>
+<div class="dropdown m-auto text-center p-auto">
+    <button class="btn p-0 border-0 position-relative custom-focus" type="button"
+            id="userDropdown" data-bs-toggle="dropdown"
+            aria-expanded="false">
+        @if (user != null)
+        {
+            <img src="https://api.dicebear.com/7.x/initials/svg?seed=@(user.Name?[0])&backgroundColor=088178&textColor=ffffff"
+                 class="rounded-circle rotate-on-focus"
+                 width="36" height="36" alt="User">
+        }
+    </button>
 
-        <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-2" style="min-width: 240px; border-radius: 12px !important;" aria-labelledby="userDropdown">
-            <li class="dropdown-header px-3 py-2 rounded-top-2" style="background: linear-gradient(to right, #f0fdf4, white);">
-                <h6 class="mb-0 text-success">
-                    @user?.Name
-                    <span class="badge bg-success ms-1 animate-pulse" style="animation: pulse 2s infinite;">Online</span>
-                </h6>
-                <small class="text-muted d-block text-truncate" style="max-width: 200px;">@user?.Email</small>
-            </li>
+    <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-2" style="min-width: 240px; border-radius: 12px !important;" aria-labelledby="userDropdown">
+        <li class="dropdown-header px-3 py-2 rounded-top-2" style="background: linear-gradient(to right, #f0fdf4, white);">
+            <h6 class="mb-0 text-success">
+                @user?.Name
+                <span class="badge bg-success ms-1 animate-pulse" style="animation: pulse 2s infinite;">Online</span>
+            </h6>
+            <small class="text-muted d-block text-truncate" style="max-width: 200px;">@user?.Email</small>
+        </li>
 
-            <li><hr class="dropdown-divider my-1 mx-3" style="border-color: #e9ecef;"></li>
+        <li><hr class="dropdown-divider my-1 mx-3" style="border-color: #e9ecef;"></li>
 
-            @if (User.IsInRole("Admin"))
-            {
-                <li>
-                    <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Admin" asp-controller="Dash" asp-action="Index">
-                        <i class="fas fa-user-shield me-2 text-success"></i>
-                        Admin
-                        <i class="fas fa-chevron-right ms-auto text-muted small"></i>
-                    </a>
-                </li>
-            }
-
-            <!-- Enhanced Cart Item with Counter -->
+        @if (User.IsInRole("Admin"))
+        {
             <li>
-                <a class="dropdown-item py-2 px-3 hover-effect rounded-1 position-relative pe-4" asp-area="Customer" asp-controller="Cart" asp-action="Index">
-                    <i class="fas fa-shopping-cart me-2 text-success"></i>
-                    My Cart
-                    <span class="position-absolute end-0 me-3 top-50 translate-middle-y badge rounded-pill bg-danger"
-                          style="font-size: 0.65rem; min-width: 1.25rem; padding: 0.25em 0.5em; margin-top: -1px;">
-                        @(ViewBag.CartItemCount ?? 0)
-                    </span>
-                </a>
-            </li>
-
-            <li>
-                <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Customer" asp-controller="Profile" asp-action="Index">
-                    <i class="fas fa-user-circle me-2 text-success"></i>
-                    My Profile
+                <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Admin" asp-controller="Analytics" asp-action="Index">
+                    <i class="fas fa-user-shield me-2 text-success"></i>
+                    Admin
                     <i class="fas fa-chevron-right ms-auto text-muted small"></i>
                 </a>
             </li>
+        }
 
-            <li>
-                <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Customer" asp-controller="Setting" asp-action="Index">
-                    <i class="fas fa-cog me-2 text-success"></i>
-                    Settings
-                    <i class="fas fa-chevron-right ms-auto text-muted small"></i>
-                </a>
-            </li>
+        <!-- Enhanced Cart Item with Counter -->
+        <li>
+            <a class="dropdown-item py-2 px-3 hover-effect rounded-1 position-relative pe-4" asp-area="Customer" asp-controller="Cart" asp-action="Index">
+                <i class="fas fa-shopping-cart me-2 text-success"></i>
+                My Cart
+                <span class="position-absolute end-0 me-3 top-50 translate-middle-y badge rounded-pill bg-danger"
+                      style="font-size: 0.65rem; min-width: 1.25rem; padding: 0.25em 0.5em; margin-top: -1px;">
+                    @(ViewBag.CartItemCount ?? 0)
+                </span>
+            </a>
+        </li>
 
-            <li><hr class="dropdown-divider my-1 mx-3" style="border-color: #e9ecef;"></li>
+        <li>
+            <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Customer" asp-controller="Profile" asp-action="Index">
+                <i class="fas fa-user-circle me-2 text-success"></i>
+                My Profile
+                <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+            </a>
+        </li>
 
-            <li>
-                <form asp-area="Customer" asp-controller="Account" asp-action="Logout" method="post">
-                    <button type="submit" class="dropdown-item py-2 px-3 hover-effect rounded-1 w-100 text-start">
-                        <i class="fas fa-sign-out-alt me-2 text-success"></i>
-                        Sign Out
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </div>
+        <li>
+            <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Customer" asp-controller="Setting" asp-action="Index">
+                <i class="fas fa-cog me-2 text-success"></i>
+                Settings
+                <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+            </a>
+        </li>
+
+        <li><hr class="dropdown-divider my-1 mx-3" style="border-color: #e9ecef;"></li>
+
+        <li>
+            <form asp-area="Customer" asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="dropdown-item py-2 px-3 hover-effect rounded-1 w-100 text-start">
+                    <i class="fas fa-sign-out-alt me-2 text-success"></i>
+                    Sign Out
+                </button>
+            </form>
+        </li>
+    </ul>
+</div>
 <style>
     .custom-focus {
         outline: none !important;

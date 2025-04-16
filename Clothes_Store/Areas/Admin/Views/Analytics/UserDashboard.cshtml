@@ -1,0 +1,302 @@
+﻿@model Clothes_Models.ViewModels.UserAnalyticsViewModel
+@{
+    ViewData["Title"] = "User Analytics Dashboard";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">User Analytics Dashboard</h1>
+            <p class="mt-2 text-sm text-gray-500">Visual insights into user behavior and patterns</p>
+        </div>
+        <div class="flex gap-3">
+            <div class="relative">
+                <select id="timeRange" class="appearance-none bg-white border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last year</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+            <a asp-controller="User" asp-action="Index" class="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-users mr-2"></i>
+                <span>View Users</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Chart Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- User Growth Chart -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">User Growth Over Time</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="h-3 w-3 rounded-full bg-primary"></span>
+                    <span class="text-xs text-gray-500">New Users</span>
+                    <span class="h-3 w-3 rounded-full bg-green-500 ml-2"></span>
+                    <span class="text-xs text-gray-500">Total Users</span>
+                </div>
+            </div>
+            <canvas id="userGrowthChart" height="300"></canvas>
+        </div>
+
+        <!-- User Roles Distribution -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">User Roles Distribution</h3>
+                <div class="text-sm text-gray-500">
+                    @Model.TotalUsers total users
+                </div>
+            </div>
+            <canvas id="rolesChart" height="300"></canvas>
+        </div>
+
+        <!-- Activity Heatmap -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 lg:col-span-2">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">User Activity Heatmap</h3>
+                <div class="flex items-center text-sm text-gray-500">
+                    <span>Last 30 days</span>
+                </div>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <i class="fas fa-chart-area text-4xl text-gray-300 mb-2"></i>
+                <p class="text-gray-500">Activity heatmap visualization would appear here</p>
+                <p class="text-sm text-gray-400 mt-1">(Requires backend integration)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Stats Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Active vs Inactive Users -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Account Status</h3>
+            <canvas id="statusChart" height="200"></canvas>
+            <div class="mt-4 flex justify-center space-x-4">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600">@Model.AccountStatus.ActiveUsers</div>
+                    <div class="text-sm text-gray-500">Active</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-red-600">@Model.AccountStatus.LockedUsers</div>
+                    <div class="text-sm text-gray-500">Locked</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Sources -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Registration Sources</h3>
+            <canvas id="sourceChart" height="200"></canvas>
+            <div class="mt-4 grid grid-cols-2 gap-2">
+                @for (int i = 0; i < Model.RegistrationSources.Sources.Count; i++)
+                {
+                    <div class="flex items-center">
+                        <span class="h-3 w-3 rounded-full" style="background-color: @Model.RegistrationSources.Colors[i]; margin-right: 0.5rem;"></span>
+                        <span class="text-sm text-gray-500">@Model.RegistrationSources.Sources[i]</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Recent User Activity</h3>
+            <div class="space-y-4">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center text-primary">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">@Model.RecentActivity.NewUsersToday new users</p>
+                        <p class="text-sm text-gray-500">Today</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">@Model.RecentActivity.LoginsLast24Hours logins</p>
+                        <p class="text-sm text-gray-500">Last 24 hours</p>
+                    </div>
+                </div>
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-500">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">@Model.RecentActivity.PurchasesYesterday purchases</p>
+                        <p class="text-sm text-gray-500">Yesterday</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts with server-side data
+            initializeCharts(@Json.Serialize(Model));
+
+            // Time range selector
+            document.getElementById('timeRange').addEventListener('change', function() {
+                const days = parseInt(this.value);
+                fetchUserGrowthData(days);
+            });
+        });
+
+        function initializeCharts(model) {
+            // User Growth Chart (Line Chart)
+            const growthCtx = document.getElementById('userGrowthChart').getContext('2d');
+            new Chart(growthCtx, {
+                type: 'line',
+                data: {
+                    labels: model.userGrowth.labels,
+                    datasets: [
+                        {
+                            label: 'New Users',
+                            data: model.userGrowth.newUsers,
+                            borderColor: '#6366F1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Total Users',
+                            data: model.userGrowth.totalUsers,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Roles Distribution (Doughnut Chart)
+        const rolesCtx = document.getElementById('rolesChart').getContext('2d');
+        new Chart(rolesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: model.rolesDistribution.roleNames,
+                datasets: [{
+                    data: model.rolesDistribution.counts,
+                    backgroundColor: model.rolesDistribution.colors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+            // Account Status Chart (Pie Chart)
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Active', 'Locked'],
+                    datasets: [{
+                        data: [model.accountStatus.activeUsers, model.accountStatus.lockedUsers],
+                        backgroundColor: ['#10B981', '#EF4444'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Registration Sources (Bar Chart)
+            const sourceCtx = document.getElementById('sourceChart').getContext('2d');
+            new Chart(sourceCtx, {
+                type: 'bar',
+                data: {
+                    labels: model.registrationSources.sources,
+                    datasets: [{
+                        label: 'Users',
+                        data: model.registrationSources.counts,
+                        backgroundColor: model.registrationSources.colors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function fetchUserGrowthData(days) {
+            fetch(`/Analytics/GetUserGrowthData?days=${days}`)
+                .then(response => response.json())
+                .then(data => {
+                    // Update the user growth chart
+                    const chart = Chart.getChart("userGrowthChart");
+                    chart.data.labels = data.labels;
+                    chart.data.datasets[0].data = data.newUsers;
+                    chart.data.datasets[1].data = data.totalUsers;
+                    chart.update();
+                })
+                .catch(error => console.error('Error fetching user growth data:', error));
+        }
+    </script>
+
+    <style>
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+    </style>
+}
