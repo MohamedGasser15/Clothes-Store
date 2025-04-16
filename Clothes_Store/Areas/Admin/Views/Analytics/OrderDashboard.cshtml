@@ -1,0 +1,456 @@
+﻿@model Clothes_Models.ViewModels.OrderAnalyticsViewModel
+
+@{
+    ViewData["Title"] = "Order Analytics Dashboard";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Order Analytics Dashboard</h1>
+            <p class="mt-2 text-sm text-gray-500">Insights into sales performance and order patterns</p>
+        </div>
+        <div class="flex gap-3">
+            <div class="relative">
+                <select id="timeRange" class="appearance-none bg-white border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last year</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+            <a asp-controller="Order" asp-action="Index" class="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <i class="fas fa-clipboard-list mr-2"></i> <!-- Perfect for order lists -->
+                <span>View Orders</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total Revenue -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-primary-100 p-3 rounded-lg">
+                    <i class="fas fa-dollar-sign text-primary text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">Total Revenue</h3>
+                    <div class="mt-1 text-2xl font-bold text-primary">@Model.KeyMetrics.TotalRevenue.ToString("C")</div>
+                    <div class="mt-1 text-sm @(Model.KeyMetrics.RevenueChangePercentage >= 0 ? "text-green-600" : "text-red-600")">
+                        <i class="fas @(Model.KeyMetrics.RevenueChangePercentage >= 0 ? "fa-arrow-up" : "fa-arrow-down") mr-1"></i>
+                        @Model.KeyMetrics.RevenueChangePercentage.ToString("+0.0%;-0.0%")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Orders -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
+                    <i class="fas fa-shopping-bag text-blue-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">Total Orders</h3>
+                    <div class="mt-1 text-2xl font-bold text-primary">@Model.KeyMetrics.TotalOrders</div>
+                    <div class="mt-1 text-sm @(Model.KeyMetrics.OrderChangePercentage >= 0 ? "text-green-600" : "text-red-600")">
+                        <i class="fas @(Model.KeyMetrics.OrderChangePercentage >= 0 ? "fa-arrow-up" : "fa-arrow-down") mr-1"></i>
+                        @Model.KeyMetrics.OrderChangePercentage.ToString("+0.0%;-0.0%")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Order Value -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-100 p-3 rounded-lg">
+                    <i class="fas fa-receipt text-green-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">Avg. Order Value</h3>
+                    <div class="mt-1 text-2xl font-bold text-primary">@Model.KeyMetrics.AverageOrderValue.ToString("C")</div>
+                    <div class="mt-1 text-sm @(Model.KeyMetrics.AOVChangePercentage >= 0 ? "text-green-600" : "text-red-600")">
+                        <i class="fas @(Model.KeyMetrics.AOVChangePercentage >= 0 ? "fa-arrow-up" : "fa-arrow-down") mr-1"></i>
+                        @Model.KeyMetrics.AOVChangePercentage.ToString("+0.0%;-0.0%")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Customers -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-purple-100 p-3 rounded-lg">
+                    <i class="fas fa-user-plus text-purple-600 text-xl"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">New Customers</h3>
+                    <div class="mt-1 text-2xl font-bold text-primary">@Model.KeyMetrics.NewCustomers</div>
+                    <div class="mt-1 text-sm text-gray-500">First-time buyers</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Revenue Trend Chart -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Revenue Trend</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="h-3 w-3 rounded-full bg-primary"></span>
+                    <span class="text-xs text-gray-500">Revenue</span>
+                    <span class="h-3 w-3 rounded-full bg-blue-500 ml-2"></span>
+                    <span class="text-xs text-gray-500">Orders</span>
+                </div>
+            </div>
+            <div class="chart-container" style="height: 300px;">
+                <canvas id="revenueTrendChart" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Order Status Distribution -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Order Status</h3>
+                <div class="flex items-center">
+                    <div class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                        @Model.OrderStatusDistribution.Counts.Sum() orders
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-container" style="height: 300px;">
+                <canvas id="orderStatusChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Charts -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Top Products -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Top Selling Products</h3>
+            <div class="chart-container" style="height: 250px;">
+                <canvas id="topProductsChart" height="250"></canvas>
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">
+                @for (int i = 0; i < Math.Min(5, Model.TopProducts.ProductNames.Count); i++)
+                {
+                    <div class="flex items-center px-3 py-1 bg-gray-50 rounded-full">
+                        <span class="h-2.5 w-2.5 rounded-full mr-2" style="background-color: @Model.SalesByCategory.Colors[i % Model.SalesByCategory.Colors.Count]"></span>
+                        <span class="text-xs font-medium text-gray-700">@Model.TopProducts.ProductNames[i]</span>
+                        <span class="ml-2 text-xs text-gray-500">@Model.TopProducts.RevenueGenerated[i].ToString("C")</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Sales by Day of Week -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Sales by Day of Week</h3>
+            <div class="chart-container" style="height: 250px;">
+                <canvas id="dayOfWeekChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sales by Category -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow mb-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+            <div>
+                <h3 class="text-lg font-medium text-gray-900">Sales by Category</h3>
+                <p class="text-sm text-gray-500 mt-1">Breakdown of revenue across product categories</p>
+            </div>
+            <div class="flex items-center">
+                <div class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                    @Model.SalesByCategory.OrderCounts.Sum() orders
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="chart-container" style="height: 250px;">
+                <canvas id="salesByCategoryChart" height="250"></canvas>
+            </div>
+            <div class="space-y-3">
+                @for (int i = 0; i < Model.SalesByCategory.CategoryNames.Count; i++)
+                {
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <span class="h-3 w-3 rounded-full mr-3" style="background-color: @Model.SalesByCategory.Colors[i % Model.SalesByCategory.Colors.Count]"></span>
+                            <span class="text-sm font-medium text-gray-700">@Model.SalesByCategory.CategoryNames[i]</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-sm font-semibold text-gray-900">@Model.SalesByCategory.Revenue[i].ToString("C")</div>
+                            <div class="text-xs text-gray-500">@Model.SalesByCategory.OrderCounts[i] orders</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Serialized data from server
+        const chartData = {
+            revenueTrend: {
+                labels: @Html.Raw(Json.Serialize(Model.RevenueTrend.Labels)),
+                revenue: @Html.Raw(Json.Serialize(Model.RevenueTrend.Revenue)),
+                orderCounts: @Html.Raw(Json.Serialize(Model.RevenueTrend.OrderCounts))
+            },
+            orderStatus: {
+                statuses: @Html.Raw(Json.Serialize(Model.OrderStatusDistribution.Statuses)),
+                counts: @Html.Raw(Json.Serialize(Model.OrderStatusDistribution.Counts)),
+                colors: @Html.Raw(Json.Serialize(Model.OrderStatusDistribution.Colors))
+            },
+            topProducts: {
+                productNames: @Html.Raw(Json.Serialize(Model.TopProducts.ProductNames)),
+                revenueGenerated: @Html.Raw(Json.Serialize(Model.TopProducts.RevenueGenerated))
+            },
+            salesByDay: {
+                days: @Html.Raw(Json.Serialize(Model.SalesByDayOfWeek.Days)),
+                revenue: @Html.Raw(Json.Serialize(Model.SalesByDayOfWeek.Revenue))
+            },
+            salesByCategory: {
+                categoryNames: @Html.Raw(Json.Serialize(Model.SalesByCategory.CategoryNames)),
+                revenue: @Html.Raw(Json.Serialize(Model.SalesByCategory.Revenue)),
+                colors: @Html.Raw(Json.Serialize(Model.SalesByCategory.Colors)),
+                orderCounts: @Html.Raw(Json.Serialize(Model.SalesByCategory.OrderCounts))
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Revenue Trend Chart
+            const revenueTrendCtx = document.getElementById('revenueTrendChart');
+            if (revenueTrendCtx) {
+                new Chart(revenueTrendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.revenueTrend.labels,
+                        datasets: [
+                            {
+                                label: 'Revenue',
+                                data: chartData.revenueTrend.revenue,
+                                borderColor: '#088178',
+                                backgroundColor: 'rgba(8, 129, 120, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.3,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Orders',
+                                data: chartData.revenueTrend.orderCounts,
+                                borderColor: '#3B82F6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                borderWidth: 2,
+                                tension: 0.3,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Revenue ($)'
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Order Count'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Order Status Distribution
+            const orderStatusCtx = document.getElementById('orderStatusChart');
+            if (orderStatusCtx) {
+                new Chart(orderStatusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.orderStatus.statuses,
+                        datasets: [{
+                            data: chartData.orderStatus.counts,
+                            backgroundColor: chartData.orderStatus.colors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                });
+            }
+
+            // Top Products Chart
+            const topProductsCtx = document.getElementById('topProductsChart');
+            if (topProductsCtx) {
+                new Chart(topProductsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.topProducts.productNames.slice(0, 5),
+                        datasets: [{
+                            label: 'Revenue',
+                            data: chartData.topProducts.revenueGenerated.slice(0, 5),
+                            backgroundColor: chartData.salesByCategory.colors.slice(0, 5),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Revenue ($)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Sales by Day of Week
+            const dayOfWeekCtx = document.getElementById('dayOfWeekChart');
+            if (dayOfWeekCtx) {
+                new Chart(dayOfWeekCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.salesByDay.days,
+                        datasets: [{
+                            label: 'Revenue',
+                            data: chartData.salesByDay.revenue,
+                            backgroundColor: 'rgba(8, 129, 120, 0.6)',
+                            borderColor: '#088178',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Sales by Category
+            const salesByCategoryCtx = document.getElementById('salesByCategoryChart');
+            if (salesByCategoryCtx) {
+                new Chart(salesByCategoryCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: chartData.salesByCategory.categoryNames,
+                        datasets: [{
+                            data: chartData.salesByCategory.revenue,
+                            backgroundColor: chartData.salesByCategory.colors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: $${value.toFixed(2)} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '60%'
+                    }
+                });
+            }
+
+            // Time range selector
+            const timeRangeSelect = document.getElementById('timeRange');
+            if (timeRangeSelect) {
+                timeRangeSelect.addEventListener('change', function() {
+                    window.location.href = `?days=${this.value}`;
+                });
+            }
+        });
+    </script>
+}
