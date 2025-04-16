@@ -52,7 +52,8 @@ builder.Services.AddSession();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-
+// In ConfigureServices method
+builder.Services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -69,7 +70,7 @@ StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey"
 app.UseRouting();
 
 app.UseAuthorization();
-app.UseSession();     
+app.UseSession();
 app.MapControllerRoute(
     name: "default",
     pattern: "{area=Customer}/{controller=Home}/{action=Home}/{id?}");
