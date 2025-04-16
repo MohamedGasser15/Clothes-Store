@@ -1,0 +1,90 @@
+﻿@{
+    ViewData["Title"] = "Analytics Dashboard";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="text-center mb-12">
+        <h1 class="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+        <p class="mt-2 text-lg text-gray-600">Select an analytics module to view detailed metrics</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- User Analytics Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+            <a asp-controller="Analytics" asp-action="UserDashboard" class="block">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-indigo-100 p-3 rounded-lg">
+                            <i class="fas fa-users text-indigo-600 text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">User Analytics</h3>
+                            <p class="mt-1 text-sm text-gray-500">User growth, activity, and demographics</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>Last updated: @DateTime.Now.ToString("MMM dd")</span>
+                            <span class="text-indigo-600 font-medium">View →</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Order Analytics Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+            <a asp-controller="Analytics" asp-action="OrderDashboard" class="block">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-green-100 p-3 rounded-lg">
+                            <i class="fas fa-shopping-cart text-green-600 text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Order Analytics</h3>
+                            <p class="mt-1 text-sm text-gray-500">Sales, revenue, and order trends</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>Last updated: @DateTime.Now.ToString("MMM dd")</span>
+                            <span class="text-green-600 font-medium">View →</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Product Analytics Card -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow">
+            <a asp-controller="Analytics" asp-action="ProductDashboard" class="block">
+                <div class="p-6">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0 bg-blue-100 p-3 rounded-lg">
+                            <i class="fas fa-boxes text-blue-600 text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-lg font-medium text-gray-900">Product Analytics</h3>
+                            <p class="mt-1 text-sm text-gray-500">Inventory, performance, and categories</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>Coming soon</span>
+                            <span class="text-blue-600 font-medium">View →</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .card-hover:hover {
+            transform: translateY(-2px);
+            transition: transform 0.2s ease;
+        }
+    </style>
+}
