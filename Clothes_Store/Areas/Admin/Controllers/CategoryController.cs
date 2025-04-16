@@ -44,10 +44,14 @@ namespace Clothes_Store.Areas.Admin.Controllers
             if (obj.Category_Id == 0)
             {
                 await _unitOfWork.Categories.Add(obj);
+                TempData["Success"] = "Category Added successfully";
+
             }
             else
             {
                 _unitOfWork.Categories.UpdateAsync(obj);
+                TempData["Success"] = $"('{obj.Category_Name}') updated successfully";
+
             }
             await _unitOfWork.SaveAsync();
 
@@ -60,9 +64,11 @@ namespace Clothes_Store.Areas.Admin.Controllers
             obj = await _unitOfWork.Categories.GetById(id);
             if (obj == null)
             {
+                TempData["Error"] = "Oops! Something went wrong. Please try again.";
                 return NotFound();
             }
                 _unitOfWork.Categories.Delete(obj);
+            TempData["Success"] = "Category deleted successfully!";
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }

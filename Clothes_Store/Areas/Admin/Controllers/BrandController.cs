@@ -48,10 +48,14 @@ namespace Clothes_Store.Areas.Admin.Controllers
             if (obj.Brand_Id == 0)
             {
                 await _unitOfWork.Brands.Add(obj);
+                TempData["Success"] = "Brand Added successfully";
+
             }
             else
             {
                 _unitOfWork.Brands.UpdateAsync(obj);
+                TempData["Success"] = $"('{obj.Brand_Name}') Brand updated successfully";
+
             }
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
@@ -64,11 +68,15 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
             if (obj == null)
             {
+                TempData["Error"] = "Oops! Something went wrong. Please try again.";
+
                 return NotFound();
             }
             else
             {
                 _unitOfWork.Brands.Delete(obj);
+                TempData["Success"] = "Brand deleted successfully!";
+
             }
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));

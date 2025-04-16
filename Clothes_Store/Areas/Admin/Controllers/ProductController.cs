@@ -78,10 +78,13 @@ namespace Clothes_Store.Areas.Admin.Controllers
             if (obj.Product.Product_Id == 0)
             {
                 await _unitOfWork.Products.Add(obj.Product);
+                TempData["Success"] = "Product Added successfully";
+
             }
             else
             {
                 _unitOfWork.Products.UpdateAsync(obj.Product);
+                TempData["Success"] = $"('{obj.Product.Product_Name}') updated successfully";
             }
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
@@ -93,9 +96,12 @@ namespace Clothes_Store.Areas.Admin.Controllers
             obj = await _unitOfWork.Products.GetById(id);
             if (obj == null)
             {
+                TempData["Error"] = "Oops! Something went wrong. Please try again.";
                 return NotFound();
             }
             _unitOfWork.Products.Delete(obj);
+            TempData["Success"] = "Product deleted successfully!";
+
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }

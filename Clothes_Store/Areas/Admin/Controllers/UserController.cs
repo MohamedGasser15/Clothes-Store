@@ -72,6 +72,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
             var objFromDb = _db.ApplicationUsers.FirstOrDefault(u => u.Id == user.Id);
             if (objFromDb == null)
             {
+                TempData["Error"] = "Oops! Something went wrong. Please try again.";
                 return NotFound();
             }
             var userRole = _db.UserRoles.FirstOrDefault(u => u.UserId == objFromDb.Id);
@@ -86,6 +87,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
             //add new role
             await _userManager.AddToRoleAsync(objFromDb, _db.Roles.FirstOrDefault(u => u.Id == user.RoleId).Name);
             objFromDb.Name = user.Name;
+            TempData["Success"] = $"User ('{objFromDb.Name}') updated successfully";
             _db.SaveChanges();
             return RedirectToAction(nameof(Index));
 
@@ -105,9 +107,11 @@ namespace Clothes_Store.Areas.Admin.Controllers
             obj = _db.ApplicationUsers.FirstOrDefault(u => u.Id == userId);
             if (obj == null)
             {
+                TempData["Error"] = "Oops! Something went wrong. Please try again.";
                 return NotFound();
             }
             _db.ApplicationUsers.Remove(obj);
+            TempData["Success"] = $"User ('{obj.Name}') deleted successfully!";
             _db.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
@@ -118,15 +122,18 @@ namespace Clothes_Store.Areas.Admin.Controllers
             var objFromDb = _db.ApplicationUsers.FirstOrDefault(u => u.Id == userId);
             if (objFromDb == null)
             {
+                TempData["Error"] = "User not found! The account may have been deleted or doesn't exist.";
                 return NotFound();
             }
             if (objFromDb.LockoutEnd != null && objFromDb.LockoutEnd > DateTime.Now)
             {
                 objFromDb.LockoutEnd = DateTime.Now;
+                TempData["Success"] = $"Successfully unlocked user ({objFromDb.Name})!";
             }
             else
             {
                 objFromDb.LockoutEnd = DateTime.Now.AddDays(10);
+                TempData["Success"] = $"Successfully locked user ({objFromDb.Name}) for 10 days!";
             }
             _db.SaveChanges();
             return RedirectToAction(nameof(Index));
