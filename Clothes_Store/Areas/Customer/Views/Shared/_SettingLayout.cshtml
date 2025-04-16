@@ -73,6 +73,88 @@
             }
 
         }
+
+        /* Notification styles - same as product details page */
+        .notification-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 1000;
+        }
+
+        .notification {
+            padding: 1rem 1.5rem;
+            color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            transform: translateX(150%);
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .notification.success {
+                background-color: #088178;
+            }
+
+            .notification.error {
+                background-color: #ef4444;
+            }
+
+            .notification.show {
+                transform: translateX(0);
+            }
+
+            .notification.hide {
+                transform: translateX(150%);
+                opacity: 0;
+            }
+
+        .notification-icon {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .notification-close {
+            margin-left: 1rem;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+            .notification-close:hover {
+                opacity: 1;
+            }
+
+        .notification-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .notification-progress-bar {
+            height: 100%;
+            width: 100%;
+            background: white;
+            animation: progress 3s linear forwards;
+            transform-origin: left;
+        }
+
+        @@keyframes progress {
+            0% {
+                transform: scaleX(0);
+            }
+
+            100% {
+                transform: scaleX(1);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -101,15 +183,45 @@
                 <a asp-controller="Setting" asp-action="Privacy" class="@IsActive("Setting","Privacy")">
                     <i class="fas fa-user-shield mr-2"></i> Privacy
                 </a>
+                <a asp-area="Customer" asp-controller="Home" asp-action="Home" class="@IsActive("Home","Home")">
+                    <i class="fas fa-house mr-2"></i> Homepage
+                </a>
             </nav>
         </div>
         <div id="overlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"></div>
         <div class="flex-1 p-8 overflow-y-auto">
             <div class="max-w-4xl mx-auto">
+                <div class="notification-container">
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div id="successNotification" class="notification success">
+                            <i class="fas fa-check-circle notification-icon"></i>
+                            <span>@TempData["SuccessMessage"]</span>
+                            <span class="notification-close" onclick="hideNotification('successNotification')">
+                                <i class="fas fa-times"></i>
+                            </span>
+                            <div class="notification-progress">
+                                <div class="notification-progress-bar"></div>
+                            </div>
+                        </div>
+                    }
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div id="errorNotification" class="notification error">
+                            <i class="fas fa-exclamation-circle notification-icon"></i>
+                            <span>@TempData["ErrorMessage"]</span>
+                            <span class="notification-close" onclick="hideNotification('errorNotification')">
+                                <i class="fas fa-times"></i>
+                            </span>
+                            <div class="notification-progress">
+                                <div class="notification-progress-bar"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
                 @RenderBody()
             </div>
         </div>
-
     </div>
     <script>
         const menuToggle = document.getElementById('menuToggle');
@@ -117,14 +229,73 @@
         const overlay = document.getElementById('overlay');
 
         menuToggle.addEventListener('click', () => {
-            mobileMenu.classList.toggle('active');
+            const isExpanded = mobileMenu.classList.toggle('active');
             overlay.classList.toggle('hidden');
+            menuToggle.setAttribute('aria-expanded', isExpanded);
         });
 
         overlay.addEventListener('click', () => {
             mobileMenu.classList.remove('active');
             overlay.classList.add('hidden');
+            menuToggle.setAttribute('aria-expanded', 'false');
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show success notification if exists
+            const successNotification = document.getElementById('successNotification');
+            if (successNotification) {
+                showNotification(successNotification);
+            }
+
+            // Show error notification if exists
+            const errorNotification = document.getElementById('errorNotification');
+            if (errorNotification) {
+                showNotification(errorNotification, 5000);
+            }
+        });
+
+        function showNotification(notification, duration = 3000) {
+            notification.classList.add('show');
+
+            // Reset animation
+            const progressBar = notification.querySelector('.notification-progress-bar');
+            progressBar.style.animation = 'none';
+            void progressBar.offsetWidth; // Trigger reflow
+            progressBar.style.animation = `progress ${duration/1000}s linear forwards`;
+
+            // Auto-hide
+            const autoHide = setTimeout(() => {
+                hideNotification(notification.id);
+            }, duration);
+
+            // Pause on hover
+            notification.addEventListener('mouseenter', () => {
+                clearTimeout(autoHide);
+                progressBar.style.animationPlayState = 'paused';
+            });
+
+            notification.addEventListener('mouseleave', () => {
+                const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
+                const remainingTime = remainingWidth * duration;
+
+                progressBar.style.animationPlayState = 'running';
+                setTimeout(() => {
+                    hideNotification(notification.id);
+                }, remainingTime);
+            });
+        }
+
+        window.hideNotification = function(id) {
+            const notification = document.getElementById(id);
+            if (notification) {
+                notification.classList.remove('show');
+                notification.classList.add('hide');
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 500);
+            }
+        };
     </script>
 </body>
 </html>
