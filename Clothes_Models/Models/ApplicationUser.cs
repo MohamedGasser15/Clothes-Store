@@ -31,7 +31,7 @@ namespace Clothes_Models.Models
         public string? PreferredCarriers { get; set; } = "Bosta";
         public string StripeCustomerId { get; set; }
         public List<PaymentMethod> PaymentMethods { get; set; }
-
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         [NotMapped]
         public string RoleId { get; set; }
