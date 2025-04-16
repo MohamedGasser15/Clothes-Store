@@ -26,11 +26,41 @@
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" integrity="sha512-3pIirOrwegjM6erE5gPSwkUzO+3cTjpnV9lexlNZqvupR64iZBnOOTiiLPb9M36zpMScbmUNIcHUqKD47M719g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 
     <link href="https://fonts.googleapis.com/css2?family=Spartan:wght@100;200;300;400;500;600;700;800;900;&display:swap">
+    <style>
+        /* Smooth hover animations */
+        .login-btn:hover {
+            background-color: #0a9e8d !important;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 4px 16px rgba(8, 129, 120, 0.25);
+        }
+
+            .login-btn:hover .login-icon {
+                transform: translateX(3px) scale(1.1);
+                transition: transform 0.4s ease;
+            }
+
+            .login-btn:hover .login-text {
+                transform: translateX(2px);
+                transition: transform 0.4s ease;
+            }
+
+            .login-btn:hover .login-overlay {
+                height: 100%;
+                transition: height 0.4s cubic-bezier(0.28, 0.84, 0.42, 1);
+            }
+
+        /* Initial states */
+        .login-icon,
+        .login-text,
+        .login-overlay {
+            transition: all 0.4s ease;
+        }
+    </style>
 </head>
 <body>
     <section id="header">
@@ -60,9 +90,26 @@
                 {
                     <partial name="_LoginPartialView" />
                 }
-                else{
-                    <li><a asp-controller="Account" asp-action="Register">Register</a></li>
-                    <li><a asp-controller="Account" asp-action="Login">Login</a></li>
+                else
+                {
+                    <li class="ms-3">
+                        <a asp-controller="Account" asp-action="Login"
+                           class="login-btn btn text-white d-flex align-items-center position-relative overflow-hidden px-4 py-2"
+                           style="
+           background-color: #088178;
+           border: none;
+           border-radius: 8px;
+           transition: all 0.4s cubic-bezier(0.28, 0.84, 0.42, 1);
+               ">
+
+                            <span class="login-content z-10 d-flex align-items-center">
+                                <i class="login-icon fas fa-sign-in-alt me-2"></i>
+                                <span class="login-text">Login</span>
+                            </span>
+
+                            <span class="login-overlay position-absolute top-0 left-0 w-full h-0 bg-white opacity-10"></span>
+                        </a>
+                    </li>
                 }
                 <li><a href="#" id="close"<i class="far fa-times"></i></a></li>
             </ul>
@@ -78,7 +125,7 @@
             </button>
         </div>
     </section>
-            @RenderBody()
+    @RenderBody()
     <footer class="section-p1">
         <div class="col">
             <img class="logo" src="~/img/logo.png" alt="">
@@ -102,7 +149,8 @@
         <div class="col">
             <h4>About</h4>
             <a asp-controller="Home" asp-action="Contact">
-                About Us</a>
+                About Us
+            </a>
             <a href="#">Delivery Information</a>
             <a href="#">Privacy Policy</a>
             <a href="#">Term & conditions</a>
