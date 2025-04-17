@@ -2,6 +2,10 @@
 using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Clothes_Store.Services
 {
@@ -9,11 +13,10 @@ namespace Clothes_Store.Services
     {
         Task<OrderAnalyticsViewModel> GetDashboardData(OrderAnalyticsFilter filter);
         Task<RevenueTrendViewModel> GetRevenueTrendData(DateTime startDate, DateTime endDate, int days);
-
-        // Add other method signatures as needed
         Task<OrderStatusDistributionViewModel> GetOrderStatusData(DateTime startDate, DateTime endDate);
         Task<TopProductsViewModel> GetTopProductsData(int topCount, DateTime startDate, DateTime endDate);
     }
+
     public class OrderAnalyticsService : IOrderAnalyticsService
     {
         private readonly ApplicationDbContext _context;
@@ -82,7 +85,7 @@ namespace Clothes_Store.Services
         }
 
         private async Task<OrderStatusDistributionViewModel> GetOrderStatusDistribution(
-     DateTime startDate, DateTime endDate, OrderAnalyticsFilter filter)
+            DateTime startDate, DateTime endDate, OrderAnalyticsFilter filter)
         {
             var query = BuildBaseQuery(startDate, endDate, filter);
 
@@ -94,29 +97,18 @@ namespace Clothes_Store.Services
                     Count = g.Count(),
                     Revenue = g.Sum(o => o.OrderTotal)
                 })
-                .OrderByDescending(g => g.Count)
                 .ToListAsync();
 
             var model = new OrderStatusDistributionViewModel();
-
-            // Ensure we have all standard statuses, even if count is 0
             var standardStatuses = new List<string> { "Delivered", "Pending", "Processing", "Cancelled", "Refunded", "Shipped", "Approved" };
 
+            // Initialize with all standard statuses
             foreach (var status in standardStatuses)
             {
+                model.Statuses.Add(status);
                 var group = statusGroups.FirstOrDefault(g => string.Equals(g.Status, status, StringComparison.OrdinalIgnoreCase));
-                if (group != null)
-                {
-                    model.Statuses.Add(status);
-                    model.Counts.Add(group.Count);
-                    model.RevenueByStatus.Add((decimal)group.Revenue);
-                }
-                else
-                {
-                    model.Statuses.Add(status);
-                    model.Counts.Add(0);
-                    model.RevenueByStatus.Add(0);
-                }
+                model.Counts.Add(group?.Count ?? 0);
+                model.RevenueByStatus.Add(group != null ? (decimal)group.Revenue : 0);
             }
 
             // Add any non-standard statuses
@@ -127,7 +119,11 @@ namespace Clothes_Store.Services
                 model.RevenueByStatus.Add((decimal)group.Revenue);
             }
 
-            // Only keep as many colors as we have statuses
+            // Ensure colors match the number of statuses
+            while (model.Colors.Count < model.Statuses.Count)
+            {
+                model.Colors.Add("#D1D5DB"); // Add default color (gray) for extra statuses
+            }
             model.Colors = model.Colors.Take(model.Statuses.Count).ToList();
 
             return model;
@@ -222,11 +218,10 @@ namespace Clothes_Store.Services
 
         private async Task<int> GetNewCustomerCount(DateTime startDate, DateTime endDate, OrderAnalyticsFilter filter)
         {
-            // Get all users who placed their first order in this period
             var query = _context.OrderHeaders
                 .Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
                 .GroupBy(o => o.ApplicationUserId)
-                .Where(g => g.Min(o => o.OrderDate) >= startDate); // First order is in this period
+                .Where(g => g.Min(o => o.OrderDate) >= startDate);
 
             if (!string.IsNullOrEmpty(filter.Country))
                 query = query.Where(g => g.First().Country == filter.Country);
@@ -286,7 +281,6 @@ namespace Clothes_Store.Services
                 model.Counts.Add(group.Count);
             }
 
-            // Only keep as many colors as we have statuses
             model.Colors = model.Colors.Take(model.Statuses.Count).ToList();
 
             return model;
@@ -295,12 +289,10 @@ namespace Clothes_Store.Services
         private async Task<SalesByDayOfWeekViewModel> GetSalesByDayOfWeek(
             DateTime startDate, DateTime endDate, OrderAnalyticsFilter filter)
         {
-            // First get the raw data from the database
             var orders = await BuildBaseQuery(startDate, endDate, filter)
                 .Select(o => new { o.OrderDate, o.OrderTotal })
                 .ToListAsync();
 
-            // Then perform the grouping in memory
             var dayGroups = orders
                 .GroupBy(o => o.OrderDate.DayOfWeek)
                 .Select(g => new
@@ -313,14 +305,12 @@ namespace Clothes_Store.Services
 
             var model = new SalesByDayOfWeekViewModel();
 
-            // Initialize all days with 0 values
             for (int i = 0; i < 7; i++)
             {
                 model.Revenue.Add(0);
                 model.OrderCounts.Add(0);
             }
 
-            // Fill in actual values
             foreach (var group in dayGroups)
             {
                 int dayIndex = (int)group.DayOfWeek;
@@ -332,7 +322,7 @@ namespace Clothes_Store.Services
         }
 
         private async Task<SalesByCategoryViewModel> GetSalesByCategory(
-                DateTime startDate, DateTime endDate, OrderAnalyticsFilter filter)
+            DateTime startDate, DateTime endDate, OrderAnalyticsFilter filter)
         {
             var query = _context.OrderDetails
                 .Include(od => od.OrderHeader)
@@ -364,7 +354,6 @@ namespace Clothes_Store.Services
                 model.OrderCounts.Add(group.OrderCount);
             }
 
-            // Only keep as many colors as we have categories
             model.Colors = model.Colors.Take(model.CategoryNames.Count).ToList();
 
             return model;
@@ -388,14 +377,12 @@ namespace Clothes_Store.Services
 
             var model = new SalesByHourViewModel();
 
-            // Initialize all hours with 0 values
             for (int i = 0; i < 24; i++)
             {
                 model.Revenue.Add(0);
                 model.OrderCounts.Add(0);
             }
 
-            // Fill in actual values
             foreach (var group in hourGroups)
             {
                 model.Revenue[group.Hour] = (decimal)group.Revenue;
@@ -404,6 +391,7 @@ namespace Clothes_Store.Services
 
             return model;
         }
+
         public async Task<RevenueTrendViewModel> GetRevenueTrendData(DateTime startDate, DateTime endDate, int days)
         {
             return await GetRevenueTrend(startDate, endDate, new OrderAnalyticsFilter
@@ -425,4 +413,3 @@ namespace Clothes_Store.Services
         }
     }
 }
-
