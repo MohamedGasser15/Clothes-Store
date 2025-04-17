@@ -56,6 +56,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // In ConfigureServices method
 builder.Services.AddScoped<IUserAnalyticsService, UserAnalyticsService>();
 builder.Services.AddScoped<IOrderAnalyticsService, OrderAnalyticsService>();
+builder.Services.AddScoped<IProductAnalyticsService, ProductAnalyticsService>();
 
 var app = builder.Build();
 
