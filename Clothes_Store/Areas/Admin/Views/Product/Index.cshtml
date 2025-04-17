@@ -42,22 +42,26 @@
         <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500">Active Products</p>
-                    <p class="text-2xl font-semibold text-gray-900" id="activeProducts">@Model.Count()</p>
+                    <p class="text-sm font-medium text-gray-500">Total Stock</p>
+                    <p class="text-2xl font-semibold text-gray-900" id="totalStock">
+                        @(Model.Sum(p => p.Stocks?.Sum(s => s.Quantity) ?? 0))
+                    </p>
                 </div>
                 <div class="p-3 rounded-full bg-blue-500 bg-opacity-10 text-blue-500">
-                    <i class="fas fa-check-circle text-xl"></i>
+                    <i class="fas fa-boxes text-xl"></i>
                 </div>
             </div>
         </div>
         <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-sm font-medium text-gray-500">Featured</p>
-                    <p class="text-2xl font-semibold text-gray-900">0</p>
+                    <p class="text-sm font-medium text-gray-500">Out of Stock</p>
+                    <p class="text-2xl font-semibold text-gray-900">
+                        @(Model.Count(p => (p.Stocks?.Sum(s => s.Quantity) ?? 0) == 0))
+                    </p>
                 </div>
                 <div class="p-3 rounded-full bg-green-500 bg-opacity-10 text-green-500">
-                    <i class="fas fa-star text-xl"></i>
+                    <i class="fas fa-exclamation-circle text-xl"></i>
                 </div>
             </div>
         </div>
@@ -123,7 +127,7 @@
                                 </div>
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Color</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size & Stock</th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
@@ -144,7 +148,21 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 product-price">$@product.Product_Price</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">@product.Product_Color</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">@product.Product_Size</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    @if (product.Stocks != null && product.Stocks.Any())
+                                    {
+                                        <ul class="list-disc list-inside">
+                                            @foreach (var stock in product.Stocks)
+                                            {
+                                                <li>@stock.Size: @stock.Quantity</li>
+                                            }
+                                        </ul>
+                                    }
+                                    else
+                                    {
+                                        <span>No stock available</span>
+                                    }
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <div class="flex space-x-3">
                                         <!-- Premium Edit Button -->
@@ -245,7 +263,6 @@
 
         document.body.appendChild(modal);
 
-        // Trigger animations
         setTimeout(() => {
             modal.classList.remove('opacity-0');
             modal.querySelector('div').classList.remove('scale-95');
@@ -272,7 +289,6 @@
 
 <!-- Main Table Functionality Script -->
 <script>
-    // DOM Elements
     const tableBody = document.getElementById('tableBody');
     const searchInput = document.getElementById('searchInput');
     const rowsPerPage = document.getElementById('rowsPerPage');
@@ -285,21 +301,18 @@
     const prevPageMobile = document.getElementById('prevPageMobile');
     const nextPageMobile = document.getElementById('nextPageMobile');
 
-    // State
     let currentPage = 1;
     let rowsPerPageValue = 10;
     let allProducts = Array.from(tableBody.querySelectorAll('tr'));
     let filteredProducts = [...allProducts];
     let sortColumn = null;
-    let sortDirection = 1; // 1 for ascending, -1 for descending
+    let sortDirection = 1;
 
-    // Initialize
     function init() {
         updateTable();
         setupEventListeners();
     }
 
-    // Event Listeners
     function setupEventListeners() {
         searchInput.addEventListener('input', handleSearch);
         rowsPerPage.addEventListener('change', handleRowsPerPageChange);
@@ -311,7 +324,6 @@
         nextPageMobile.addEventListener('click', () => changePage(1));
     }
 
-    // Search Functionality
     function handleSearch() {
         const searchTerm = searchInput.value.toLowerCase();
         filteredProducts = allProducts.filter(row => {
@@ -322,7 +334,6 @@
         updateTable();
     }
 
-    // Pagination
     function handleRowsPerPageChange() {
         rowsPerPageValue = parseInt(rowsPerPage.value);
         currentPage = 1;
@@ -348,10 +359,9 @@
         }
     }
 
-    // Sorting
     function sortTable(columnIndex) {
         if (sortColumn === columnIndex) {
-            sortDirection *= -1; // Toggle direction
+            sortDirection *= -1;
         } else {
             sortColumn = columnIndex;
             sortDirection = 1;
@@ -361,14 +371,12 @@
             const aValue = a.cells[columnIndex].textContent;
             const bValue = b.cells[columnIndex].textContent;
 
-            // Numeric sorting for price column
             if (columnIndex === 4) {
                 const aNum = parseFloat(aValue.replace('$', ''));
                 const bNum = parseFloat(bValue.replace('$', ''));
                 return (aNum - bNum) * sortDirection;
             }
 
-            // String sorting for other columns
             return aValue.localeCompare(bValue) * sortDirection;
         });
 
@@ -376,22 +384,15 @@
         updateTable();
     }
 
-    // Update Table Display
     function updateTable() {
         const startIndex = (currentPage - 1) * rowsPerPageValue;
         const endIndex = startIndex + rowsPerPageValue;
         const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
-        // Clear table
         tableBody.innerHTML = '';
-
-        // Add filtered/sorted rows
         paginatedProducts.forEach(row => tableBody.appendChild(row.cloneNode(true)));
 
-        // Update pagination info
         updatePaginationInfo();
-
-        // Update pagination controls
         updatePaginationControls();
     }
 
@@ -408,10 +409,8 @@
     function updatePaginationControls() {
         const totalPages = Math.ceil(filteredProducts.length / rowsPerPageValue);
 
-        // Clear existing page numbers
         pageNumbers.innerHTML = '';
 
-        // Determine which pages to show (max 5 pages at a time)
         let startPage = Math.max(1, currentPage - 2);
         let endPage = Math.min(totalPages, currentPage + 2);
 
@@ -422,7 +421,6 @@
             startPage = Math.max(1, totalPages - 4);
         }
 
-        // Add page number buttons
         for (let i = startPage; i <= endPage; i++) {
             const pageBtn = document.createElement('button');
             pageBtn.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors duration-200 ${
@@ -435,7 +433,6 @@
             pageNumbers.appendChild(pageBtn);
         }
 
-        // Enable/disable navigation buttons
         prevPage.disabled = currentPage === 1;
         nextPage.disabled = currentPage === totalPages;
         firstPage.disabled = currentPage === 1;
@@ -444,7 +441,6 @@
         nextPageMobile.disabled = currentPage === totalPages;
     }
 
-    // Initialize
     document.addEventListener('DOMContentLoaded', init);
 </script>
 

@@ -21,12 +21,13 @@ namespace Clothes_Store.Areas.Admin.Controllers
         private readonly IEmailSender _emailSender;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public OrderController(ApplicationDbContext db , IEmailSender emailSender , UserManager<ApplicationUser> userManager)
+        public OrderController(ApplicationDbContext db, IEmailSender emailSender, UserManager<ApplicationUser> userManager)
         {
             _db = db;
             _emailSender = emailSender;
             _userManager = userManager;
         }
+
         public IActionResult Index()
         {
             List<OrderHeader> objOrderHeaders = _db.OrderHeaders
@@ -132,11 +133,60 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
             try
             {
-                orderFromDb.OrderStatus = SD.StatusApproved;
-                orderFromDb.PaymentStatus = SD.PaymentStatusApproved;
-                orderFromDb.PaymentDate = DateTime.Now;
+                // Load order details to update stock
+                var orderDetails = await _db.OrderDetails
+                    .Where(od => od.OrderHeaderId == id)
+                    .ToListAsync();
 
-                await _db.SaveChangesAsync();
+                // Begin transaction to ensure stock updates are atomic
+                using var transaction = await _db.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // Decrease stock for each order detail
+                    foreach (var detail in orderDetails)
+                    {
+                        var stock = await _db.Stocks
+                            .FirstOrDefaultAsync(s => s.Product_Id == detail.ProductId && s.Size == detail.Size);
+
+                        if (stock == null)
+                        {
+                            throw new Exception($"Stock not found for Product ID {detail.ProductId} with size {detail.Size}.");
+                        }
+
+                        if (stock.Quantity < detail.Count)
+                        {
+                            throw new Exception($"Insufficient stock for Product ID {detail.ProductId} (Size: {detail.Size}). Available: {stock.Quantity}, Requested: {detail.Count}.");
+                        }
+
+                        stock.Quantity -= detail.Count;
+                        _db.Stocks.Update(stock);
+                    }
+
+                    // Update order status
+                    orderFromDb.OrderStatus = SD.StatusApproved;
+                    orderFromDb.PaymentStatus = SD.PaymentStatusApproved;
+                    orderFromDb.PaymentDate = DateTime.Now;
+
+                    await _db.SaveChangesAsync();
+
+                    // Commit transaction after successful stock update
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    // Rollback transaction on failure
+                    await transaction.RollbackAsync();
+
+                    // Update order status to failed
+                    orderFromDb.OrderStatus = "Failed";
+                    orderFromDb.PaymentStatus = "Failed";
+                    await _db.SaveChangesAsync();
+
+                    TempData["Error"] = $"Order approval failed: {ex.Message}";
+                    return Redirect(returnUrl ?? Url.Action(nameof(Index), new { id }));
+                }
+
                 var user = orderFromDb.ApplicationUser;
 
                 if (user != null)
@@ -154,16 +204,14 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     TempData["Error"] = $"User for order #{orderFromDb.Id} not found!";
                     return RedirectToAction(nameof(Index));
                 }
+
                 TempData["Success"] = $"Order #{orderFromDb.Id} approved successfully";
                 return Redirect(returnUrl ?? Url.Action(nameof(Index), new { id }));
-
             }
             catch (Exception ex)
             {
-                // Log the error
                 TempData["Error"] = "Error approving order. Please try again.";
                 return Redirect(returnUrl ?? Url.Action(nameof(Index), new { id }));
-
             }
         }
 
@@ -192,31 +240,71 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
                 }
 
-                // Process refund if needed
-                if (!string.IsNullOrEmpty(orderHeader.PaymentIntentId))
-                {
-                    var refundService = new RefundService();
-                    var refundOptions = new RefundCreateOptions
-                    {
-                        PaymentIntent = orderHeader.PaymentIntentId,
-                        Reason = RefundReasons.RequestedByCustomer
-                    };
+                // Load order details to update stock
+                var orderDetails = await _db.OrderDetails
+                    .Where(od => od.OrderHeaderId == id)
+                    .ToListAsync();
 
-                    try
+                // Begin transaction to ensure stock updates are atomic
+                using var transaction = await _db.Database.BeginTransactionAsync();
+
+                try
+                {
+                    // Increase stock for each order detail (if it was previously decreased)
+                    if (orderHeader.OrderStatus == SD.StatusApproved)
                     {
-                        var refund = await refundService.CreateAsync(refundOptions);
-                        orderHeader.PaymentStatus = SD.StatusRefunded;
+                        foreach (var detail in orderDetails)
+                        {
+                            var stock = await _db.Stocks
+                                .FirstOrDefaultAsync(s => s.Product_Id == detail.ProductId && s.Size == detail.Size);
+
+                            if (stock == null)
+                            {
+                                throw new Exception($"Stock not found for Product ID {detail.ProductId} with size {detail.Size}.");
+                            }
+
+                            stock.Quantity += detail.Count;
+                            _db.Stocks.Update(stock);
+                        }
                     }
-                    catch (StripeException)
+
+                    // Process refund if needed
+                    if (!string.IsNullOrEmpty(orderHeader.PaymentIntentId))
                     {
-                        TempData["Error"] = "Refund failed. Please check Stripe dashboard.";
-                        return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
+                        var refundService = new RefundService();
+                        var refundOptions = new RefundCreateOptions
+                        {
+                            PaymentIntent = orderHeader.PaymentIntentId,
+                            Reason = RefundReasons.RequestedByCustomer
+                        };
+
+                        try
+                        {
+                            var refund = await refundService.CreateAsync(refundOptions);
+                            orderHeader.PaymentStatus = SD.StatusRefunded;
+                        }
+                        catch (StripeException)
+                        {
+                            throw new Exception("Refund failed. Please check Stripe dashboard.");
+                        }
                     }
+
+                    // Update order status
+                    orderHeader.OrderStatus = SD.StatusCancelled;
+                    await _db.SaveChangesAsync();
+
+                    // Commit transaction after successful stock update
+                    await transaction.CommitAsync();
+                }
+                catch (Exception ex)
+                {
+                    // Rollback transaction on failure
+                    await transaction.RollbackAsync();
+
+                    TempData["Error"] = $"Order cancellation failed: {ex.Message}";
+                    return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
                 }
 
-                // Update order status
-                orderHeader.OrderStatus = SD.StatusCancelled;
-                await _db.SaveChangesAsync();
                 var user = orderHeader.ApplicationUser;
 
                 if (user != null)
@@ -234,6 +322,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     TempData["Error"] = $"User for order #{orderHeader.Id} not found!";
                     return RedirectToAction(nameof(Index));
                 }
+
                 TempData["Success"] = $"Order #{orderHeader.Id} cancelled successfully";
                 return Redirect(returnUrl ?? Url.Action(nameof(Details), new { id }));
             }
@@ -250,9 +339,9 @@ namespace Clothes_Store.Areas.Admin.Controllers
         {
             try
             {
-                        var order = await _db.OrderHeaders
-             .Include(o => o.ApplicationUser)
-             .FirstOrDefaultAsync(o => o.Id == id);
+                var order = await _db.OrderHeaders
+                    .Include(o => o.ApplicationUser)
+                    .FirstOrDefaultAsync(o => o.Id == id);
                 if (order == null)
                 {
                     TempData["Error"] = "Order not found";
@@ -303,36 +392,26 @@ namespace Clothes_Store.Areas.Admin.Controllers
         {
             try
             {
-                // 1. Get the order directly from the database and include the ApplicationUser
                 var orderFromDb = await _db.OrderHeaders
                     .Include(o => o.ApplicationUser)
                     .FirstOrDefaultAsync(o => o.Id == id);
 
-                // 2. Make sure the order exists
                 if (orderFromDb == null)
                 {
                     TempData["Error"] = "Order not found!";
                     return RedirectToAction(nameof(Index));
                 }
 
-                // 3. Make sure the order status is 'Shipped' before changing to 'Delivered'
                 if (orderFromDb.OrderStatus != SD.StatusShipped)
                 {
                     TempData["Error"] = "Cannot mark the order as 'Delivered' unless its status is 'Shipped'";
                     return RedirectToAction(nameof(Index));
                 }
 
-                // 4. Change status to 'Delivered'
                 orderFromDb.OrderStatus = SD.StatusDelivered;
-
-                // 5. Optionally add delivery date
-                // orderFromDb.DeliveryDate = DateTime.Now;
-
-                // 6. Update the order in the database
                 _db.OrderHeaders.Update(orderFromDb);
                 await _db.SaveChangesAsync();
 
-                // 7. Notify the user
                 var user = orderFromDb.ApplicationUser;
 
                 if (user != null)
@@ -351,11 +430,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
-                // 8. Show success message
                 TempData["Success"] = $"Order #{id} Delivered successfully";
-
-
-                // 9. Return to the same page we came from
                 return Redirect(returnUrl ?? Url.Action(nameof(Index)));
             }
             catch (Exception ex)
@@ -369,50 +444,47 @@ namespace Clothes_Store.Areas.Admin.Controllers
         [Authorize(Roles = SD.Admin)]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveCanceledRefundedOrders(int id, string returnUrl = null)
+        {
+            try
             {
-                try
+                var orderToRemove = await _db.OrderHeaders
+                    .FirstOrDefaultAsync(o => o.Id == id &&
+                                           (o.OrderStatus == SD.StatusCancelled ||
+                                            o.OrderStatus == SD.StatusRefunded));
+
+                if (orderToRemove == null)
                 {
-                    var orderToRemove = await _db.OrderHeaders
-                        .FirstOrDefaultAsync(o => o.Id == id &&
-                                               (o.OrderStatus == SD.StatusCancelled ||
-                                                o.OrderStatus == SD.StatusRefunded));
-
-                    if (orderToRemove == null)
-                    {
-                        TempData["Error"] = "Order not found or not eligible for removal";
-                        return RedirectToAction(nameof(Details), new { id });
-                    }
-
-                    // Remove order details first
-                    var orderDetails = await _db.OrderDetails
-                        .Where(od => od.OrderHeaderId == id)
-                        .ToListAsync();
-
-                    if (orderDetails.Any())
-                    {
-                        _db.OrderDetails.RemoveRange(orderDetails);
-                    }
-
-                    _db.OrderHeaders.Remove(orderToRemove);
-                    await _db.SaveChangesAsync();
-
-                    TempData["Success"] = $"Successfully removed order #{orderToRemove.Id}";
-
-                    // Handle return URL more intelligently
-                    if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("/Order/Details/"))
-                    {
-                        // If coming from Details page, redirect to Index since the order no longer exists
-                        return RedirectToAction(nameof(Index));
-                    }
-
-                    return Redirect(returnUrl ?? Url.Action(nameof(Index)));
-                }
-                catch (Exception ex)
-                {
-                    TempData["Error"] = "Error removing order - please try again";
+                    TempData["Error"] = "Order not found or not eligible for removal";
                     return RedirectToAction(nameof(Details), new { id });
                 }
+
+                var orderDetails = await _db.OrderDetails
+                    .Where(od => od.OrderHeaderId == id)
+                    .ToListAsync();
+
+                if (orderDetails.Any())
+                {
+                    _db.OrderDetails.RemoveRange(orderDetails);
+                }
+
+                _db.OrderHeaders.Remove(orderToRemove);
+                await _db.SaveChangesAsync();
+
+                TempData["Success"] = $"Successfully removed order #{orderToRemove.Id}";
+
+                if (!string.IsNullOrEmpty(returnUrl) && returnUrl.Contains("/Order/Details/"))
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return Redirect(returnUrl ?? Url.Action(nameof(Index)));
             }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error removing order - please try again";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
 
         private string GenerateEmailDelivered(ApplicationUser user, int orderNumber)
         {
@@ -921,8 +993,8 @@ namespace Clothes_Store.Areas.Admin.Controllers
         private string GenerateEmailLink(ApplicationUser user)
         {
             return Url.Action(
-                "Orders",                      
-                "Profile",                     
+                "Orders",
+                "Profile",
                 new { area = "Customer", userId = user.Id },
                 protocol: HttpContext.Request.Scheme
             );

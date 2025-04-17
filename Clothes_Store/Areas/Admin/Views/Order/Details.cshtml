@@ -32,12 +32,12 @@
                         Model.OrderHeader.OrderStatus == SD.StatusShipped ? "bg-blue-100 text-blue-800" :
                         Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "bg-purple-100 text-purple-800" :
                         "bg-red-100 text-red-800")">
-    
+
                         @(Model.OrderHeader.OrderStatus == SD.StatusApproved ? "Approved" :
-                          Model.OrderHeader.OrderStatus == SD.StatusPending ? "Pending" :
-                          Model.OrderHeader.OrderStatus == SD.StatusShipped ? "Shipped" :
-                          Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "Delivered" :
-                          "Unknown")
+                            Model.OrderHeader.OrderStatus == SD.StatusPending ? "Pending" :
+                            Model.OrderHeader.OrderStatus == SD.StatusShipped ? "Shipped" :
+                            Model.OrderHeader.OrderStatus == SD.StatusDelivered ? "Delivered" :
+                            "Unknown")
                     </span>
                     <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white text-primary-dark">
                         @(Model.OrderHeader.PaymentStatus == SD.StatusApproved ? "Paid" : "Pending Payment")
@@ -218,7 +218,7 @@
                                 <div class="ml-4 flex-1 flex flex-col">
                                     <div>
                                         <h4 class="text-sm font-medium text-gray-900">@detail.Product.Product_Name</h4>
-                                        <p class="mt-1 text-sm text-gray-500">@detail.Product.Product_Color - @detail.Product.Product_Size</p>
+                                        <p class="mt-1 text-sm text-gray-500">@detail.Product.Product_Color - @detail.Size</p>
                                     </div>
                                     <div class="flex-1 flex items-end justify-between">
                                         <p class="text-sm text-gray-500">Qty @detail.Count</p>
@@ -618,7 +618,7 @@
         }
 
         // Notification System
-       
+
 
         // Order Actions
         function sendCustomerNotification() {
