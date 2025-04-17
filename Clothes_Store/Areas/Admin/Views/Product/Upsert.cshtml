@@ -46,9 +46,9 @@
                     Product Description
                 </label>
                 <div class="relative rounded-lg border-2">
-                <textarea asp-for="Product.Product_Description" rows="3"
-                          class=" focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
-                          placeholder="Enter product description"></textarea>
+                    <textarea asp-for="Product.Product_Description" rows="3"
+                              class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
+                              placeholder="Enter product description"></textarea>
                 </div>
                 <span asp-validation-for="Product.Product_Description" class="mt-2 text-sm text-red-600"></span>
             </div>
@@ -69,30 +69,61 @@
                 <span asp-validation-for="Product.Product_Price" class="mt-2 text-sm text-red-600"></span>
             </div>
 
-            <!-- Color and Size Fields -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label asp-for="Product.Product_Color" class="block text-sm font-medium text-gray-700 mb-2">
-                        Color
-                    </label>
-                    <div class="relative rounded-lg border-2">
+            <!-- Color Field -->
+            <div class="mb-6">
+                <label asp-for="Product.Product_Color" class="block text-sm font-medium text-gray-700 mb-2">
+                    Color
+                </label>
+                <div class="relative rounded-lg border-2">
                     <input asp-for="Product.Product_Color"
                            class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
                            placeholder="Enter product color">
-                    </div>
-                    <span asp-validation-for="Product.Product_Color" class="mt-2 text-sm text-red-600"></span>
                 </div>
-                <div>
-                    <label asp-for="Product.Product_Size" class="block text-sm font-medium text-gray-700 mb-2">
-                        Size
-                    </label>
-                    <div class="relative rounded-lg border-2">
-                    <input asp-for="Product.Product_Size"
-                           class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
-                           placeholder="Enter product size">
-                    </div>
-                    <span asp-validation-for="Product.Product_Size" class="mt-2 text-sm text-red-600"></span>
+                <span asp-validation-for="Product.Product_Color" class="mt-2 text-sm text-red-600"></span>
+            </div>
+
+            <!-- Stock Management Section -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Stock Entries (Size and Quantity)
+                </label>
+                <div id="stockEntries" class="space-y-4">
+                    @if (Model.Stocks != null && Model.Stocks.Any())
+                    {
+                        for (int i = 0; i < Model.Stocks.Count; i++)
+                        {
+                            <div class="stock-entry grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                                <div>
+                                    <select name="Stocks[@i].Size" class="stock-size focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out" required>
+                                        <option value="XS" selected="@(Model.Stocks[i].Size == "XS")">XS</option>
+                                        <option value="S" selected="@(Model.Stocks[i].Size == "S")">S</option>
+                                        <option value="M" selected="@(Model.Stocks[i].Size == "M")">M</option>
+                                        <option value="L" selected="@(Model.Stocks[i].Size == "L")">L</option>
+                                        <option value="XL" selected="@(Model.Stocks[i].Size == "XL")">XL</option>
+                                        <option value="XXL" selected="@(Model.Stocks[i].Size == "XXL")">XXL</option>
+                                        <option value="XXXL" selected="@(Model.Stocks[i].Size == "XXXL")">XXXL</option>
+
+                                    </select>
+                                    <span class="size-error mt-2 text-sm text-red-600 hidden">Please select a size</span>
+                                </div>
+                                <div>
+                                    <input type="number" name="Stocks[@i].Quantity" value="@Model.Stocks[i].Quantity"
+                                           class="stock-quantity focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
+                                           placeholder="Quantity" min="0" required />
+                                    <span class="quantity-error mt-2 text-sm text-red-600 hidden">Quantity must be non-negative</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <button type="button" class="remove-stock inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105">
+                                        <i class="fas fa-trash-alt mr-2"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
                 </div>
+                <button type="button" id="addStock" class="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200">
+                    <i class="fas fa-plus mr-2"></i> Add Stock Entry
+                </button>
             </div>
 
             <!-- Image Upload Field -->
@@ -113,7 +144,7 @@
                     }
                     <div class="flex-1">
                         <input type="file" name="file" id="fileInput"
-                               class=" block w-full text-sm text-gray-500
+                               class="block w-full text-sm text-gray-500
                                       file:mr-4 file:py-2 file:px-4
                                       file:rounded-md file:border-0
                                       file:text-sm file:font-semibold
@@ -131,10 +162,10 @@
                         Brand <span class="text-red-500">*</span>
                     </label>
                     <div class="relative rounded-lg border-2">
-                    <select asp-for="Product.brand_Id" asp-items="@Model.BrandList"
-                            class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out">
-                        <option value="" disabled selected>-- Select Brand --</option>
-                    </select>
+                        <select asp-for="Product.brand_Id" asp-items="@Model.BrandList"
+                                class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out">
+                            <option value="" disabled selected>-- Select Brand --</option>
+                        </select>
                     </div>
                     <span asp-validation-for="Product.brand_Id" class="mt-2 text-sm text-red-600"></span>
                 </div>
@@ -143,10 +174,10 @@
                         Category <span class="text-red-500">*</span>
                     </label>
                     <div class="relative rounded-lg border-2">
-                    <select asp-for="Product.Category_Id" asp-items="@Model.CategoryList"
-                            class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out">
-                        <option value="" disabled selected>-- Select Category --</option>
-                    </select>
+                        <select asp-for="Product.Category_Id" asp-items="@Model.CategoryList"
+                                class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out">
+                            <option value="" disabled selected>-- Select Category --</option>
+                        </select>
                     </div>
                     <span asp-validation-for="Product.Category_Id" class="mt-2 text-sm text-red-600"></span>
                 </div>
@@ -154,7 +185,7 @@
 
             <!-- Form Actions -->
             <div class="mt-8 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
-                <a asp-action="Index" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none ">
+                <a asp-action="Index" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
                     <i class="fas fa-arrow-left mr-2"></i> Back to List
                 </a>
                 <button type="submit" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 transform hover:scale-105">
@@ -169,7 +200,6 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Add animation to form when loaded
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.querySelector('form');
             form.classList.add('animate-fade-in-up');
@@ -199,6 +229,85 @@
                     }
                 });
             }
+
+            // Initialize stock index for dynamic adding
+            let stockIndex = @(Model.Stocks != null ? Model.Stocks.Count : 0);
+
+            // Add stock entry
+            document.getElementById('addStock').addEventListener('click', () => {
+                const stockEntry = `
+                    <div class="stock-entry grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <div>
+                            <select name="Stocks[${stockIndex}].Size" class="stock-size focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out" required>
+                                <option value="XS">XS</option>
+                                <option value="S">S</option>
+                                <option value="M">M</option>
+                                <option value="L">L</option>
+                                <option value="XL">XL</option>
+                                <option value="XXL">XXL</option>
+                                <option value="XXXL">XXXL</option>
+                            </select>
+                            <span class="size-error mt-2 text-sm text-red-600 hidden">Please select a size</span>
+                        </div>
+                        <div>
+                            <input type="number" name="Stocks[${stockIndex}].Quantity"
+                                   class="stock-quantity focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
+                                   placeholder="Quantity" min="0" required />
+                            <span class="quantity-error mt-2 text-sm text-red-600 hidden">Quantity must be non-negative</span>
+                        </div>
+                        <div class="flex items-center">
+                            <button type="button" class="remove-stock inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105">
+                                <i class="fas fa-trash-alt mr-2"></i> Remove
+                            </button>
+                        </div>
+                    </div>`;
+                document.getElementById('stockEntries').insertAdjacentHTML('beforeend', stockEntry);
+                stockIndex++;
+            });
+
+            // Remove stock entry
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.remove-stock')) {
+                    e.target.closest('.stock-entry').remove();
+                }
+            });
+
+            // Validate stock entries on form submission
+            form.addEventListener('submit', (e) => {
+                let hasError = false;
+                const stockEntries = document.querySelectorAll('.stock-entry');
+
+                stockEntries.forEach(entry => {
+                    const sizeSelect = entry.querySelector('.stock-size');
+                    const quantityInput = entry.querySelector('.stock-quantity');
+                    const sizeError = entry.querySelector('.size-error');
+                    const quantityError = entry.querySelector('.quantity-error');
+
+                    // Reset error states
+                    sizeError.classList.add('hidden');
+                    quantityError.classList.add('hidden');
+                    sizeSelect.classList.remove('border-red-500');
+                    quantityInput.classList.remove('border-red-500');
+
+                    // Validate size
+                    if (!sizeSelect.value) {
+                        sizeError.classList.remove('hidden');
+                        sizeSelect.classList.add('border-red-500');
+                        hasError = true;
+                    }
+
+                    // Validate quantity
+                    if (quantityInput.value < 0 || quantityInput.value === '') {
+                        quantityError.classList.remove('hidden');
+                        quantityInput.classList.add('border-red-500');
+                        hasError = true;
+                    }
+                });
+
+                if (hasError) {
+                    e.preventDefault();
+                }
+            });
         });
     </script>
     <style>
@@ -217,5 +326,13 @@
                 transform: translateY(0);
             }
         }
+
+        .stock-entry {
+            border: 1px solid #e5e7eb;
+        }
+
+            .stock-entry:hover {
+                background-color: #f9fafb;
+            }
     </style>
 }

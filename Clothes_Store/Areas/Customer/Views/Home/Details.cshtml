@@ -5,6 +5,13 @@
     var showSuccessMessage = TempData["AddToCartSuccess"] != null && (bool)TempData["AddToCartSuccess"];
     var showErrorMessage = TempData["AddToCartError"] != null && (bool)TempData["AddToCartError"];
     var errorMessage = TempData["ErrorMessage"]?.ToString() ?? "An error occurred while adding to cart";
+
+    // Get available sizes from stock data
+    var availableSizes = Model.Stocks?
+        .Where(s => s.Quantity > 0)
+        .Select(s => s.Size)
+        .Distinct()
+        .OrderBy(s => s);
 }
 
 <title>@Model.Product_Name</title>
@@ -131,9 +138,9 @@
     }
 
     .size-option {
-        border: 1px solid #cce7d0; /* Light green border matching your theme */
-        background-color: #e8f6ea; /* Very light green background */
-        color: #088178; /* Your main green color for text */
+        border: 1px solid #cce7d0;
+        background-color: #e8f6ea;
+        color: #088178;
         border-radius: 0.5rem;
         padding: 0.5rem 1rem;
         cursor: pointer;
@@ -141,14 +148,14 @@
     }
 
         .size-option:hover {
-            background-color: #088178; /* Your main green color */
+            background-color: #088178;
             color: white;
             border-color: #088178;
         }
 
         .size-option:focus {
             outline: none;
-            box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.3); /* Green focus ring */
+            box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.3);
         }
 
         /* Selected state */
@@ -157,6 +164,30 @@
             color: white;
             border-color: #088178;
         }
+
+        /* Out of stock state */
+        .size-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            position: relative;
+        }
+
+            .size-option.disabled::after {
+                content: "×";
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #ef4444;
+                color: white;
+                border-radius: 50%;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
 </style>
 
 <!-- Notification Container -->
@@ -184,14 +215,19 @@
 
             <!-- Size Selection -->
             <div class="mb-6">
-                <h4 class="text-lg font-medium text-gray-900 mb-3">Size</h4>
+                <h4 class="text-lg font-medium text-gray-900 mb-3"> Available Size</h4>
                 <div class="flex flex-wrap gap-2">
-                    <!-- Size options as buttons -->
-                    <button type="button" class="size-option" value="S">S</button>
-                    <button type="button" class="size-option" value="M">M</button>
-                    <button type="button" class="size-option" value="L">L</button>
-                    <button type="button" class="size-option" value="XL">XL</button>
-                    <button type="button" class="size-option" value="XXL">XXL</button>
+                    @if (availableSizes.Any())
+                    {
+                        foreach (var size in availableSizes)
+                        {
+                            <button type="button" class="size-option" value="@size">@size</button>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-red-500">This product is currently out of stock</p>
+                    }
                 </div>
                 <input type="hidden" id="selectedSize" name="size" value="">
             </div>
@@ -204,12 +240,13 @@
                 <!-- Quantity -->
                 <div class="mb-4 sm:mb-0">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                    <input type="number" name="quantity" value="1" min="1"
+                    <input type="number" name="quantity" value="1" min="1" max="@(availableSizes.Any() ? Model.Stocks.First(s => s.Size == availableSizes.First()).Quantity : 0)"
                            class="quantity-input border border-gray-300 rounded-md p-2 w-20 text-center focus:border-custom-color focus:ring-1 focus:ring-custom-color">
                 </div>
 
                 <!-- Add to Cart Button -->
-                <button type="submit" id="addToCartBtn" class="btn-custom text-white font-medium py-2 px-6 rounded-md hover:shadow-md transition duration-300">
+                <button type="submit" id="addToCartBtn" class="btn-custom text-white font-medium py-2 px-6 rounded-md hover:shadow-md transition duration-300"
+                @(availableSizes.Any() ? "" : "disabled")>
                     <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
                 </button>
             </form>
@@ -223,18 +260,44 @@
         button.addEventListener('click', function() {
             // Remove active class from all buttons
             document.querySelectorAll('.size-option').forEach(btn => {
-                btn.classList.remove('bg-custom-color', 'text-white');
-                btn.classList.add('border-gray-300');
+                btn.classList.remove('active');
             });
 
             // Add active class to clicked button
-            this.classList.add('bg-custom-color', 'text-white');
-            this.classList.remove('border-gray-300');
+            this.classList.add('active');
 
             // Set the hidden input value
             document.getElementById('selectedSize').value = this.value;
+
+            // Update max quantity based on selected size
+            updateMaxQuantity(this.value);
         });
     });
+
+    // Function to update max quantity based on selected size
+    function updateMaxQuantity(selectedSize) {
+        // This would need to be implemented based on your stock data
+        // You might need to pass stock data to JavaScript or make an API call
+        // For now, we'll just set a reasonable max
+        const quantityInput = document.querySelector('.quantity-input');
+        quantityInput.max = 10; // Default max
+
+        // If you have the stock data available in JavaScript:
+    @if (Model.Stocks != null)
+    {
+        foreach (var stock in Model.Stocks)
+        {
+            <text>
+                                if (selectedSize === '@stock.Size') {
+                                    quantityInput.max = @stock.Quantity;
+                                    if (quantityInput.value > @stock.Quantity) {
+                                        quantityInput.value = @stock.Quantity;
+                                    }
+                                }
+            </text>
+        }
+    }
+    }
 
     // AJAX form submission
     document.getElementById('addToCartForm').addEventListener('submit', function(e) {
@@ -244,13 +307,18 @@
         const formData = new FormData(form);
         const button = form.querySelector('button[type="submit"]');
         const originalButtonText = button.innerHTML;
+        const selectedSize = document.getElementById('selectedSize').value;
+
+        if (!selectedSize) {
+            showNotification(false, 'Please select a size');
+            return;
+        }
 
         // Add selected size to form data
-        const selectedSize = document.getElementById('selectedSize').value;
         formData.append('size', selectedSize);
 
         // Add loading state to button
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
         button.disabled = true;
 
         fetch('@Url.Action("AddToCart", "Cart")', {
@@ -356,23 +424,4 @@
             }, 500);
         }
     }
-       document.querySelectorAll('.size-option').forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active class from all buttons
-            document.querySelectorAll('.size-option').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Add active class to clicked button
-            this.classList.add('active');
-
-            // Set the hidden input value
-            document.getElementById('selectedSize').value = this.value;
-        });
-
-        // Initialize selected size if needed
-        if (this.value === document.getElementById('selectedSize').value) {
-            this.classList.add('active');
-        }
-    });
 </script>

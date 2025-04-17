@@ -1,17 +1,17 @@
-﻿@model Clothes_Models.ViewModels.ProductViewModel
+﻿@model Clothes_Models.Models.Brand
 @{
-    var title = "Create Product";
+    var title = "Create Brand";
     var actionText = "Create";
-    if (Model.Product?.Product_Id != 0)
+    if (Model.Brand_Id != 0)
     {
-        title = "Edit Product";
+        title = "Edit Brand";
         actionText = "Update";
     }
 }
-
+<!-- Include only one Font Awesome link -->
 <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <form method="post" enctype="multipart/form-data" class="bg-white shadow-xl rounded-xl overflow-hidden">
-        <input type="hidden" asp-for="Product.Product_Id" />
+    <form method="post" class="bg-white shadow-xl rounded-xl overflow-hidden">
+        <input type="hidden" asp-for="Brand_Id" />
 
         <!-- Form Header -->
         <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-5 border-b border-gray-200">
@@ -24,172 +24,30 @@
                 <i class="fas fa-exclamation-circle mr-2"></i> Please fix the errors below
             </div>
 
-            <!-- Product Name Field -->
+            <!-- Brand Name Field -->
             <div class="mb-6">
-                <label asp-for="Product.Product_Name" class="block text-sm font-medium text-gray-700 mb-2">
-                    Product Name <span class="text-red-500">*</span>
+                <label asp-for="Brand_Name" class="block text-sm font-medium text-gray-700 mb-2">
+                    Brand Name <span class="text-red-500">*</span>
                 </label>
                 <div class="relative rounded-lg border-2">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <i class="fas fa-tag text-gray-400"></i>
                     </div>
-                    <input asp-for="Product.Product_Name"
-                           class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-10 pr-3 py-3 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
-                           placeholder="Enter product name">
+                    <input asp-for="Brand_Name"
+                           class="focus:outline-none focus:ring-1 focus:ring-primary   block w-full pl-10 pr-3 py-3 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
+                           placeholder="Enter brand name">
                 </div>
-                <span asp-validation-for="Product.Product_Name" class="mt-2 text-sm text-red-600"></span>
-            </div>
+                <span asp-validation-for="Brand_Name" class="mt-2 text-sm text-red-600"></span>
 
-            <!-- Product Description Field -->
-            <div class="mb-6">
-                <label asp-for="Product.Product_Description" class="block text-sm font-medium text-gray-700 mb-2">
-                    Product Description
-                </label>
-                <div class="relative rounded-lg border-2">
-                    <textarea asp-for="Product.Product_Description" rows="3"
-                              class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
-                              placeholder="Enter product description"></textarea>
-                </div>
-                <span asp-validation-for="Product.Product_Description" class="mt-2 text-sm text-red-600"></span>
-            </div>
-
-            <!-- Price Field -->
-            <div class="mb-6">
-                <label asp-for="Product.Product_Price" class="block text-sm font-medium text-gray-700 mb-2">
-                    Price <span class="text-red-500">*</span>
-                </label>
-                <div class="relative rounded-lg border-2">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <span class="text-gray-500 sm:text-sm">$</span>
-                    </div>
-                    <input asp-for="Product.Product_Price" type="number" step="0.01"
-                           class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-7 pr-12 py-3 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
-                           placeholder="0.00">
-                </div>
-                <span asp-validation-for="Product.Product_Price" class="mt-2 text-sm text-red-600"></span>
-            </div>
-
-            <!-- Color Field -->
-            <div class="mb-6">
-                <label asp-for="Product.Product_Color" class="block text-sm font-medium text-gray-700 mb-2">
-                    Color
-                </label>
-                <div class="relative rounded-lg border-2">
-                    <input asp-for="Product.Product_Color"
-                           class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
-                           placeholder="Enter product color">
-                </div>
-                <span asp-validation-for="Product.Product_Color" class="mt-2 text-sm text-red-600"></span>
-            </div>
-
-            <!-- Stock Management Section -->
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Stock Entries (Size and Quantity)
-                </label>
-                <div id="stockEntries" class="space-y-4">
-                    @if (Model.Stocks != null && Model.Stocks.Any())
-                    {
-                        for (int i = 0; i < Model.Stocks.Count; i++)
-                        {
-                            <div class="stock-entry grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                                <div>
-                                    <select name="Stocks[@i].Size" class="stock-size focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out" required>
-                                        <option value="XS" selected="@(Model.Stocks[i].Size == "XS")">XS</option>
-                                        <option value="S" selected="@(Model.Stocks[i].Size == "S")">S</option>
-                                        <option value="M" selected="@(Model.Stocks[i].Size == "M")">M</option>
-                                        <option value="L" selected="@(Model.Stocks[i].Size == "L")">L</option>
-                                        <option value="XL" selected="@(Model.Stocks[i].Size == "XL")">XL</option>
-                                        <option value="XXL" selected="@(Model.Stocks[i].Size == "XXL")">XXL</option>
-                                        <option value="XXXL" selected="@(Model.Stocks[i].Size == "XXXL")">XXXL</option>
-
-                                    </select>
-                                    <span class="size-error mt-2 text-sm text-red-600 hidden">Please select a size</span>
-                                </div>
-                                <div>
-                                    <input type="number" name="Stocks[@i].Quantity" value="@Model.Stocks[i].Quantity"
-                                           class="stock-quantity focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
-                                           placeholder="Quantity" min="0" required />
-                                    <span class="quantity-error mt-2 text-sm text-red-600 hidden">Quantity must be non-negative</span>
-                                </div>
-                                <div class="flex items-center">
-                                    <button type="button" class="remove-stock inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105">
-                                        <i class="fas fa-trash-alt mr-2"></i> Remove
-                                    </button>
-                                </div>
-                            </div>
-                        }
-                    }
-                </div>
-                <button type="button" id="addStock" class="mt-4 inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200">
-                    <i class="fas fa-plus mr-2"></i> Add Stock Entry
-                </button>
-            </div>
-
-            <!-- Image Upload Field -->
-            <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Product Image
-                </label>
-                <div class="mt-1 flex items-center">
-                    @if (Model.Product?.imgUrl != null)
-                    {
-                        <img id="productImage" src="@Model.Product.imgUrl" alt="Product image" class="h-16 w-16 object-cover rounded-md mr-4">
-                    }
-                    else
-                    {
-                        <div class="h-16 w-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 mr-4">
-                            <i class="fas fa-image text-xl"></i>
-                        </div>
-                    }
-                    <div class="flex-1">
-                        <input type="file" name="file" id="fileInput"
-                               class="block w-full text-sm text-gray-500
-                                      file:mr-4 file:py-2 file:px-4
-                                      file:rounded-md file:border-0
-                                      file:text-sm file:font-semibold
-                                      file:bg-primary file:text-white
-                                      hover:file:bg-primary-dark">
-                        <span asp-validation-for="Product.imgUrl" class="mt-2 text-sm text-red-600"></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Brand and Category Select Fields -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-                <div>
-                    <label asp-for="Product.brand_Id" class="block text-sm font-medium text-gray-700 mb-2">
-                        Brand <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative rounded-lg border-2">
-                        <select asp-for="Product.brand_Id" asp-items="@Model.BrandList"
-                                class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out">
-                            <option value="" disabled selected>-- Select Brand --</option>
-                        </select>
-                    </div>
-                    <span asp-validation-for="Product.brand_Id" class="mt-2 text-sm text-red-600"></span>
-                </div>
-                <div>
-                    <label asp-for="Product.Category_Id" class="block text-sm font-medium text-gray-700 mb-2">
-                        Category <span class="text-red-500">*</span>
-                    </label>
-                    <div class="relative rounded-lg border-2">
-                        <select asp-for="Product.Category_Id" asp-items="@Model.CategoryList"
-                                class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-3 pr-10 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out">
-                            <option value="" disabled selected>-- Select Category --</option>
-                        </select>
-                    </div>
-                    <span asp-validation-for="Product.Category_Id" class="mt-2 text-sm text-red-600"></span>
-                </div>
             </div>
 
             <!-- Form Actions -->
             <div class="mt-8 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
-                <a asp-action="Index" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
+                <a asp-action="Index" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none    ">
                     <i class="fas fa-arrow-left mr-2"></i> Back to List
                 </a>
                 <button type="submit" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 transform hover:scale-105">
-                    <i class="fas @(Model.Product?.Product_Id != 0 ? "fa-save" : "fa-plus") mr-2"></i> @actionText Product
+                    <i class="fas @(Model.Brand_Id != 0 ? "fa-save" : "fa-plus") mr-2"></i> @actionText Brand
                 </button>
             </div>
         </div>
@@ -200,114 +58,10 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        // Add animation to form when loaded
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.querySelector('form');
             form.classList.add('animate-fade-in-up');
-
-            // Preview image when file is selected
-            const fileInput = document.getElementById('fileInput');
-            const productImage = document.getElementById('productImage');
-
-            if (fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            if (productImage) {
-                                productImage.src = event.target.result;
-                            } else {
-                                const imgPreview = document.createElement('img');
-                                imgPreview.id = 'productImage';
-                                imgPreview.src = event.target.result;
-                                imgPreview.alt = 'Product image';
-                                imgPreview.className = 'h-16 w-16 object-cover rounded-md mr-4';
-                                fileInput.previousElementSibling.replaceWith(imgPreview);
-                            }
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                });
-            }
-
-            // Initialize stock index for dynamic adding
-            let stockIndex = @(Model.Stocks != null ? Model.Stocks.Count : 0);
-
-            // Add stock entry
-            document.getElementById('addStock').addEventListener('click', () => {
-                const stockEntry = `
-                    <div class="stock-entry grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
-                        <div>
-                            <select name="Stocks[${stockIndex}].Size" class="stock-size focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out" required>
-                                <option value="XS">XS</option>
-                                <option value="S">S</option>
-                                <option value="M">M</option>
-                                <option value="L">L</option>
-                                <option value="XL">XL</option>
-                                <option value="XXL">XXL</option>
-                                <option value="XXXL">XXXL</option>
-                            </select>
-                            <span class="size-error mt-2 text-sm text-red-600 hidden">Please select a size</span>
-                        </div>
-                        <div>
-                            <input type="number" name="Stocks[${stockIndex}].Quantity"
-                                   class="stock-quantity focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
-                                   placeholder="Quantity" min="0" required />
-                            <span class="quantity-error mt-2 text-sm text-red-600 hidden">Quantity must be non-negative</span>
-                        </div>
-                        <div class="flex items-center">
-                            <button type="button" class="remove-stock inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-200 transform hover:scale-105">
-                                <i class="fas fa-trash-alt mr-2"></i> Remove
-                            </button>
-                        </div>
-                    </div>`;
-                document.getElementById('stockEntries').insertAdjacentHTML('beforeend', stockEntry);
-                stockIndex++;
-            });
-
-            // Remove stock entry
-            document.addEventListener('click', (e) => {
-                if (e.target.closest('.remove-stock')) {
-                    e.target.closest('.stock-entry').remove();
-                }
-            });
-
-            // Validate stock entries on form submission
-            form.addEventListener('submit', (e) => {
-                let hasError = false;
-                const stockEntries = document.querySelectorAll('.stock-entry');
-
-                stockEntries.forEach(entry => {
-                    const sizeSelect = entry.querySelector('.stock-size');
-                    const quantityInput = entry.querySelector('.stock-quantity');
-                    const sizeError = entry.querySelector('.size-error');
-                    const quantityError = entry.querySelector('.quantity-error');
-
-                    // Reset error states
-                    sizeError.classList.add('hidden');
-                    quantityError.classList.add('hidden');
-                    sizeSelect.classList.remove('border-red-500');
-                    quantityInput.classList.remove('border-red-500');
-
-                    // Validate size
-                    if (!sizeSelect.value) {
-                        sizeError.classList.remove('hidden');
-                        sizeSelect.classList.add('border-red-500');
-                        hasError = true;
-                    }
-
-                    // Validate quantity
-                    if (quantityInput.value < 0 || quantityInput.value === '') {
-                        quantityError.classList.remove('hidden');
-                        quantityInput.classList.add('border-red-500');
-                        hasError = true;
-                    }
-                });
-
-                if (hasError) {
-                    e.preventDefault();
-                }
-            });
         });
     </script>
     <style>
@@ -326,13 +80,5 @@
                 transform: translateY(0);
             }
         }
-
-        .stock-entry {
-            border: 1px solid #e5e7eb;
-        }
-
-            .stock-entry:hover {
-                background-color: #f9fafb;
-            }
     </style>
 }

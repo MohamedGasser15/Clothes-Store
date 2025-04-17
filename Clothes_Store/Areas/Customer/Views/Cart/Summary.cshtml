@@ -246,7 +246,7 @@
                                     <h3 class="font-medium text-gray-900">@item.Product.Product_Name</h3>
                                     <p class="text-sm text-gray-500">@item.Product.Product_Description</p>
                                     <div class="mt-2 flex items-center text-sm text-gray-500">
-                                        <span>Size: @item.Product.Product_Size</span>
+                                        <span>Size: @item.Size</span>
                                         <span class="mx-2">•</span>
                                         <span>Qty: @item.Quantity</span>
                                     </div>
@@ -314,7 +314,7 @@
                                 @(Model.User.PaymentMehtod == "cash" ? "checked" : "")
                                        onchange="updatePaymentMethod('cash')">
                                 <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
-                                         @(Model.User.PaymentMehtod == "cash" ? "border-[#088178] bg-[#088178]" : "border-gray-300")">
+                                             @(Model.User.PaymentMehtod == "cash" ? "border-[#088178] bg-[#088178]" : "border-gray-300")">
                                     @if (Model.User.PaymentMehtod == "cash")
                                     {
                                         <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -338,7 +338,7 @@
                                 @(Model.User.PaymentMehtod == "credit" ? "checked" : "")
                                        onchange="updatePaymentMethod('credit')">
                                 <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center transition-colors
-                                         @(Model.User.PaymentMehtod == "credit" ? "border-[#088178] bg-[#088178]" : "border-gray-300")">
+                                             @(Model.User.PaymentMehtod == "credit" ? "border-[#088178] bg-[#088178]" : "border-gray-300")">
                                     @if (Model.User.PaymentMehtod == "credit")
                                     {
                                         <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -393,12 +393,12 @@
 @section Scripts {
     <script>
         let selectedPaymentMethod = '@Model.User.PaymentMehtod';
-        let shippingInfo = {};
+                let shippingInfo = {};
 
-        // Initialize
-            document.addEventListener('DOMContentLoaded', init);
-             // Notification functions
-                        // In your Scripts section
+                // Initialize
+                document.addEventListener('DOMContentLoaded', init);
+
+                // Notification functions
                 document.addEventListener('DOMContentLoaded', function() {
                     // Show success notification if exists
                     const successNotification = document.getElementById('successNotification');
@@ -452,27 +452,27 @@
                     }
                 };
 
-        function updatePaymentMethod(method) {
-            selectedPaymentMethod = method;
-            document.getElementById('selectedPaymentMethod').textContent =
-                method === 'cash' ? 'Cash on Delivery' : 'Credit/Debit Card';
+                function updatePaymentMethod(method) {
+                    selectedPaymentMethod = method;
+                    document.getElementById('selectedPaymentMethod').textContent =
+                        method === 'cash' ? 'Cash on Delivery' : 'Credit/Debit Card';
 
-            // Update the UI immediately
-            document.querySelectorAll('input[name="PaymentMethod"]').forEach(radio => {
-                const parentDiv = radio.nextElementSibling;
-                if (radio.value === method) {
-                    parentDiv.classList.add('border-[#088178]', 'bg-[#088178]');
-                    parentDiv.innerHTML = `
-                        <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                        </svg>
-                    `;
-                } else {
-                    parentDiv.classList.remove('border-[#088178]', 'bg-[#088178]');
-                    parentDiv.innerHTML = '';
+                    // Update the UI immediately
+                    document.querySelectorAll('input[name="PaymentMethod"]').forEach(radio => {
+                        const parentDiv = radio.nextElementSibling;
+                        if (radio.value === method) {
+                            parentDiv.classList.add('border-[#088178]', 'bg-[#088178]');
+                            parentDiv.innerHTML = `
+                                <svg class="h-3 w-3 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            `;
+                        } else {
+                            parentDiv.classList.remove('border-[#088178]', 'bg-[#088178]');
+                            parentDiv.innerHTML = '';
+                        }
+                    });
                 }
-            });
-        }
 
         function validateAndShowConfirmation() {
             // Collect shipping info

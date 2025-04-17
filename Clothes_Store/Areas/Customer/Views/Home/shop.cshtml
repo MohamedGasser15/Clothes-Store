@@ -7,7 +7,7 @@
 }
 
 <style>
-    /* Notification styles - same as product details page */
+    /* Your existing notification styles remain the same */
     .notification-container {
         position: fixed;
         top: 1.5rem;
@@ -108,7 +108,142 @@
         animation: bounce 1s;
     }
 
-    /* Existing styles */
+    /* Size selection modal styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+    .size-modal {
+        background-color: white;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 400px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .size-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .size-option {
+        border: 1px solid #cce7d0;
+        background-color: #e8f6ea;
+        color: #088178;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+        .size-option:hover {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
+
+        .size-option.active {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
+
+        .size-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            position: relative;
+        }
+
+            .size-option.disabled::after {
+                content: "×";
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #ef4444;
+                color: white;
+                border-radius: 50%;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .modal-button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .cancel-button {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        color: #333;
+    }
+
+    .confirm-button {
+        background-color: #088178;
+        border: 1px solid #088178;
+        color: white;
+    }
+
+        .confirm-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    /* Existing product styles */
     .pro-cart-button {
         width: 40px;
         height: 40px;
@@ -168,6 +303,23 @@
     }
 </div>
 
+<!-- Size Selection Modal -->
+<div class="modal-overlay" id="sizeModal">
+    <div class="size-modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Select Size</h3>
+            <button class="close-modal" onclick="hideSizeModal()">&times;</button>
+        </div>
+        <div class="size-options" id="sizeOptionsContainer">
+            <!-- Size options will be populated dynamically -->
+        </div>
+        <div class="modal-actions">
+            <button class="modal-button cancel-button" onclick="hideSizeModal()">Cancel</button>
+            <button class="modal-button confirm-button" id="confirmAddToCart" disabled>Add to Cart</button>
+        </div>
+    </div>
+</div>
+
 <section id="page-header" style="background-image: url('@Url.Content("~/img/banner/b1.jpg")');">
     <h2>#stayhome</h2>
     <p>Save More coupons & up to 70% off!</p>
@@ -180,8 +332,15 @@
     <div class="pro-container">
         @foreach (var product in Model)
         {
-            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { id = product.Product_Id })';">
+            // Get available sizes for this product
+            var availableSizes = product.Stocks?
+            .Where(s => s.Quantity > 0)
+            .Select(s => s.Size)
+            .Distinct()
+            .OrderBy(s => s)
+            .ToList();
 
+            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { id = product.Product_Id })';">
                 <!-- Product Image -->
                 <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
 
@@ -209,13 +368,16 @@
                 </div>
 
                 <!-- Add to Cart Button -->
-                <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: inline;">
+                <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
+                    <i class="fal fa-shopping-cart"></i>
+                </div>
+
+                <!-- Hidden form that will be submitted after size selection -->
+                <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="productId" value="@product.Product_Id" />
                     <input type="hidden" name="quantity" value="1" />
-                    <button type="submit" class="pro-cart-button" onclick="event.stopPropagation();">
-                        <i class="fal fa-shopping-cart"></i>
-                    </button>
+                    <input type="hidden" name="size" id="size-@product.Product_Id" value="" />
                 </form>
             </div>
         }
@@ -240,27 +402,98 @@
 </section>
 
 <script>
+    // Global variables for size selection
+    let currentProductId = null;
+    let selectedSize = null;
+
+    // Show size selection modal with available sizes
+    function showSizeModal(productId) {
+        currentProductId = productId;
+        selectedSize = null;
+        document.getElementById('confirmAddToCart').disabled = true;
+
+        // Show loading state
+        const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
+        sizeOptionsContainer.innerHTML = '<p>Loading sizes...</p>';
+
+        // Show modal immediately
+        document.getElementById('sizeModal').classList.add('active');
+
+        // Fetch available sizes from server
+        fetch(`/Customer/Home/GetProductSizes?productId=${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateSizeOptions(data.sizes);
+                } else {
+                    sizeOptionsContainer.innerHTML = `<p class="text-red-500">${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                sizeOptionsContainer.innerHTML = '<p class="text-red-500">Error loading sizes</p>';
+            });
+    }
+
+    function updateSizeOptions(availableSizes) {
+        const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
+
+        // Clear previous options
+        sizeOptionsContainer.innerHTML = '';
+
+        // Check if product is out of stock
+        if (!availableSizes || availableSizes.length === 0) {
+            sizeOptionsContainer.innerHTML = '<p class="text-red-500 col-span-3">This product is currently out of stock</p>';
+            document.getElementById('confirmAddToCart').disabled = true;
+        } else {
+            // Create size options
+            const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL']; // Standard sizes
+
+            allSizes.forEach(size => {
+                const isAvailable = availableSizes.includes(size);
+                const sizeOption = document.createElement('div');
+                sizeOption.className = `size-option ${isAvailable ? '' : 'disabled'}`;
+                sizeOption.textContent = size;
+                sizeOption.dataset.size = size;
+
+                if (isAvailable) {
+                    sizeOption.addEventListener('click', function() {
+                        // Remove active class from all options
+                        document.querySelectorAll('.size-option').forEach(opt => {
+                            opt.classList.remove('active');
+                        });
+
+                        // Add active class to clicked option
+                        this.classList.add('active');
+                        selectedSize = this.dataset.size;
+                        document.getElementById('confirmAddToCart').disabled = false;
+                    });
+                }
+
+                sizeOptionsContainer.appendChild(sizeOption);
+            });
+        }
+    }
+
+    // Hide size selection modal
+    function hideSizeModal() {
+        document.getElementById('sizeModal').classList.remove('active');
+    }
+
     // AJAX form submission
     document.addEventListener('DOMContentLoaded', function() {
-        const forms = document.querySelectorAll('.add-to-cart-form');
+        // Confirm add to cart button
+        document.getElementById('confirmAddToCart').addEventListener('click', function() {
+            if (currentProductId && selectedSize) {
+                // Set the size value in the hidden input
+                document.getElementById(`size-${currentProductId}`).value = selectedSize;
 
-        forms.forEach(form => {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
+                // Get the form for this product
+                const form = document.querySelector(`.add-to-cart-form[data-product-id="${currentProductId}"]`);
+                const formData = new FormData(form);
+                const button = form.querySelector('button[type="submit"]');
 
-                const formData = new FormData(this);
-                const productId = this.dataset.productId;
-                const button = this.querySelector('button[type="submit"]');
-                const originalButtonHTML = button.innerHTML;
-                const originalButtonStyle = {
-                    backgroundColor: button.style.backgroundColor,
-                    color: button.style.color,
-                    borderColor: button.style.borderColor
-                };
-
-                // Add loading state to button
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                button.disabled = true;
+                // Hide the modal
+                hideSizeModal();
 
                 fetch('@Url.Action("AddToCart", "Cart")', {
                     method: 'POST',
@@ -278,43 +511,25 @@
                 .then(data => {
                     showNotification(data.success, data.message);
                     if (data.success) {
-                        // Add bounce effect
-                        button.classList.add('bounce-effect');
-
-                        // Change button style to indicate success (using your brand color #088178)
-                        button.style.backgroundColor = '#088178';
-                        button.style.color = 'white';
-                        button.style.borderColor = '#088178';
-
-                        // Change icon to checkmark
-                        button.innerHTML = '<i class="fas fa-check"></i>';
-
-                        // Reset to original state after 2 seconds
-                        setTimeout(() => {
-                            button.style.backgroundColor = originalButtonStyle.backgroundColor || '#e8f6ea';
-                            button.style.color = originalButtonStyle.color || '#088178';
-                            button.style.borderColor = originalButtonStyle.borderColor || '#cce7d0';
-                            button.innerHTML = originalButtonHTML;
-                            button.classList.remove('bounce-effect');
-                            button.disabled = false;
-                        }, 2000);
+                        // Add bounce effect to the cart button
+                        const cartButton = document.querySelector(`.pro-cart-button[onclick*="${currentProductId}"]`);
+                        if (cartButton) {
+                            cartButton.classList.add('bounce-effect');
+                            setTimeout(() => {
+                                cartButton.classList.remove('bounce-effect');
+                            }, 1000);
+                        }
 
                         // Update cart count in navbar if you have one
                         if (data.cartCount !== undefined) {
                             updateCartCount(data.cartCount);
                         }
-                    } else {
-                        // Reset button if not successful
-                        button.innerHTML = originalButtonHTML;
-                        button.disabled = false;
                     }
                 })
                 .catch(error => {
                     showNotification(false, 'An error occurred while adding to cart');
-                    button.innerHTML = originalButtonHTML;
-                    button.disabled = false;
                 });
-            });
+            }
         });
 
         // Function to update cart count in navbar (if you have one)
@@ -326,7 +541,7 @@
             }
         }
 
-        // Rest of your existing notification code...
+        // Notification functions
         function showNotification(isSuccess, message) {
             const notificationContainer = document.querySelector('.notification-container');
             const notificationId = 'notification-' + Date.now();
@@ -390,7 +605,14 @@
         };
     });
 
-    // Prevent form submission from triggering the product click
+    // Close modal when clicking outside of it
+    document.getElementById('sizeModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideSizeModal();
+        }
+    });
+
+    // Prevent product click when clicking cart button
     document.querySelectorAll('.pro-cart-button').forEach(button => {
         button.addEventListener('click', function(e) {
             e.stopPropagation();

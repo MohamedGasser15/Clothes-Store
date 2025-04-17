@@ -26,6 +26,7 @@
     }
 
     <!-- Main Cart Container -->
+    <!-- Main Cart Container -->
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="text-center mb-12">
@@ -73,22 +74,27 @@
                                             <p class="text-sm text-gray-500 mt-1">@item.Product.Product_Description</p>
 
                                             <!-- Size Selection Dropdown -->
-                                            <div class="mt-2">
-                                                <label class="text-sm font-medium text-gray-700">Size:</label>
-                                                <select onchange="updateSize(@item.Id, this.value)"
-                                                        class="ml-2 text-sm border border-gray-300 rounded-md py-1 px-2 focus:ring-[#088178] focus:border-[#088178]">
-                                                    @if (!string.IsNullOrEmpty(item.Product.Product_Size))
+                                            <div class="mt-3">
+                                                <div class="flex items-center">
+                                                    <!-- Size Label -->
+                                                    <span class="text-sm font-medium text-gray-700 mr-2">Size:</span>
+
+                                                    <!-- Size Display -->
+                                                    @if (item.Product.Stocks != null && item.Product.Stocks.Any(s => s.Size == item.Size))
                                                     {
-                                                        foreach (var size in item.Product.Product_Size.Split(','))
-                                                        {
-                                                            <option value="@size" selected="@(size == item.Product.Product_Size)">@size</option>
-                                                        }
+                                                        <div class="inline-flex items-center justify-center px-3 py-1 rounded-full
+                        bg-[#f0f7f6] text-[#088178] border border-[#cce7d0]
+                        text-sm font-medium">
+                                                            @item.Size
+                                                        </div>
                                                     }
                                                     else
                                                     {
-                                                        <option value="">One Size</option>
+                                                        <span class="text-sm text-red-500 italic">Not specified</span>
                                                     }
-                                                </select>
+                                                </div>
+
+
                                             </div>
                                         </div>
                                     </div>
@@ -224,7 +230,7 @@
                     </div>
 
                     <div class="mt-6 flex flex-col sm:flex-row gap-4">
-                        <a asp-area="Customer" asp-controller="Shop" asp-action="Index"
+                        <a asp-area="Customer" asp-controller="Home" asp-action="Shop"
                            class="flex-1 inline-flex items-center justify-center px-5 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#088178]">
                             <svg class="-ml-1 mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
@@ -253,15 +259,15 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-                function closeMessage(id) {
-                    let element = document.getElementById(id);
-                    if (element) {
-                        element.classList.add('animate-fade-out');
-                        setTimeout(() => element.remove(), 1000);
-                    }
-                }
+        function closeMessage(id) {
+            let element = document.getElementById(id);
+            if (element) {
+                element.classList.add('animate-fade-out');
+                setTimeout(() => element.remove(), 1000);
+            }
+        }
 
-               function confirmRemoveItem(itemId) {
+        function confirmRemoveItem(itemId) {
             Swal.fire({
                 title: 'Remove this item?',
                 text: "This item will be removed from your cart.",
@@ -293,39 +299,51 @@
             });
         }
 
-                document.addEventListener("DOMContentLoaded", function() {
-                    setTimeout(() => {
-                        closeMessage('successMessage');
-                    }, 5000);
-                });
-                        function updateSize(itemId, newSize) {
-                    fetch('/Customer/Cart/UpdateSize', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                        },
-                        body: JSON.stringify({
-                            itemId: itemId,
-                            size: newSize
-                        })
-                    }).then(response => {
-                        if (response.ok) {
-                            // Show success notification
-                            const notification = document.createElement('div');
-                            notification.className = 'fixed bottom-4 right-4 bg-[#088178] text-white px-4 py-2 rounded-md text-sm';
-                            notification.textContent = 'Size updated';
-                            document.body.appendChild(notification);
-                            setTimeout(() => notification.remove(), 2000);
-                        } else {
-                            // Revert the selection if update fails
-                            const select = document.querySelector(`select[onchange="updateSize(${itemId}, this.value)"]`);
-                            throw new Error('Size update failed');
-                        }
-                    }).catch(error => {
-                        console.error('Error updating size:', error);
-                    });
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(() => {
+                closeMessage('successMessage');
+            }, 5000);
+        });
+
+        function updateSize(itemId, newSize) {
+            fetch('/Customer/Cart/UpdateSize', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    itemId: itemId,
+                    size: newSize
+                })
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    // Show success notification
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed bottom-4 right-4 bg-[#088178] text-white px-4 py-2 rounded-md text-sm';
+                    notification.textContent = data.message;
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 2000);
+
+                    // Optionally, reload the page to reflect merged items
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    // Show error notification
+                    const notification = document.createElement('div');
+                    notification.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md text-sm';
+                    notification.textContent = data.message;
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), 2000);
                 }
+            }).catch(error => {
+                console.error('Error updating size:', error);
+                const notification = document.createElement('div');
+                notification.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-md text-sm';
+                notification.textContent = 'Error updating size';
+                document.body.appendChild(notification);
+                setTimeout(() => notification.remove(), 2000);
+            });
+        }
     </script>
 }
 

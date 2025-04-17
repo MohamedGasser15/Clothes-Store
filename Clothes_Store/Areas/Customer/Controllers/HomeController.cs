@@ -40,11 +40,13 @@ namespace Clothes_Store.Controllers
 
             return View(products); // Pass the list of products to the Shop view
         }
+
         public async Task<IActionResult> Details(int id)
         {
             var product = await _db.Products
                 .Include(p => p.Category) // Include category details
                 .Include(p => p.Brand) // Include brand details
+                .Include(p => p.Stocks) // Include stock details to get available sizes
                 .FirstOrDefaultAsync(p => p.Product_Id == id);
 
             if (product == null)
@@ -53,6 +55,26 @@ namespace Clothes_Store.Controllers
             }
 
             return View(product);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetProductSizes(int productId)
+        {
+            var product = await _db.Products
+                .Include(p => p.Stocks)
+                .FirstOrDefaultAsync(p => p.Product_Id == productId);
+
+            if (product == null)
+            {
+                return Json(new { success = false, message = "Product not found" });
+            }
+
+            var sizes = product.Stocks?
+                .Where(s => s.Quantity > 0) // Only include sizes with stock available
+                .Select(s => s.Size)
+                .ToList() ?? new List<string>();
+
+            return Json(new { success = true, sizes });
         }
         public ActionResult Search(string searchTerm)
         {
