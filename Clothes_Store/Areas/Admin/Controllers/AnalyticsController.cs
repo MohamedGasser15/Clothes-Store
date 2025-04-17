@@ -16,11 +16,12 @@ namespace Clothes_Store.Controllers
         // Controllers/AnalyticsController.cs
         private readonly IUserAnalyticsService _userAnalyticsService;
         private readonly IOrderAnalyticsService _orderAnalytics;
-
-        public AnalyticsController(IUserAnalyticsService userAnalyticsService, IOrderAnalyticsService orderAnalytics)
+        private readonly IProductAnalyticsService _productAnalyticsService;
+        public AnalyticsController(IUserAnalyticsService userAnalyticsService, IOrderAnalyticsService orderAnalytics, IProductAnalyticsService productAnalyticsService)
         {
             _userAnalyticsService = userAnalyticsService;
             _orderAnalytics = orderAnalytics;
+            _productAnalyticsService = productAnalyticsService;
         }
 
         public async Task<IActionResult> Index()
@@ -78,6 +79,10 @@ namespace Clothes_Store.Controllers
             return Json(data);
         }
 
-
+        public async Task<IActionResult> ProductDashboard(int days = 30)
+        {
+            var model = await _productAnalyticsService.GetProductAnalytics(days);
+            return View(model);
+        }
     }
 }

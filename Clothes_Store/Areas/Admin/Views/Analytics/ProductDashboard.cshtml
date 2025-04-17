@@ -1,0 +1,367 @@
+﻿@model Clothes_Models.ViewModels.ProductAnalyticsViewModel
+@{
+    ViewData["Title"] = "Product Analytics Dashboard";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Product Analytics Dashboard</h1>
+            <p class="mt-2 text-sm text-gray-500">Insights into product performance and inventory trends</p>
+        </div>
+        <div class="flex gap-3">
+            <div class="relative">
+                <select id="timeRange" class="appearance-none bg-white border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm">
+                    <option value="7">Last 7 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                    <option value="365">Last year</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total Products -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Total Products</h3>
+            <div class="text-2xl font-bold text-blue-600">@Model.KeyMetrics.TotalProducts</div>
+            <div class="mt-1 text-sm text-gray-500">Across all categories</div>
+        </div>
+
+        <!-- Top Selling Product -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Top Seller</h3>
+            <div class="text-xl font-bold text-blue-600 truncate">@Model.KeyMetrics.TopSellingProduct</div>
+            <div class="mt-1 text-sm text-gray-500">@Model.KeyMetrics.TopProductSales sales</div>
+        </div>
+
+        <!-- Inventory Value -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Inventory Value</h3>
+            <div class="text-2xl font-bold text-blue-600">@Model.KeyMetrics.InventoryValue.ToString("C")</div>
+            <div class="mt-1 text-sm @(Model.KeyMetrics.InventoryChange >= 0 ? "text-green-600" : "text-red-600") flex items-center">
+                @if (Model.KeyMetrics.InventoryChange >= 0)
+                {
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                    </svg>
+                }
+                else
+                {
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                }
+                @Math.Abs(Model.KeyMetrics.InventoryChange).ToString("0.0")% from last period
+            </div>
+        </div>
+
+        <!-- Low Stock Items -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Low Stock</h3>
+            <div class="text-2xl font-bold text-blue-600">@Model.KeyMetrics.LowStockItems</div>
+            <div class="mt-1 text-sm text-gray-500">Items below threshold</div>
+        </div>
+    </div>
+
+    <!-- Main Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Top Selling Products -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Top Selling Products</h3>
+                <div class="text-sm text-gray-500">
+                    @Model.TopProducts.TotalSales total sales
+                </div>
+            </div>
+            <canvas id="topProductsChart" height="300"></canvas>
+            <div class="mt-4 grid grid-cols-2 gap-3">
+                @for (int i = 0; i < Model.TopProducts.ProductNames.Count; i++)
+                {
+                    <div class="flex items-center bg-gray-50 rounded-lg p-2">
+                        <span class="h-3 w-3 rounded-full mr-2 flex-shrink-0" style="background-color: @Model.SalesByCategory.Colors[i % Model.SalesByCategory.Colors.Count]"></span>
+                        <span class="text-sm text-gray-700 truncate font-medium">@Model.TopProducts.ProductNames[i]</span>
+                        <span class="ml-auto text-xs text-gray-500 font-medium">@Model.TopProducts.SalesCounts[i] sales</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Inventory Status -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Inventory Status</h3>
+                <div class="text-sm text-gray-500">
+                    @Model.InventoryStatus.TotalItems total items
+                </div>
+            </div>
+            <canvas id="inventoryStatusChart" height="300"></canvas>
+            <div class="mt-4 flex justify-center space-x-4">
+                @foreach (var status in Model.InventoryStatus.Statuses)
+                {
+                    <div class="flex items-center">
+                        <span class="h-3 w-3 rounded-full mr-2"
+                              style="background-color: @Model.InventoryStatus.Colors[Model.InventoryStatus.Statuses.IndexOf(status)]"></span>
+                        <span class="text-xs text-gray-500">@status</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Performance by Category -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow mb-8">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
+            <div>
+                <h3 class="text-lg font-medium text-gray-900">Sales by Category</h3>
+                <p class="text-sm text-gray-500 mt-1">Revenue and sales across product categories</p>
+            </div>
+            <div class="flex items-center">
+                <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                    @Model.SalesByCategory.TotalSales sales
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Chart -->
+            <div>
+                <canvas id="categoryPerformanceChart" height="250"></canvas>
+            </div>
+
+            <!-- Category Breakdown -->
+            <div>
+                <div class="space-y-4">
+                    @for (int i = 0; i < Model.SalesByCategory.CategoryNames.Count; i++)
+                    {
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center mr-4"
+                                 style="background-color: @Model.SalesByCategory.Colors[i]">
+                                <span class="text-white font-medium text-xs">@(i + 1)</span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 truncate">@Model.SalesByCategory.CategoryNames[i]</p>
+                                <p class="text-xs text-gray-500">@Model.SalesByCategory.SalesCounts[i] sales</p>
+                            </div>
+                            <div class="ml-auto text-right">
+                                <p class="text-sm font-semibold text-gray-900">@Model.SalesByCategory.Revenue[i].ToString("C")</p>
+                                <p class="text-xs text-gray-500">@((Model.SalesByCategory.Revenue[i] / Model.SalesByCategory.Revenue.Sum() * 100).ToString("0.0"))% of revenue</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Alert Section -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-red-200 hover:shadow-md transition-shadow">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Low Stock Alerts</h3>
+            <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">@Model.LowStockItems.Count items</span>
+        </div>
+
+        @if (Model.LowStockItems.Any())
+        {
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Product</th>
+                            <th scope="col" class="px-6 py-3">Category</th>
+                            <th scope="col" class="px-6 py-3">Size</th>
+                            <th scope="col" class="px-6 py-3">Current Stock</th>
+                            <th scope="col" class="px-6 py-3">Threshold</th>
+                            <th scope="col" class="px-6 py-3">Last Sold</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.LowStockItems)
+                        {
+                            <tr class="bg-white border-b hover:bg-gray-50">
+                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                                    @item.ProductName
+                                </th>
+                                <td class="px-6 py-4">@item.Category</td>
+                                <td class="px-6 py-4">@item.Size</td>
+                                <td class="px-6 py-4 text-red-600 font-medium">@item.CurrentStock</td>
+                                <td class="px-6 py-4">@item.Threshold</td>
+                                <td class="px-6 py-4">@(item.LastSoldDate?.ToString("MMM dd, yyyy") ?? "Never")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-8">
+                <i class="fas fa-check-circle text-green-500 text-4xl mb-3"></i>
+                <p class="text-gray-600">All products are sufficiently stocked</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Top Products Chart
+            new Chart(
+                document.getElementById('topProductsChart').getContext('2d'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: @Json.Serialize(Model.TopProducts.ProductNames.Take(5)),
+                        datasets: [{
+                            label: 'Sales Count',
+                            data: @Json.Serialize(Model.TopProducts.SalesCounts.Take(5)),
+                            backgroundColor: @Json.Serialize(Model.SalesByCategory.Colors.Take(5)),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Sales: ${context.raw}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Sales'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+            // Inventory Status Chart
+            new Chart(
+                document.getElementById('inventoryStatusChart').getContext('2d'),
+                {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Json.Serialize(Model.InventoryStatus.Statuses),
+                        datasets: [{
+                            data: @Json.Serialize(Model.InventoryStatus.Counts),
+                            backgroundColor: @Json.Serialize(Model.InventoryStatus.Colors),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                        const percentage = Math.round((value / total) * 100);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                }
+            );
+
+            // Category Performance Chart
+            new Chart(
+                document.getElementById('categoryPerformanceChart').getContext('2d'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: @Json.Serialize(Model.SalesByCategory.CategoryNames),
+                        datasets: [
+                            {
+                                label: 'Revenue',
+                                data: @Json.Serialize(Model.SalesByCategory.Revenue),
+                                backgroundColor: 'rgba(8, 129, 120, 0.6)',
+                                borderColor: '#088178',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Sales Count',
+                                data: @Json.Serialize(Model.SalesByCategory.SalesCounts),
+                                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                                borderColor: '#3B82F6',
+                                borderWidth: 1,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        plugins: {
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: {
+                                    display: true,
+                                    text: 'Revenue ($)'
+                                },
+                                grid: {
+                                    drawOnChartArea: true,
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: {
+                                    display: true,
+                                    text: 'Sales Count'
+                                },
+                                grid: {
+                                    drawOnChartArea: false
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+            // Time range selector
+            document.getElementById('timeRange').addEventListener('change', function() {
+                window.location.href = `?days=${this.value}`;
+            });
+        });
+    </script>
+}
