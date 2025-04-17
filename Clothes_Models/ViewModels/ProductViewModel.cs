@@ -13,6 +13,6 @@ namespace Clothes_Models.ViewModels
         public Product Product { get; set; }
         public IEnumerable<SelectListItem> BrandList { get; set; }
         public IEnumerable<SelectListItem> CategoryList { get; set; }
-
+        public List<Stock> Stocks { get; set; } = new List<Stock>();
     }
 }

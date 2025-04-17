@@ -25,7 +25,7 @@ namespace Clothes_DataAccess.Data
         public DbSet<OrderHeader> OrderHeaders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
-
+        public DbSet<Stock> Stocks { get; set; }
 
 
 
@@ -82,7 +82,6 @@ namespace Clothes_DataAccess.Data
                     Product_Name = "T-Shirt Nike",
                     Product_Description= "Black T-Shirt Nike",
                     imgUrl = "Nika.jpg",
-                    Product_Size = "M",
                     Product_Color = "Black",
                     Product_Price = 100,
                     Category_Id = 1,
@@ -94,7 +93,6 @@ namespace Clothes_DataAccess.Data
                     Product_Name = "Pantalon Adidas",
                     Product_Description = "Red Pantalon Adidas",
                     imgUrl = "Adidas.jpg",
-                    Product_Size = "L",
                     Product_Color = "Red",
                     Product_Price = 200,
                     Category_Id = 2,
@@ -106,7 +104,6 @@ namespace Clothes_DataAccess.Data
                     Product_Name = "Shorts Puma",
                     Product_Description = "Yellow Shorts Puma",
                     imgUrl = "Puma.jpg",
-                    Product_Size = "S",
                     Product_Color = "Yellow",
                     Product_Price = 150,
                     Category_Id = 3,

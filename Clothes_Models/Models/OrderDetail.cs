@@ -23,6 +23,7 @@ namespace Clothes_Models.Models
         [ValidateNever]
         public Product Product { get; set; }
         public int Count { get; set; }
+        public string Size { get; set; }
         public double price { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -18,7 +19,6 @@ namespace Clothes_Models.Models
         public decimal Product_Price { get; set; }
         public string imgUrl { get; set; }
         public int Product_Rating { get; set; }
-        public string Product_Size { get; set; }
         public string Product_Color { get; set; }
 
         [ForeignKey("Category")]
@@ -28,5 +28,8 @@ namespace Clothes_Models.Models
         [ForeignKey("Brand")]
         public int brand_Id { get; set; }
         public Brand Brand { get; set; }
+
+        public ICollection<Stock> Stocks { get; set; }
+        public ICollection<OrderDetail> OrderDetails { get; set; }
     }
 }

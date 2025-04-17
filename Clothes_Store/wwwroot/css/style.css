@@ -193,11 +193,11 @@ body {
 
 /* Hero Section */
 #hero {
-    background-image: url("../img/hero4.png");
+    background-image: url("../img/hero8.png");
     height: 90vh;
     width: 100%;
     background-size: cover;
-    background-position: top 25% right 0;
+    background-position: top 5% right 0;
     padding: 0 80px;
     display: flex;
     flex-direction: column;
@@ -1424,8 +1424,8 @@ hr {
     }
 
     #hero {
-        padding: 0 20px;
-        background-position: 60%;
+        padding: 0 10px;
+        background-position: 45%;
     }
 
     h2 {

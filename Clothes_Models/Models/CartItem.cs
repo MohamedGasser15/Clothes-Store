@@ -17,6 +17,7 @@ namespace Clothes_Models.Models
         [ForeignKey("UserId")]
         public virtual ApplicationUser User { get; set; }
         public int Quantity { get; set; }
+        public string Size { get; set; }
         [NotMapped]
         public decimal Total => Quantity * (Product?.Product_Price ?? 0);
     }
