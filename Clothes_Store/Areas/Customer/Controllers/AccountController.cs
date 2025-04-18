@@ -40,37 +40,284 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Login(LoginViewModel model, string returnurl = null)
+        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
-            ViewData["ReturnUrl"] = returnurl;
-            returnurl = returnurl ?? Url.Content("~/");
+            ViewData["ReturnUrl"] = returnUrl;
+            returnUrl = returnUrl ?? Url.Content("~/");
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
+                return View(model);
+            }
 
-                if (user == null) // Check if user exists
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            // User doesn't exist
+            if (user == null)
+            {
+                TempData["ErrorMessage"] = "❌ Invalid email or password!";
+                return View(model);
+            }
+
+            // Check password first
+            var passwordValid = await _userManager.CheckPasswordAsync(user, model.Password);
+            if (!passwordValid)
+            {
+                TempData["ErrorMessage"] = "❌ Invalid email or password!";
+                return View(model);
+            }
+
+            // Handle 2FA enabled users
+            if (await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                // Generate and store 2FA code
+                var code = new Random().Next(100000, 999999).ToString();
+                var emailBody = GenerateEmail2FA(user, code);
+
+                // Store in session with expiration
+                HttpContext.Session.SetString("2FA_Code", code);
+                HttpContext.Session.SetString("2FA_User", user.Id);
+                HttpContext.Session.SetString("2FA_RememberMe", model.RememberMe.ToString());
+
+                try
                 {
-                    TempData["ErrorMessage"] = "❌ User isn't exists!";
-                    return View(model);
+                    await _emailSender.SendEmailAsync(
+                        user.Email,
+                        "Your Login Verification Code",
+                        emailBody
+                    );
+
+                    return RedirectToAction("Enter2FACode", new { returnUrl });
                 }
-
-                var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
-
-                if (result.Succeeded)
+                catch (Exception ex)
                 {
-                    await TrackUserDevice(user);
-                    return LocalRedirect(returnurl);
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "❌ Invalid email or password!";
+                    ModelState.AddModelError(string.Empty, "Failed to send verification email. Please try again.");
                     return View(model);
                 }
             }
 
+            // Regular login (no 2FA)
+            await TrackUserDevice(user);
+            var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                HttpContext.Session.SetString("lang", user.PreferredLanguage ?? "en");
+                return LocalRedirect(returnUrl);
+            }
+
+            // If we got here, something unexpected failed
+            TempData["ErrorMessage"] = "❌ Login failed. Please try again.";
             return View(model);
         }
+        private string GenerateEmail2FA(ApplicationUser user, string confirmationCode)
+        {
+            return $@"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }}
+        .email-container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 15px;
+        }}
+        .header h1 {{
+            color: #6366f1;
+            margin: 0;
+            font-size: 24px;
+        }}
+        .content {{
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }}
+        .content p {{
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 15px;
+        }}
+        .verification-code {{
+            font-size: 28px;
+            font-weight: bold;
+            color: #6366f1;
+            letter-spacing: 3px;
+            text-align: center;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px dashed #6366f1;
+        }}
+        .security-alert {{
+            background-color: #f8f9fa;
+            border-left: 4px solid #6366f1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .footer {{
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 25px;
+            border-top: 1px solid #eaeaea;
+            padding-top: 15px;
+        }}
+        .button {{
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #6366f1;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px auto;
+            text-align: center;
+        }}
+        .info-item {{
+            margin-bottom: 8px;
+        }}
+    </style>
+</head>
+<body>
+    <div class='email-container'>
+        <div class='header'>
+            <h1>Two-Factor Authentication Code</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Hello {user.Name},</p>
+            
+            <p>Your login attempt requires verification. Use this code to complete your sign-in:</p>
+            
+            <div class='verification-code'>
+                {confirmationCode}
+            </div>
+            
+            <p>This code will expire in 15 minutes. If you didn't request this, please ignore this email.</p>
+            
+            <div class='security-alert'>
+                <p><strong>Security Tip:</strong> Never share this code with anyone. Trendsvalley will never ask for your verification code.</p>
+            </div>
+            
+            <p>Alternatively, you can click the button below to verify your email:</p>
+            
+            <a href=""{Generate2FALink(user, confirmationCode)}"" class='button'>Verify Email Address</a>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style=""word-break: break-all;"">{Generate2FALink(user, confirmationCode)}</p>
+        </div>
+        
+        <div class='footer'>
+            <p>&copy; {DateTime.Now.Year} Cara-Store. All rights reserved.</p>
+            <p>This email was sent to {user.Email} as part of our verification process.</p>
+        </div>
+    </div>
+</body>
+</html>";
+        }
+
+        private string Generate2FALink(ApplicationUser user, string code)
+        {
+            return Url.Action(
+                "Enter2FACode",
+                "Account",
+                new { userId = user.Id, code = code },
+                protocol: HttpContext.Request.Scheme
+            );
+        }
+        [HttpGet]
+        public IActionResult Enter2FACode() => View();
+
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Verify2FA(string code, bool rememberMe = false)
+{
+    // 1. Validate session data
+    var userId = HttpContext.Session.GetString("2FA_User");
+    var correctCode = HttpContext.Session.GetString("2FA_Code");
+    var isExternalLogin = HttpContext.Session.GetString("2FA_Provider") != null;
+
+    if (userId == null || correctCode == null)
+    {
+        TempData["ErrorMessage"] = "Session expired. Please login again.";
+        return RedirectToAction("Login");
+    }
+
+    // 2. Verify code (with timing attack protection)
+    if (!SecureEquals(code, correctCode))
+    {
+        TempData["ErrorMessage"] = "Invalid verification code";
+        return View("Enter2FACode");
+    }
+
+    // 3. Get user and validate
+    var user = await _userManager.FindByIdAsync(userId);
+    if (user == null)
+    {
+        TempData["ErrorMessage"] = "User not found";
+        return RedirectToAction("Login");
+    }
+
+    // 4. Handle external login completion if needed
+    if (isExternalLogin)
+    {
+        var provider = HttpContext.Session.GetString("2FA_Provider");
+        var info = await _signInManager.GetExternalLoginInfoAsync();
+        
+        if (info == null || info.LoginProvider != provider)
+        {
+            TempData["ErrorMessage"] = "External login validation failed";
+            return RedirectToAction("Login");
+        }
+
+        // Complete the external auth flow
+        await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+    }
+
+    // 5. Final sign-in
+    await _signInManager.SignInAsync(user, rememberMe);
+    await TrackUserDevice(user);
+
+    // 6. Cleanup session
+    HttpContext.Session.Remove("2FA_Code");
+    HttpContext.Session.Remove("2FA_User");
+    HttpContext.Session.Remove("2FA_Provider");
+
+    // 7. Redirect with success
+    TempData["SuccessMessage"] = "Login successful!";
+    return RedirectToAction("Index", "Home");
+}
+
+// Helper method to prevent timing attacks
+private bool SecureEquals(string a, string b)
+{
+    if (a == null || b == null || a.Length != b.Length)
+        return false;
+
+    var result = 0;
+    for (int i = 0; i < a.Length; i++)
+    {
+        result |= a[i] ^ b[i];
+    }
+    return result == 0;
+}
         public async Task<IActionResult> Register(string returnurl = null)
         {
 
@@ -535,38 +782,70 @@ namespace Clothes_Store.Areas.Customer.Controllers
             returnurl = returnurl ?? Url.Content("~/");
             if (remoteError != null)
             {
-                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
-                return View(nameof(SignIn));
+                TempData["ErrorMessage"] = $"Error from {remoteError} provider";
+                return RedirectToAction(nameof(Login));
             }
+
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
-                return RedirectToAction(nameof(SignIn));
+                return RedirectToAction(nameof(Login));
             }
 
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
-            if (result.Succeeded)
+            // Check if user exists
+            var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+            if (user == null)
             {
-                await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
-                var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-                await TrackUserDevice(user);
-                return LocalRedirect(returnurl);
-            }
-            if (result.RequiresTwoFactor)
-            {
-                return RedirectToAction("VerifyAuthenticatorCode", new { returnurl = returnurl });
-            }
-            else
-            {
+                // New user flow remains the same
                 ViewData["ReturnUrl"] = returnurl;
                 ViewData["ProviderDisplayName"] = info.ProviderDisplayName;
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                return RedirectToAction("ExternalLoginConfirmation", "Account", new
-                {
-                    returnurl = returnurl,
-                    email = email
-                });
+                return RedirectToAction("ExternalLoginConfirmation", new { returnurl, email });
             }
+
+            // Existing user - Check 2FA status
+            if (await _userManager.GetTwoFactorEnabledAsync(user))
+            {
+                // Generate and send 2FA code (same as email/password login)
+                var code = new Random().Next(100000, 999999).ToString();
+                var emailBody = GenerateEmail2FA(user, code);
+
+                HttpContext.Session.SetString("2FA_Code", code);
+                HttpContext.Session.SetString("2FA_User", user.Id);
+                HttpContext.Session.SetString("2FA_Provider", info.LoginProvider); // Store provider for later
+
+                try
+                {
+                    await _emailSender.SendEmailAsync(
+                        user.Email,
+                        "Your Login Verification Code",
+                        emailBody
+                    );
+                    return RedirectToAction("Enter2FACode", new { returnurl });
+                }
+                catch
+                {
+                    TempData["ErrorMessage"] = "Failed to send verification code";
+                    return RedirectToAction(nameof(Login));
+                }
+            }
+
+            // No 2FA required - proceed with login
+            var result = await _signInManager.ExternalLoginSignInAsync(
+                info.LoginProvider,
+                info.ProviderKey,
+                isPersistent: false
+            );
+
+            if (result.Succeeded)
+            {
+                await TrackUserDevice(user);
+                await _signInManager.UpdateExternalAuthenticationTokensAsync(info);
+                return LocalRedirect(returnurl);
+            }
+
+            TempData["ErrorMessage"] = "Login failed";
+            return RedirectToAction(nameof(Login));
         }
 
         [HttpGet]

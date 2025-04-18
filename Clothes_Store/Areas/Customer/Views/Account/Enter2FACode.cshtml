@@ -1,0 +1,75 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA Verification - Cara Store</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .text-danger {
+            color: #dc2626;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-100 to-[#d9f3ee] flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md bg-white shadow-lg rounded-lg p-8">
+        <div class="text-center">
+            <h2 class="text-3xl font-bold text-[#088178] mt-4">Two-Factor Authentication</h2>
+            <p class="text-lg text-gray-500">Enter your 6-digit verification code</p>
+        </div>
+
+        <form class="mt-6" method="post" action="Verify2FA" id="verifyForm">
+            <div>
+                <label for="code" class="block text-gray-700 font-medium mb-2">Verification Code</label>
+                <input type="text"
+                       name="code"
+                       placeholder="123456"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none"
+                       id="verificationCode"
+                       required>
+            </div>
+
+            <button type="submit" id="verifyButton"
+                    class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition duration-300 flex items-center justify-center">
+                <span id="verifyText">Verify</span>
+                <div id="loadingSpinner" class="hidden ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a href="#" class="text-[#088178] font-semibold hover:underline">
+                Trouble receiving code?
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const verifyButton = document.getElementById("verifyButton");
+        const verifyText = document.getElementById("verifyText");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+
+        document.getElementById("verifyForm").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            verifyText.classList.add("hidden");
+            loadingSpinner.classList.remove("hidden");
+            verifyButton.setAttribute("disabled", "true");
+
+            setTimeout(function () {
+                document.getElementById("verifyForm").submit();
+            }, 2000);
+        });
+
+        // Auto-focus the input field on page load
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("verificationCode").focus();
+        });
+    </script>
+</body>
+</html>
