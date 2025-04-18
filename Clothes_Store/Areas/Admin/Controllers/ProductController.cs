@@ -76,7 +76,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Upsert(ProductViewModel obj, IFormFile? file)
+        public async Task<IActionResult> Upsert(ProductViewModel obj, IFormFile? file, string? croppedImageData)
         {
             // Repopulate dropdowns in case of validation errors
             var Brands = await _unitOfWork.Brands.GetAll();
@@ -92,11 +92,11 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 Value = i.Category_Id.ToString()
             });
 
-            // Handle image upload
+            // Handle image upload - prioritize cropped image if available
             string wwwRootPath = _webHostEnvironment.WebRootPath;
-            if (file != null)
+            if (!string.IsNullOrEmpty(croppedImageData) || file != null)
             {
-                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                string fileName;
                 string productPath = Path.Combine(wwwRootPath, @"img", @"products");
 
                 // Delete old image if it exists (for updates)
@@ -109,10 +109,29 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     }
                 }
 
-                using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
+                // Handle cropped image (priority)
+                if (!string.IsNullOrEmpty(croppedImageData))
                 {
-                    file.CopyTo(fileStream);
+                    // Extract base64 data
+                    var base64Data = croppedImageData.Split(',')[1];
+                    var bytes = Convert.FromBase64String(base64Data);
+
+                    // Generate unique filename with appropriate extension
+                    string extension = croppedImageData.StartsWith("data:image/jpeg") ? ".jpg" : ".png";
+                    fileName = Guid.NewGuid().ToString() + extension;
+
+                    // Save the file
+                    await System.IO.File.WriteAllBytesAsync(Path.Combine(productPath, fileName), bytes);
                 }
+                else // Fallback to regular file upload
+                {
+                    fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
+                    {
+                        await file.CopyToAsync(fileStream);
+                    }
+                }
+
                 obj.Product.imgUrl = @"\img\products\" + fileName;
             }
             else if (obj.Product.Product_Id != 0)

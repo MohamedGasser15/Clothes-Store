@@ -8,7 +8,11 @@
         actionText = "Update";
     }
 }
+<!-- Add these in your head section -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" />
 
+<!-- Add these before your closing body tag -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
 <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
     <form method="post" enctype="multipart/form-data" class="bg-white shadow-xl rounded-xl overflow-hidden">
         <input type="hidden" asp-for="Product.Product_Id" />
@@ -95,14 +99,12 @@
                             <div class="stock-entry grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
                                 <div>
                                     <select name="Stocks[@i].Size" class="stock-size focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out" required>
-                                        <option value="XS" selected="@(Model.Stocks[i].Size == "XS")">XS</option>
                                         <option value="S" selected="@(Model.Stocks[i].Size == "S")">S</option>
                                         <option value="M" selected="@(Model.Stocks[i].Size == "M")">M</option>
                                         <option value="L" selected="@(Model.Stocks[i].Size == "L")">L</option>
                                         <option value="XL" selected="@(Model.Stocks[i].Size == "XL")">XL</option>
                                         <option value="XXL" selected="@(Model.Stocks[i].Size == "XXL")">XXL</option>
                                         <option value="XXXL" selected="@(Model.Stocks[i].Size == "XXXL")">XXXL</option>
-
                                     </select>
                                     <span class="size-error mt-2 text-sm text-red-600 hidden">Please select a size</span>
                                 </div>
@@ -126,31 +128,53 @@
                 </button>
             </div>
 
-            <!-- Image Upload Field -->
+            <!-- Image Upload Field with Cropping -->
             <div class="mb-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">
-                    Product Image
+                    Product Image <span class="text-red-500">*</span>
                 </label>
-                <div class="mt-1 flex items-center">
-                    @if (Model.Product?.imgUrl != null)
-                    {
-                        <img id="productImage" src="@Model.Product.imgUrl" alt="Product image" class="h-16 w-16 object-cover rounded-md mr-4">
-                    }
-                    else
-                    {
-                        <div class="h-16 w-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 mr-4">
-                            <i class="fas fa-image text-xl"></i>
+                <div class="mt-1 flex flex-col items-start">
+                    <!-- Image Preview Container -->
+                    <div id="imagePreviewContainer" class="mb-4 relative" style="display: none;">
+                        <img id="imagePreview" src="#" alt="Preview" class="max-w-full max-h-64">
+                        <div id="cropperControls" class="mt-2 space-x-2 hidden">
+                            <button type="button" id="cropImage" class="px-3 py-1 bg-primary text-white rounded hover:bg-primary-dark">
+                                <i class="fas fa-crop mr-1"></i> Crop
+                            </button>
+                            <button type="button" id="cancelCrop" class="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                <i class="fas fa-times mr-1"></i> Cancel
+                            </button>
                         </div>
-                    }
-                    <div class="flex-1">
-                        <input type="file" name="file" id="fileInput"
-                               class="block w-full text-sm text-gray-500
-                                      file:mr-4 file:py-2 file:px-4
-                                      file:rounded-md file:border-0
-                                      file:text-sm file:font-semibold
-                                      file:bg-primary file:text-white
-                                      hover:file:bg-primary-dark">
-                        <span asp-validation-for="Product.imgUrl" class="mt-2 text-sm text-red-600"></span>
+                    </div>
+
+                    <!-- Current Image or Placeholder -->
+                    <div id="currentImageContainer" class="flex items-center">
+                        @if (Model.Product?.imgUrl != null)
+                        {
+                            <img id="productImage" src="@Model.Product.imgUrl" alt="Product image" class="h-16 w-16 object-cover rounded-md mr-4">
+                        }
+                        else
+                        {
+                            <div class="h-16 w-16 bg-gray-200 rounded-md flex items-center justify-center text-gray-500 mr-4">
+                                <i class="fas fa-image text-xl"></i>
+                            </div>
+                        }
+
+                        <!-- Hidden elements for cropped result -->
+                        <canvas id="croppedResult" style="display: none;"></canvas>
+                        <input type="hidden" id="croppedImageData" name="croppedImageData">
+
+                        <!-- File Input -->
+                        <div class="flex-1">
+                            <input type="file" name="file" id="fileInput" accept="image/*"
+                                   class="block w-full text-sm text-gray-500
+                                          file:mr-4 file:py-2 file:px-4
+                                          file:rounded-md file:border-0
+                                          file:text-sm file:font-semibold
+                                          file:bg-primary file:text-white
+                                          hover:file:bg-primary-dark">
+                            <span asp-validation-for="Product.imgUrl" class="mt-2 text-sm text-red-600"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -196,7 +220,6 @@
     </form>
 </div>
 
-<!-- Validation Scripts -->
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
@@ -204,42 +227,107 @@
             const form = document.querySelector('form');
             form.classList.add('animate-fade-in-up');
 
-            // Preview image when file is selected
+            // Image Cropping Functionality
+            let cropper;
             const fileInput = document.getElementById('fileInput');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const currentImageContainer = document.getElementById('currentImageContainer');
+            const cropperControls = document.getElementById('cropperControls');
             const productImage = document.getElementById('productImage');
+            const croppedImageData = document.getElementById('croppedImageData');
 
-            if (fileInput) {
-                fileInput.addEventListener('change', function(e) {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            if (productImage) {
-                                productImage.src = event.target.result;
-                            } else {
-                                const imgPreview = document.createElement('img');
-                                imgPreview.id = 'productImage';
-                                imgPreview.src = event.target.result;
-                                imgPreview.alt = 'Product image';
-                                imgPreview.className = 'h-16 w-16 object-cover rounded-md mr-4';
-                                fileInput.previousElementSibling.replaceWith(imgPreview);
-                            }
-                        };
-                        reader.readAsDataURL(file);
+            fileInput.addEventListener('change', function(e) {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    const file = files[0];
+                    if (!file.type.match('image.*')) {
+                        alert('Please select an image file (JPEG, PNG)');
+                        fileInput.value = '';
+                        return;
                     }
+
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        // Destroy previous cropper if exists
+                        if (cropper) {
+                            cropper.destroy();
+                        }
+
+                        // Show preview container
+                        imagePreview.src = event.target.result;
+                        imagePreviewContainer.style.display = 'block';
+                        cropperControls.classList.remove('hidden');
+                        currentImageContainer.classList.add('hidden');
+
+                        // Initialize cropper with default settings
+                        cropper = new Cropper(imagePreview, {
+                            aspectRatio: 1, // Square ratio by default
+                            viewMode: 1,    // Crop within the container
+                            autoCropArea: 0.8,
+                            responsive: true,
+                            guides: true
+                        });
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Crop button handler
+            document.getElementById('cropImage').addEventListener('click', function() {
+                const canvas = cropper.getCroppedCanvas({
+                    fillColor: '#fff',
+                    imageSmoothingEnabled: true,
+                    imageSmoothingQuality: 'high',
                 });
-            }
 
-            // Initialize stock index for dynamic adding
+                if (canvas) {
+                    // Convert canvas to blob
+                    canvas.toBlob(function(blob) {
+                        // Create a new File from the Blob
+                        const file = new File([blob], fileInput.files[0].name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+
+                        // Update file input
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        fileInput.files = dataTransfer.files;
+
+                        // Update preview
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            productImage.src = e.target.result;
+                            croppedImageData.value = e.target.result;
+                        };
+                        reader.readAsDataURL(blob);
+
+                        // Hide cropper and show result
+                        imagePreviewContainer.style.display = 'none';
+                        currentImageContainer.classList.remove('hidden');
+                        cropper.destroy();
+                    }, 'image/jpeg', 0.9); // 90% quality
+                }
+            });
+
+            // Cancel crop button handler
+            document.getElementById('cancelCrop').addEventListener('click', function() {
+                imagePreviewContainer.style.display = 'none';
+                currentImageContainer.classList.remove('hidden');
+                fileInput.value = '';
+                if (cropper) {
+                    cropper.destroy();
+                }
+            });
+
+            // Stock Management Scripts
             let stockIndex = @(Model.Stocks != null ? Model.Stocks.Count : 0);
-
-            // Add stock entry
             document.getElementById('addStock').addEventListener('click', () => {
                 const stockEntry = `
                     <div class="stock-entry grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
                         <div>
                             <select name="Stocks[${stockIndex}].Size" class="stock-size focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full px-3 py-2 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out" required>
-                                <option value="XS">XS</option>
                                 <option value="S">S</option>
                                 <option value="M">M</option>
                                 <option value="L">L</option>
@@ -272,7 +360,7 @@
                 }
             });
 
-            // Validate stock entries on form submission
+            // Validate form on submission
             form.addEventListener('submit', (e) => {
                 let hasError = false;
                 const stockEntries = document.querySelectorAll('.stock-entry');
@@ -334,5 +422,10 @@
             .stock-entry:hover {
                 background-color: #f9fafb;
             }
+        /* Cropper.js custom styles */
+        .cropper-view-box {
+            outline: 1px solid #39f;
+            outline-color: rgba(51, 153, 255, 0.75);
+        }
     </style>
 }
