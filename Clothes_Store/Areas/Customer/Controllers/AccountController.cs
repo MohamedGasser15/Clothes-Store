@@ -31,6 +31,46 @@ namespace Clothes_Store.Areas.Customer.Controllers
             _roleManager = roleManager;
             _emailSender = emailSender;
         }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Login(string returnurl = null)
+        {
+            ViewData["ReturnUrl"] = returnurl;
+            return View();
+        }
+
+        public async Task<IActionResult> Login(LoginViewModel model, string returnurl = null)
+        {
+            ViewData["ReturnUrl"] = returnurl;
+            returnurl = returnurl ?? Url.Content("~/");
+
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user == null) // Check if user exists
+                {
+                    TempData["ErrorMessage"] = "❌ User isn't exists!";
+                    return View(model);
+                }
+
+                var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+
+                if (result.Succeeded)
+                {
+                    await TrackUserDevice(user);
+                    return LocalRedirect(returnurl);
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "❌ Invalid email or password!";
+                    return View(model);
+                }
+            }
+
+            return View(model);
+        }
         public async Task<IActionResult> Register(string returnurl = null)
         {
 
@@ -170,50 +210,92 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View(model);
         }
 
-
-
-
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login(string returnurl = null)
+        public async Task<IActionResult> VerifyEmailCode(string userId)
         {
-            ViewData["ReturnUrl"] = returnurl;
-            return View();
-        }
-
-        public async Task<IActionResult> Login(LoginViewModel model, string returnurl = null)
-        {
-            ViewData["ReturnUrl"] = returnurl;
-            returnurl = returnurl ?? Url.Content("~/");
-
-            if (ModelState.IsValid)
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
 
-                if (user == null) // Check if user exists
-                {
-                    TempData["ErrorMessage"] = "❌ User isn't exists!";
-                    return View(model);
-                }
-
-                var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
-
-                if (result.Succeeded)
-                {
-                    await TrackUserDevice(user);
-                    return LocalRedirect(returnurl);
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = "❌ Invalid email or password!";
-                    return View(model);
-                }
+                return View("Error");
             }
 
+            var model = new VerifyEmailViewModel { UserId = userId };
             return View(model);
         }
 
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyEmailCode(VerifyEmailViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
 
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null)
+            {
+                return View("Error");
+            }
+
+            var claims = await _userManager.GetClaimsAsync(user);
+            var storedCode = claims.FirstOrDefault(c => c.Type == "EmailVerificationCode")?.Value;
+
+            if (storedCode == null || storedCode != model.Code)
+            {
+                ModelState.AddModelError("", "Invalid or expired code.");
+                return View(model);
+            }
+
+            var result = await _userManager.ConfirmEmailAsync(user, await _userManager.GenerateEmailConfirmationTokenAsync(user));
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                await TrackUserDevice(user);
+                return RedirectToAction("EmailConfirmationSuccess", "Account");
+            }
+
+            return View("Error");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ResendEmailCode(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return RedirectToAction("Register");
+
+            var claims = await _userManager.GetClaimsAsync(user);
+            var lastRequestClaim = claims.FirstOrDefault(c => c.Type == "LastResendTime");
+            DateTime lastRequestTime = lastRequestClaim != null ? DateTime.Parse(lastRequestClaim.Value) : DateTime.MinValue;
+
+            if ((DateTime.UtcNow - lastRequestTime).TotalSeconds < 60)
+            {
+                TempData["ErrorMessage"] = "Please wait before requesting a new code.";
+                return RedirectToAction("VerifyResetCode", new { email = user.Email });
+            }
+
+            var newCode = new Random().Next(100000, 999999).ToString();
+            await _userManager.SetAuthenticationTokenAsync(user, "Default", "ResetCode", newCode);
+
+            if (lastRequestClaim != null) await _userManager.RemoveClaimAsync(user, lastRequestClaim);
+            await _userManager.AddClaimAsync(user, new Claim("LastResendTime", DateTime.UtcNow.ToString()));
+
+            await _emailSender.SendEmailAsync(user.Email, "Email Reset Code", $"Your new code: {newCode}");
+
+            TempData["Message"] = "A new code has been sent to your email.";
+            return RedirectToAction("VerifyEmailCode", new { email = user.Email });
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult EmailConfirmationSuccess()
+        {
+            return View();
+        }
 
         [HttpGet]
         public ActionResult ForgotPassword()
@@ -434,92 +516,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View();
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> VerifyEmailCode(string userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-            {
-
-                return View("Error");
-            }
-
-            var model = new VerifyEmailCodeViewModel { UserId = userId };
-            return View(model);
-        }
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> VerifyEmailCode(VerifyEmailCodeViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var user = await _userManager.FindByIdAsync(model.UserId);
-            if (user == null)
-            {
-                return View("Error");
-            }
-
-            var claims = await _userManager.GetClaimsAsync(user);
-            var storedCode = claims.FirstOrDefault(c => c.Type == "EmailVerificationCode")?.Value;
-
-            if (storedCode == null || storedCode != model.Code)
-            {
-                ModelState.AddModelError("", "Invalid or expired code.");
-                return View(model);
-            }
-
-            var result = await _userManager.ConfirmEmailAsync(user, await _userManager.GenerateEmailConfirmationTokenAsync(user));
-            if (result.Succeeded)
-            {
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                await TrackUserDevice(user);
-                return RedirectToAction("EmailConfirmationSuccess", "Account");
-            }
-
-            return View("Error");
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ResendEmailCode(string email)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null) return RedirectToAction("Register");
-
-            var claims = await _userManager.GetClaimsAsync(user);
-            var lastRequestClaim = claims.FirstOrDefault(c => c.Type == "LastResendTime");
-            DateTime lastRequestTime = lastRequestClaim != null ? DateTime.Parse(lastRequestClaim.Value) : DateTime.MinValue;
-
-            if ((DateTime.UtcNow - lastRequestTime).TotalSeconds < 60)
-            {
-                TempData["ErrorMessage"] = "Please wait before requesting a new code.";
-                return RedirectToAction("VerifyResetCode", new { email = user.Email });
-            }
-
-            var newCode = new Random().Next(100000, 999999).ToString();
-            await _userManager.SetAuthenticationTokenAsync(user, "Default", "ResetCode", newCode);
-
-            if (lastRequestClaim != null) await _userManager.RemoveClaimAsync(user, lastRequestClaim);
-            await _userManager.AddClaimAsync(user, new Claim("LastResendTime", DateTime.UtcNow.ToString()));
-
-            await _emailSender.SendEmailAsync(user.Email, "Email Reset Code", $"Your new code: {newCode}");
-
-            TempData["Message"] = "A new code has been sent to your email.";
-            return RedirectToAction("VerifyEmailCode", new { email = user.Email });
-        }
-
-        [HttpGet]
-        [AllowAnonymous]
-        public IActionResult EmailConfirmationSuccess()
-        {
-            return View();
-        }
+        
 
         [HttpPost]
         [AllowAnonymous]
