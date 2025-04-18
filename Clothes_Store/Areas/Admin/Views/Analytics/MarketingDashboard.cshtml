@@ -1,0 +1,313 @@
+﻿@{
+    ViewData["Title"] = "Marketing Analytics Dashboard";
+}
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header Section -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Marketing Analytics Dashboard</h1>
+            <p class="mt-2 text-sm text-gray-500">Track campaign performance and customer acquisition</p>
+        </div>
+        <div class="flex gap-3">
+            <div class="relative">
+                <select class="appearance-none bg-white border border-gray-300 rounded-lg pl-3 pr-8 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 focus:border-purple-500 shadow-sm">
+                    <option>Last 7 days</option>
+                    <option selected>Last 30 days</option>
+                    <option>Last 90 days</option>
+                    <option>Last year</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+            <button class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center">
+                <i class="fas fa-plus mr-2"></i> New Campaign
+            </button>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <!-- Total Visitors -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Total Visitors</h3>
+            <div class="text-2xl font-bold text-purple-600">24,589</div>
+            <div class="mt-1 text-sm text-green-600 flex items-center">
+                <i class="fas fa-arrow-up mr-1"></i> 12.5% from last period
+            </div>
+        </div>
+
+        <!-- Conversion Rate -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Conversion Rate</h3>
+            <div class="text-2xl font-bold text-purple-600">3.2%</div>
+            <div class="mt-1 text-sm text-green-600 flex items-center">
+                <i class="fas fa-arrow-up mr-1"></i> 0.4% improvement
+            </div>
+        </div>
+
+        <!-- Cost Per Acquisition -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Cost Per Acquisition</h3>
+            <div class="text-2xl font-bold text-purple-600">$18.75</div>
+            <div class="mt-1 text-sm text-red-600 flex items-center">
+                <i class="fas fa-arrow-down mr-1"></i> 5.2% increase
+            </div>
+        </div>
+
+        <!-- ROI -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">ROI</h3>
+            <div class="text-2xl font-bold text-purple-600">4.8x</div>
+            <div class="mt-1 text-sm text-green-600 flex items-center">
+                <i class="fas fa-arrow-up mr-1"></i> 1.2x improvement
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Traffic Sources -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Traffic Sources</h3>
+                <div class="text-sm text-gray-500">
+                    Last 30 days
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="trafficSourcesChart"></canvas>
+            </div>
+            <div class="mt-4 flex justify-center space-x-4">
+                <div class="flex items-center">
+                    <span class="h-3 w-3 rounded-full mr-2 bg-purple-500"></span>
+                    <span class="text-xs text-gray-500">Organic</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="h-3 w-3 rounded-full mr-2 bg-blue-500"></span>
+                    <span class="text-xs text-gray-500">Social</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="h-3 w-3 rounded-full mr-2 bg-green-500"></span>
+                    <span class="text-xs text-gray-500">Email</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="h-3 w-3 rounded-full mr-2 bg-yellow-500"></span>
+                    <span class="text-xs text-gray-500">Referral</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campaign Performance -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Campaign Performance</h3>
+                <div class="text-sm text-gray-500">
+                    By conversion rate
+                </div>
+            </div>
+            <div class="h-80">
+                <canvas id="campaignPerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campaign Table -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow mb-8">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Active Campaigns</h3>
+            <button class="text-purple-600 hover:text-purple-800 text-sm font-medium">
+                View All Campaigns
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Impressions</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Clicks</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CTR</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Spend</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Summer Sale</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Active</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">245,678</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">12,345</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5.02%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$8,245</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="#" class="text-purple-600 hover:text-purple-900 mr-3">View</a>
+                            <a href="#" class="text-gray-600 hover:text-gray-900">Edit</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">New Collection</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">Active</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">189,234</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">9,876</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">5.22%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$6,543</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="#" class="text-purple-600 hover:text-purple-900 mr-3">View</a>
+                            <a href="#" class="text-gray-600 hover:text-gray-900">Edit</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Holiday Special</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">Paused</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">156,789</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">7,654</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">4.88%</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$5,432</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="#" class="text-purple-600 hover:text-purple-900 mr-3">View</a>
+                            <a href="#" class="text-gray-600 hover:text-gray-900">Edit</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Conversion Funnel -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Conversion Funnel</h3>
+        <div class="h-80">
+            <canvas id="conversionFunnelChart"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Traffic Sources Chart
+            new Chart(
+                document.getElementById('trafficSourcesChart').getContext('2d'),
+                {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Organic Search', 'Social Media', 'Email', 'Referral', 'Direct'],
+                        datasets: [{
+                            data: [35, 25, 20, 15, 5],
+                            backgroundColor: [
+                                '#8B5CF6',
+                                '#3B82F6',
+                                '#10B981',
+                                '#F59E0B',
+                                '#64748B'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            }
+                        },
+                        cutout: '70%'
+                    }
+                }
+            );
+
+            // Campaign Performance Chart
+            new Chart(
+                document.getElementById('campaignPerformanceChart').getContext('2d'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: ['Summer Sale', 'New Collection', 'Holiday Special', 'Flash Sale', 'Loyalty Program'],
+                        datasets: [{
+                            label: 'Conversion Rate',
+                            data: [5.2, 4.8, 3.9, 4.5, 6.1],
+                            backgroundColor: '#8B5CF6',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Conversion Rate (%)'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+
+            // Conversion Funnel Chart
+            new Chart(
+                document.getElementById('conversionFunnelChart').getContext('2d'),
+                {
+                    type: 'bar',
+                    data: {
+                        labels: ['Visitors', 'Add to Cart', 'Checkout', 'Purchases'],
+                        datasets: [{
+                            label: 'Conversion Steps',
+                            data: [10000, 3500, 1200, 850],
+                            backgroundColor: [
+                                'rgba(139, 92, 246, 0.7)',
+                                'rgba(139, 92, 246, 0.7)',
+                                'rgba(139, 92, 246, 0.7)',
+                                'rgba(139, 92, 246, 0.7)'
+                            ],
+                            borderColor: [
+                                '#8B5CF6',
+                                '#8B5CF6',
+                                '#8B5CF6',
+                                '#8B5CF6'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Users'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+        });
+    </script>
+}

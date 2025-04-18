@@ -84,5 +84,17 @@ namespace Clothes_Store.Controllers
             var model = await _productAnalyticsService.GetProductAnalytics(days);
             return View(model);
         }
+        public async Task<IActionResult> MarketingDashboard()
+        {
+            return View();
+        }
+        public async Task<IActionResult> FinancialDashboard()
+        {
+            return View();
+        }
+        public async Task<IActionResult> ReportsDashboard()
+        {
+            return View();
+        }
     }
 }
