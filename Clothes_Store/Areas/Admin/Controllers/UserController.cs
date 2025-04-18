@@ -110,6 +110,8 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 TempData["Error"] = "Oops! Something went wrong. Please try again.";
                 return NotFound();
             }
+            var userDevices = _db.UserDevices.Where(ud => ud.UserId == userId);
+            _db.UserDevices.RemoveRange(userDevices);
             _db.ApplicationUsers.Remove(obj);
             TempData["Success"] = $"User ('{obj.Name}') deleted successfully!";
             _db.SaveChanges();
