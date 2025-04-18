@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Clothes_Models.Models.Product>
+﻿@model IEnumerable<dynamic>
 
 @{
     var showSuccessMessage = TempData["AddToCartSuccess"] != null && (bool)TempData["AddToCartSuccess"];
@@ -7,7 +7,7 @@
 }
 
 <style>
-    /* Your existing notification styles remain the same */
+    /* Existing notification styles remain the same */
     .notification-container {
         position: fixed;
         top: 1.5rem;
@@ -213,7 +213,7 @@
                 font-size: 12px;
             }
 
-    .modal-actions {
+    ./modal-actions {
         display: flex;
         justify-content: flex-end;
         gap: 0.75rem;
@@ -270,6 +270,138 @@
             color: #066156;
             transform: scale(1.05);
         }
+
+    /* Pagination styles */
+    #pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin: 30px 0;
+        flex-wrap: wrap;
+    }
+
+        #pagination a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            padding: 0 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #088178;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            background-color: rgba(232, 246, 234, 0.3);
+            border: 1px solid rgba(8, 129, 120, 0.1);
+        }
+
+            #pagination a:hover:not(.active):not(.disabled) {
+                background-color: rgba(232, 246, 234, 0.7);
+                transform: translateY(-2px);
+                box-shadow: 0 2px 8px rgba(8, 129, 120, 0.15);
+            }
+
+            #pagination a.active {
+                background-color: #088178;
+                color: white;
+                font-weight: 600;
+                box-shadow: 0 4px 12px rgba(8, 129, 120, 0.25);
+                border: none;
+            }
+
+            #pagination a.disabled {
+                color: #c1c1c1;
+                background-color: #f9f9f9;
+                cursor: not-allowed;
+                border-color: #eee;
+            }
+
+        #pagination i {
+            font-size: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        #pagination a:hover:not(.disabled) i {
+            transform: scale(1.2);
+        }
+
+    /* Loading spinner - Enhanced */
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 30px 0;
+        margin: 20px 0;
+    }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+    .spinner {
+        position: relative;
+        width: 40px;
+        height: 40px;
+        margin: 0 auto;
+    }
+
+        .spinner:before,
+        .spinner:after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .spinner:before {
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgba(232, 246, 234, 0.8);
+        }
+
+        .spinner:after {
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: #088178;
+            border-bottom-color: #088178;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        0%
+
+    {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        #pagination
+
+    {
+        gap: 6px;
+    }
+
+    #pagination a {
+        min-width: 36px;
+        height: 36px;
+        padding: 0 8px;
+        font-size: 0.9rem;
+    }
+
+    .spinner {
+        width: 32px;
+        height: 32px;
+    }
+
+    }
 </style>
 
 <!-- Notification Container -->
@@ -308,7 +440,7 @@
     <div class="size-modal">
         <div class="modal-header">
             <h3 class="modal-title">Select Size</h3>
-            <button class="close-modal" onclick="hideSizeModal()">&times;</button>
+            <button class="close-modal" onclick="hideSizeModal()">×</button>
         </div>
         <div class="size-options" id="sizeOptionsContainer">
             <!-- Size options will be populated dynamically -->
@@ -329,29 +461,15 @@
     <h2>Featured Products</h2>
     <p>Summer Collection New Modern Design</p>
 
-    <div class="pro-container">
+    <!-- Product List Container -->
+    <div id="productContainer" class="pro-container">
         @foreach (var product in Model)
         {
-            // Get available sizes for this product
-            var availableSizes = product.Stocks?
-            .Where(s => s.Quantity > 0)
-            .Select(s => s.Size)
-            .Distinct()
-            .OrderBy(s => s)
-            .ToList();
-
-            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { id = product.Product_Id })';">
-                <!-- Product Image -->
+            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
                 <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
-
                 <div class="des">
-                    <!-- Product Brand -->
-                    <span class="product-brand">@product.Brand.Brand_Name</span>
-
-                    <!-- Product Name / Description -->
-                    <h5 class="product-description">@product.Product_Description</h5>
-
-                    <!-- Product Rating -->
+                    <span class="product-brand">@product.BrandName</span>
+                    <h5 class="product-description">@product.Product_Name</h5>
                     <div class="star">
                         @for (int i = 0; i < product.Product_Rating; i++)
                         {
@@ -362,17 +480,11 @@
                             <i class="far fa-star"></i>
                         }
                     </div>
-
-                    <!-- Product Price -->
                     <h4 class="product-price">$@product.Product_Price</h4>
                 </div>
-
-                <!-- Add to Cart Button -->
                 <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
                     <i class="fal fa-shopping-cart"></i>
                 </div>
-
-                <!-- Hidden form that will be submitted after size selection -->
                 <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="productId" value="@product.Product_Id" />
@@ -382,22 +494,25 @@
             </div>
         }
     </div>
+
+    <!-- Loading Spinner -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+    </div>
 </section>
 
 <section id="pagination" class="section-p1">
-    <a href="#">1</a>
-    <a href="#">2</a>
-    <a href="#"><i class="fal fa-long-arrow-alt-right"></i></a>
+    <!-- Pagination will be populated dynamically -->
 </section>
 
 <section id="newsletter" class="section-p1 section-m1">
     <div class="newstext">
-        <h4> Sign Up For Newsletter</h4>
-        <p> Get E-mail updates about our latest shop and <span>special offers</span></p>
+        <h4>Sign Up For Newsletter</h4>
+        <p>Get E-mail updates about our latest shop and <span>special offers</span></p>
     </div>
     <div class="form">
         <input type="text" placeholder="Your Email Address">
-        <button class="normal"> Sign Up</button>
+        <button class="normal">Sign Up</button>
     </div>
 </section>
 
@@ -412,14 +527,11 @@
         selectedSize = null;
         document.getElementById('confirmAddToCart').disabled = true;
 
-        // Show loading state
         const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
         sizeOptionsContainer.innerHTML = '<p>Loading sizes...</p>';
 
-        // Show modal immediately
         document.getElementById('sizeModal').classList.add('active');
 
-        // Fetch available sizes from server
         fetch(`/Customer/Home/GetProductSizes?productId=${productId}`)
             .then(response => response.json())
             .then(data => {
@@ -436,18 +548,13 @@
 
     function updateSizeOptions(availableSizes) {
         const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
-
-        // Clear previous options
         sizeOptionsContainer.innerHTML = '';
 
-        // Check if product is out of stock
         if (!availableSizes || availableSizes.length === 0) {
             sizeOptionsContainer.innerHTML = '<p class="text-red-500 col-span-3">This product is currently out of stock</p>';
             document.getElementById('confirmAddToCart').disabled = true;
         } else {
-            // Create size options
-            const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL']; // Standard sizes
-
+            const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
             allSizes.forEach(size => {
                 const isAvailable = availableSizes.includes(size);
                 const sizeOption = document.createElement('div');
@@ -456,13 +563,8 @@
                 sizeOption.dataset.size = size;
 
                 if (isAvailable) {
-                    sizeOption.addEventListener('click', function() {
-                        // Remove active class from all options
-                        document.querySelectorAll('.size-option').forEach(opt => {
-                            opt.classList.remove('active');
-                        });
-
-                        // Add active class to clicked option
+                    sizeOption.addEventListener('click', function () {
+                        document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
                         this.classList.add('active');
                         selectedSize = this.dataset.size;
                         document.getElementById('confirmAddToCart').disabled = false;
@@ -474,65 +576,52 @@
         }
     }
 
-    // Hide size selection modal
     function hideSizeModal() {
         document.getElementById('sizeModal').classList.remove('active');
     }
 
-    // AJAX form submission
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         // Confirm add to cart button
-        document.getElementById('confirmAddToCart').addEventListener('click', function() {
+        document.getElementById('confirmAddToCart').addEventListener('click', function () {
             if (currentProductId && selectedSize) {
-                // Set the size value in the hidden input
                 document.getElementById(`size-${currentProductId}`).value = selectedSize;
-
-                // Get the form for this product
                 const form = document.querySelector(`.add-to-cart-form[data-product-id="${currentProductId}"]`);
                 const formData = new FormData(form);
-                const button = form.querySelector('button[type="submit"]');
 
-                // Hide the modal
                 hideSizeModal();
 
-                fetch('@Url.Action("AddToCart", "Cart")', {
+                fetch('@Url.Action("AddToCart", "Cart", new { area = "Customer" })', {
                     method: 'POST',
                     body: formData,
                     headers: {
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                     }
                 })
-                .then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                    throw new Error('Network response was not ok.');
-                })
-                .then(data => {
-                    showNotification(data.success, data.message);
-                    if (data.success) {
-                        // Add bounce effect to the cart button
-                        const cartButton = document.querySelector(`.pro-cart-button[onclick*="${currentProductId}"]`);
-                        if (cartButton) {
-                            cartButton.classList.add('bounce-effect');
-                            setTimeout(() => {
-                                cartButton.classList.remove('bounce-effect');
-                            }, 1000);
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
                         }
-
-                        // Update cart count in navbar if you have one
-                        if (data.cartCount !== undefined) {
-                            updateCartCount(data.cartCount);
+                        throw new Error('Network response was not ok.');
+                    })
+                    .then(data => {
+                        showNotification(data.success, data.message);
+                        if (data.success) {
+                            const cartButton = document.querySelector(`.pro-cart-button[onclick*="${currentProductId}"]`);
+                            if (cartButton) {
+                                cartButton.classList.add('bounce-effect');
+                                setTimeout(() => cartButton.classList.remove('bounce-effect'), 1000);
+                            }
+                            if (data.cartCount !== undefined) {
+                                updateCartCount(data.cartCount);
+                            }
                         }
-                    }
-                })
-                .catch(error => {
-                    showNotification(false, 'An error occurred while adding to cart');
-                });
+                    })
+                    .catch(error => {
+                        showNotification(false, 'An error occurred while adding to cart');
+                    });
             }
         });
 
-        // Function to update cart count in navbar (if you have one)
         function updateCartCount(count) {
             const cartCountElement = document.querySelector('.cart-count');
             if (cartCountElement) {
@@ -541,7 +630,6 @@
             }
         }
 
-        // Notification functions
         function showNotification(isSuccess, message) {
             const notificationContainer = document.querySelector('.notification-container');
             const notificationId = 'notification-' + Date.now();
@@ -564,17 +652,10 @@
             notificationContainer.insertAdjacentHTML('beforeend', notificationHTML);
             const notification = document.getElementById(notificationId);
 
-            // Show notification
-            setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
+            setTimeout(() => notification.classList.add('show'), 100);
 
-            // Auto-hide after 3 seconds
-            const autoHide = setTimeout(() => {
-                hideNotification(notificationId);
-            }, 3000);
+            const autoHide = setTimeout(() => hideNotification(notificationId), 3000);
 
-            // Pause on hover
             notification.addEventListener('mouseenter', () => {
                 clearTimeout(autoHide);
                 notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
@@ -586,36 +667,136 @@
                 const remainingTime = remainingWidth * 3000;
 
                 progressBar.style.animationPlayState = 'running';
-                setTimeout(() => {
-                    hideNotification(notificationId);
-                }, remainingTime);
+                setTimeout(() => hideNotification(notificationId), remainingTime);
             });
         }
 
-        window.hideNotification = function(id) {
-            const notification = document.getElementById(id);
+        window.hideNotification = function (id) {
+            const notification = document.getElementOfId(id);
             if (notification) {
                 notification.classList.remove('show');
                 notification.classList.add('hide');
-
-                setTimeout(() => {
-                    notification.remove();
-                }, 500);
+                setTimeout(() => notification.remove(), 500);
             }
         };
-    });
 
-    // Close modal when clicking outside of it
-    document.getElementById('sizeModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            hideSizeModal();
+        // Pagination JavaScript
+        const pageSize = @ViewBag.PageSize;
+        let currentPage = @ViewBag.CurrentPage;
+        let totalPages = @ViewBag.TotalPages;
+
+        function renderProduct(product) {
+            const stars = Array(5).fill().map((_, i) =>
+                i < product.product_Rating
+                    ? '<i class="fas fa-star"></i>'
+                    : '<i class="far fa-star"></i>'
+            ).join('');
+
+            return `
+                <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer" })?id=${product.product_Id}'">
+                    <img src="${product.imgUrl}" alt="${product.product_Name}" class="product-img">
+                    <div class="des">
+                        <span class="product-brand">${product.brandName}</span>
+                        <h5 class="product-description">${product.product_Name}</h5>
+                        <div class="star">${stars}</div>
+                        <h4 class="product-price">$${product.product_Price}</h4>
+                    </div>
+                    <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(${product.product_Id})">
+                        <i class="fal fa-shopping-cart"></i>
+                    </div>
+                    <form class="add-to-cart-form" data-product-id="${product.product_Id}" style="display: none;">
+                        <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]').value}" />
+                        <input type="hidden" name="productId" value="${product.product_Id}" />
+                        <input type="hidden" name="quantity" value="1" />
+                        <input type="hidden" name="size" id="size-${product.product_Id}" value="" />
+                    </form>
+                </div>
+            `;
         }
-    });
 
-    // Prevent product click when clicking cart button
-    document.querySelectorAll('.pro-cart-button').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation();
+        function renderProducts(products) {
+            const productContainer = document.getElementById('productContainer');
+            productContainer.innerHTML = products.map(renderProduct).join('');
+            attachCartButtonListeners();
+        }
+
+        function renderPagination() {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+
+            const prevLink = document.createElement('a');
+            prevLink.innerHTML = '<i class="fal fa-long-arrow-alt-left"></i>';
+            prevLink.className = currentPage === 1 ? 'disabled' : '';
+            prevLink.addEventListener('click', () => {
+                if (currentPage > 1) loadPage(currentPage - 1);
+            });
+            paginationContainer.appendChild(prevLink);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageLink = document.createElement('a');
+                pageLink.textContent = i;
+                pageLink.className = i === currentPage ? 'active' : '';
+                pageLink.addEventListener('click', () => loadPage(i));
+                paginationContainer.appendChild(pageLink);
+            }
+
+            const nextLink = document.createElement('a');
+            nextLink.innerHTML = '<i class="fal fa-long-arrow-alt-right"></i>';
+            nextLink.className = currentPage === totalPages ? 'disabled' : '';
+            nextLink.addEventListener('click', () => {
+                if (currentPage < totalPages) loadPage(currentPage + 1);
+            });
+            paginationContainer.appendChild(nextLink);
+        }
+
+        function loadPage(page) {
+            const productContainer = document.getElementById('productContainer');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+
+            loadingSpinner.classList.add('active');
+            productContainer.style.opacity = '0.5';
+
+            fetch(`@Url.Action("Shop", "Home", new { area = "Customer" })?page=${page}&pageSize=${pageSize}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    renderProducts(data.products);
+                    currentPage = data.currentPage;
+                    totalPages = data.totalPages;
+                    renderPagination();
+                    loadingSpinner.classList.remove('active');
+                    productContainer.style.opacity = '1';
+                })
+                .catch(error => {
+                    console.error('Error loading page:', error);
+                    loadingSpinner.classList.remove('active');
+                    productContainer.style.opacity = '1';
+                    showNotification(false, 'Error loading products');
+                });
+        }
+
+        function attachCartButtonListeners() {
+            document.querySelectorAll('.pro-cart-button').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const productId = this.getAttribute('onclick').match(/\d+/)[0];
+                    showSizeModal(productId);
+                });
+            });
+        }
+
+        // Initial setup
+        renderPagination();
+        attachCartButtonListeners();
+
+        // Close modal when clicking outside
+        document.getElementById('sizeModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                hideSizeModal();
+            }
         });
     });
 </script>

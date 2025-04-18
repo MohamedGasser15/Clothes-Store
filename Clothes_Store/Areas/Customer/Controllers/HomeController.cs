@@ -31,14 +31,54 @@ namespace Clothes_Store.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Shop()
+        public async Task<IActionResult> Shop(int page = 1, int pageSize = 8)
         {
-            // Retrieve all products including their Brand details
-            var products = await _db.Products
-                                    .Include(p => p.Brand) // Include Brand to get Brand Name
-                                    .ToListAsync();
+            var productsQuery = _db.Products
+                                   .Include(p => p.Brand)
+                                   .OrderBy(p => p.Product_Id);
 
-            return View(products); // Pass the list of products to the Shop view
+            var totalProducts = await productsQuery.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
+            page = Math.Max(1, page);
+            page = Math.Min(page, totalPages);
+
+            var products = await productsQuery
+                                 .Skip((page - 1) * pageSize)
+                                 .Take(pageSize)
+                                 .Select(p => new
+                                 {
+                                     p.Product_Id,
+                                     p.Product_Name,
+                                     p.imgUrl,
+                                     BrandName = p.Brand.Brand_Name,
+                                     p.Product_Rating,
+                                     p.Product_Price,
+                                     AvailableSizes = p.Stocks
+                                         .Where(s => s.Quantity > 0)
+                                         .Select(s => s.Size)
+                                         .Distinct()
+                                         .OrderBy(s => s)
+                                         .ToList()
+                                 })
+                                 .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalProducts = totalProducts;
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new
+                {
+                    products,
+                    currentPage = page,
+                    totalPages,
+                    pageSize
+                });
+            }
+
+            return View(products);
         }
 
         public async Task<IActionResult> Details(int id)
