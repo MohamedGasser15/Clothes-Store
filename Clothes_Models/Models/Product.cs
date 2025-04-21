@@ -13,19 +13,29 @@ namespace Clothes_Models.Models
     {
         [Key]
         public int Product_Id { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "Product name is required")]
+        [StringLength(100, ErrorMessage = "Product name cannot exceed 100 characters")]
         public string Product_Name { get; set; }
         public string Product_Description { get; set; }
+
+        [Required(ErrorMessage = "Price is required")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Price must be greater than 0")]
         public decimal Product_Price { get; set; }
+        [Required(ErrorMessage = "Product image is required")]
         public string imgUrl { get; set; }
         public int Product_Rating { get; set; }
+
+        [Required(ErrorMessage = "Color is required")]
         public string Product_Color { get; set; }
 
         [ForeignKey("Category")]
+        [Required(ErrorMessage = "Category is required")]
         public int Category_Id { get; set; }
         public Category Category { get; set; }
 
         [ForeignKey("Brand")]
+        [Required(ErrorMessage = "Brand is required")]
         public int brand_Id { get; set; }
         public Brand Brand { get; set; }
 
