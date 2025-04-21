@@ -9,45 +9,44 @@
     }
 }
 
-<div class="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-    <form method="post" class="bg-white shadow-xl rounded-xl overflow-hidden">
+<div class="max-w-4xl mx-auto py-4 md:py-8 px-4 sm:px-6 lg:px-8">
+    <form method="post" class="bg-white shadow-md md:shadow-xl rounded-lg md:rounded-xl overflow-hidden">
         <input type="hidden" asp-for="Category_Id" />
 
         <!-- Form Header -->
-        <div class="bg-gradient-to-r from-primary to-primary-dark px-6 py-5 border-b border-gray-200">
-            <h2 class="text-2xl font-bold text-white">@title</h2>
+        <div class="bg-gradient-to-r from-primary to-primary-dark px-4 md:px-6 py-3 md:py-5 border-b border-gray-200">
+            <h2 class="text-xl md:text-2xl font-bold text-white">@title</h2>
         </div>
 
         <!-- Form Content -->
-        <div class="p-6 sm:p-8">
-            <div asp-validation-summary="ModelOnly" class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 text-red-700">
+        <div class="p-4 sm:p-6 md:p-8">
+            <div asp-validation-summary="ModelOnly" class="mb-4 p-3 md:p-4 bg-red-50 border-l-4 border-red-500 text-red-700 text-sm">
                 <i class="fas fa-exclamation-circle mr-2"></i> Please fix the errors below
             </div>
 
             <!-- Category Name Field -->
-            <div class="mb-6">
-                <label asp-for="Category_Name" class="block text-sm font-medium text-gray-700 mb-2">
+            <div class="mb-4 md:mb-6">
+                <label asp-for="Category_Name" class="block text-sm md:text-base font-medium text-gray-700 mb-1 md:mb-2">
                     Category Name <span class="text-red-500">*</span>
                 </label>
-                <div class="relative rounded-lg border-2">
+                <div class="relative rounded-md md:rounded-lg border-2">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <i class="fas fa-list text-gray-400"></i>
+                        <i class="fas fa-list text-gray-400 text-sm"></i>
                     </div>
                     <input asp-for="Category_Name"
-                           class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-10 pr-3 py-3 sm:text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
+                           class="focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary block w-full pl-9 md:pl-10 pr-3 py-2 md:py-3 text-sm border-gray-300 rounded-md transition duration-150 ease-in-out"
                            placeholder="Enter category name">
                 </div>
-                <span asp-validation-for="Category_Name" class="mt-2 text-sm text-red-600">
-                </span>
+                <span asp-validation-for="Category_Name" class="mt-1 md:mt-2 text-xs md:text-sm text-red-600"></span>
             </div>
 
             <!-- Form Actions -->
-            <div class="mt-8 flex flex-col sm:flex-row justify-end space-y-3 sm:space-y-0 sm:space-x-4">
-                <a asp-action="Index" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none">
-                    <i class="fas fa-arrow-left mr-2"></i> Back to List
+            <div class="mt-6 md:mt-8 flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
+                <a asp-action="Index" class="inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all">
+                    <i class="fas fa-arrow-left mr-1 md:mr-2"></i> Back to List
                 </a>
-                <button type="submit" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 transform hover:scale-105">
-                    <i class="fas @(Model.Category_Id != 0 ? "fa-save" : "fa-plus") mr-2"></i> @actionText Category
+                <button type="submit" class="inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-all duration-200 transform hover:scale-105">
+                    <i class="fas @(Model.Category_Id != 0 ? "fa-save" : "fa-plus") mr-1 md:mr-2"></i> @actionText Category
                 </button>
             </div>
         </div>

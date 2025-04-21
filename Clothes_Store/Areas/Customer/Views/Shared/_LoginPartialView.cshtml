@@ -1,4 +1,9 @@
-﻿@using Clothes_Models.Models
+﻿<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.1/dist/flowbite.min.css" rel="stylesheet">
+<script src="https://kit.fontawesome.com/87ba71bd3b.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" />
+
+@using Clothes_Models.Models
 @using Microsoft.AspNetCore.Identity
 
 @inject SignInManager<ApplicationUser> _signInManager
@@ -6,151 +11,137 @@
 @{
     var user = await UserManager.GetUserAsync(User);
 }
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<div class="dropdown m-auto text-center p-auto">
-    <button class="btn p-0 border-0 position-relative custom-focus" type="button"
-            id="userDropdown" data-bs-toggle="dropdown"
-            aria-expanded="false">
+<div class="relative inline-block text-center">
+    <button id="userDropdown" class="p-0 border-0 focus:outline-none" aria-expanded="false">
         @if (user != null)
         {
-            <img src="https://api.dicebear.com/7.x/initials/svg?seed=@(user.Name?[0])&backgroundColor=088178&textColor=ffffff"
-                 class="rounded-circle rotate-on-focus"
-                 width="36" height="36" alt="User">
+            <img src="https://api.dicebear.com/7.x/initials/svg?seed=@(user.Name?[0])&backgroundColor=088170&textColor=ffffff"
+                 class="rounded-full w-9 h-9 transition-transform duration-300 hover:rotate-[15deg]" alt="User">
         }
     </button>
 
-    <ul class="dropdown-menu dropdown-menu-end shadow-lg rounded-2" style="min-width: 240px; border-radius: 12px !important;" aria-labelledby="userDropdown">
-        <li class="dropdown-header px-3 py-2 rounded-top-2" style="background: linear-gradient(to right, #f0fdf4, white);">
-            <h6 class="mb-0 text-success">
+    <ul id="dropdownMenu" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-xl border border-gray-100 hidden opacity-0 transform -translate-y-2 transition-all duration-300 z-50">
+        <li class="px-4 py-3 rounded-t-xl bg-gradient-to-r from-green-50 to-white">
+            <h6 class="mb-0 text-[#088170] font-bold flex items-center">
                 @user?.Name
-                <span class="badge bg-success ms-1 animate-pulse" style="animation: pulse 2s infinite;">Online</span>
+                <span class="ml-2 bg-green-500 text-white text-xs font-semibold px-2 py-1 rounded-full animate-pulse">Online</span>
             </h6>
-            <small class="text-muted d-block text-truncate" style="max-width: 200px;">@user?.Email</small>
+            <small class="text-gray-500 block truncate max-w-[200px]">@user?.Email</small>
         </li>
 
-        <li><hr class="dropdown-divider my-1 mx-3" style="border-color: #e9ecef;"></li>
+        <li><hr class="my-1 mx-0 border-gray-200"></li>
 
         @if (User.IsInRole("Admin"))
         {
             <li>
-                <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Admin" asp-controller="Analytics" asp-action="Index">
-                    <i class="fas fa-user-shield me-2 text-success"></i>
+                <a class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#088170] rounded-lg mx-1.5 transition-all duration-300 hover:translate-x-1" asp-area="Admin" asp-controller="Analytics" asp-action="Index">
+                    <i class="fas fa-user-shield mr-2 text-[#088170] hover:scale-125 transition-transform duration-300"></i>
                     Admin
-                    <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+                    <i class="fas fa-chevron-right ml-auto text-gray-400 text-xs"></i>
                 </a>
             </li>
         }
 
-        <!-- Enhanced Cart Item with Counter -->
         <li>
-            <a class="dropdown-item py-2 px-3 hover-effect rounded-1 position-relative pe-4" asp-area="Customer" asp-controller="Cart" asp-action="Index">
-                <i class="fas fa-shopping-cart me-2 text-success"></i>
+            <a class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#088170] rounded-lg mx-1.5 transition-all duration-300 hover:translate-x-1 relative" asp-area="Customer" asp-controller="Cart" asp-action="Index">
+                <i class="fas fa-shopping-cart mr-2 text-[#088170] hover:scale-125 transition-transform duration-300"></i>
                 My Cart
-                <span class="position-absolute end-0 me-3 top-50 translate-middle-y badge rounded-pill bg-danger"
-                      style="font-size: 0.65rem; min-width: 1.25rem; padding: 0.25em 0.5em; margin-top: -1px;">
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[1.25rem] transition-transform duration-300 hover:scale-110">
                     @(ViewBag.CartItemCount ?? 0)
                 </span>
             </a>
         </li>
 
         <li>
-            <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Customer" asp-controller="Profile" asp-action="Index">
-                <i class="fas fa-user-circle me-2 text-success"></i>
+            <a class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#088170] rounded-lg mx-1.5 transition-all duration-300 hover:translate-x-1" asp-area="Customer" asp-controller="Profile" asp-action="Index">
+                <i class="fas fa-user-circle mr-2 text-[#088170] hover:scale-125 transition-transform duration-300"></i>
                 My Profile
-                <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+                <i class="fas fa-chevron-right ml-auto text-gray-400 text-xs"></i>
             </a>
         </li>
 
         <li>
-            <a class="dropdown-item py-2 px-3 hover-effect rounded-1" asp-area="Customer" asp-controller="Setting" asp-action="Index">
-                <i class="fas fa-cog me-2 text-success"></i>
+            <a class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#088170] rounded-lg mx-1.5 transition-all duration-300 hover:translate-x-1" asp-area="Customer" asp-controller="Setting" asp-action="Index">
+                <i class="fas fa-cog mr-2 text-[#088170] hover:scale-125 transition-transform duration-300"></i>
                 Settings
-                <i class="fas fa-chevron-right ms-auto text-muted small"></i>
+                <i class="fas fa-chevron-right ml-auto text-gray-400 text-xs"></i>
             </a>
         </li>
 
-        <li><hr class="dropdown-divider my-1 mx-3" style="border-color: #e9ecef;"></li>
+        <li><hr class="my-1 mx-0 border-gray-200"></li>
 
         <li>
             <form asp-area="Customer" asp-controller="Account" asp-action="Logout" method="post">
-                <button type="submit" class="dropdown-item py-2 px-3 hover-effect rounded-1 w-100 text-start">
-                    <i class="fas fa-sign-out-alt me-2 text-success"></i>
+                <button type="submit" class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-[#088170] rounded-lg mx-1.5 w-full transition-all duration-300 hover:translate-x-1">
+                    <i class="fas fa-sign-out-alt mr-2 text-[#088170] hover:scale-125 transition-transform duration-300"></i>
                     Sign Out
                 </button>
             </form>
         </li>
     </ul>
 </div>
+
 <style>
-    .custom-focus {
-        outline: none !important;
-        box-shadow: none !important;
-        transition: none !important;
-    }
-
-    .rotate-on-focus {
-        transition: transform 0.3s ease;
-    }
-
-    .custom-focus:focus .rotate-on-focus,
-    .custom-focus[aria-expanded="true"] .rotate-on-focus {
-        transform: rotate(15deg);
-    }
-
-    .hover-effect {
-        transition: all 0.3s ease;
-        border-radius: 8px;
-        margin: 2px 6px;
-    }
-
-        .hover-effect:hover {
-            background-color: #f8f9fa !important;
-            color: #088178 !important;
-            transform: translateX(4px);
-        }
-
-            .hover-effect:hover i:first-child {
-                transform: scale(1.2);
-                color: #088178 !important;
-            }
-
-    .animate-pulse {
-        animation: pulse 2s infinite;
-    }
-
     @@keyframes pulse {
-        0% {
+        0%, 100% {
             opacity: 1;
+            transform: scale(1);
         }
 
         50% {
-            opacity: 0.5;
-        }
-
-        100% {
-            opacity: 1;
+            opacity: 0.7;
+            transform: scale(0.95);
         }
     }
 
-    /* Enhanced dropdown styling */
-    .dropdown-menu {
-        border: 1px solid rgba(0,0,0,0.1);
-        padding: 0.5rem 0;
+    .animate-pulse {
+        animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
     }
 
-    .dropdown-item {
-        padding: 0.5rem 1.25rem;
-        margin: 0.15rem 0.5rem;
-    }
-
-    /* Cart badge animation */
-    .badge.bg-danger {
-        transition: all 0.3s ease;
-    }
-
-    .hover-effect:hover .badge.bg-danger {
-        transform: scale(1.1);
-        background-color: #dc3545 !important;
+    #dropdownMenu.show {
+        opacity: 1;
+        transform: translateY(0);
+        display: block;
     }
 </style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const dropdownToggle = document.getElementById('userDropdown');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+
+        function toggleDropdown() {
+            const isShown = dropdownMenu.classList.contains('show');
+            if (!isShown) {
+                dropdownMenu.classList.remove('hidden');
+                // Force reflow to enable transition
+                void dropdownMenu.offsetWidth;
+                dropdownMenu.classList.add('show');
+                dropdownToggle.setAttribute('aria-expanded', 'true');
+            } else {
+                dropdownMenu.classList.remove('show');
+                setTimeout(() => {
+                    dropdownMenu.classList.add('hidden');
+                }, 300);
+                dropdownToggle.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        dropdownToggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleDropdown();
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!dropdownToggle.contains(event.target) && !dropdownMenu.contains(event.target)) {
+                dropdownMenu.classList.remove('show');
+                setTimeout(() => {
+                    dropdownMenu.classList.add('hidden');
+                }, 300);
+                dropdownToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
+</script>

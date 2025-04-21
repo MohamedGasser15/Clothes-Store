@@ -71,7 +71,7 @@
                 }
         }
 
-        /* Notification styles - same as product details page */
+        /* Notification styles */
         .notification-container {
             position: fixed;
             top: 1.5rem;
@@ -152,12 +152,82 @@
                 transform: scaleX(1);
             }
         }
+
+        /* Loading animation styles from _Layout.cshtml */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+            #loading.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+        .loading-text {
+            color: #088178;
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: #088178;
+            border-radius: 50%;
+            margin: 0 6px;
+            animation: jump 0.8s infinite alternate;
+        }
+
+            .dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+            .dot:nth-child(4) {
+                animation-delay: 0.6s;
+            }
+
+        @@keyframes jump {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-15px);
+            }
+        }
     </style>
     @RenderSection("Styles", required: false)
 </head>
 <body class="bg-gray-50">
+    <!-- Loading animation -->
+    <div id="loading">
+        <span class="loading-text">Loading</span>
+        <div class="flex">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
     <div class="lg:hidden bg-white shadow p-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold text-primary"> Cara Store</h1>
+        <img class="h-16 w-auto" src="~/img/logo9.png" alt="Clothes Store">
         <button id="menuToggle" class="text-gray-600">
             <i class="fas fa-bars text-2xl"></i>
         </button>
@@ -167,11 +237,11 @@
         <div id="mobileMenu" class="mobile-menu lg:transform-none fixed lg:static inset-y-0 left-0 w-64 bg-white shadow-lg z-50 lg:z-auto">
             <div class="p-4 border-b border-gray-200">
                 <h1 class="text-xl font-bold text-primary flex items-center">
-                    <i class="fas fa-store mr-2"></i> Cara Store
+                    <img class="h-15 w-auto" src="~/img/logo9.png" alt="Clothes Store">
                 </h1>
             </div>
             <nav class="mt-4">
-                <a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@IsActive("Analytics","Index","UserDashboard" , "OrderDashboard" , "ProductDashboard" ,"MarketingDashboard","FinancialDashboard","ReportsDashboard")block py-2 px-4 text-gray-600 hover:bg-gray-100">
+                <a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="@IsActive("Analytics","Index","UserDashboard" , "OrderDashboard" , "ProductDashboard" ,"MarketingDashboard","FinancialDashboard","ReportsDashboard")">
                     <i class="fas fa-chart-line mr-2"></i> Analytics
                 </a>
                 <a asp-area="Admin" asp-controller="Product" asp-action="Index" class="@IsActive("Product","Index","Upsert")">
@@ -187,7 +257,7 @@
                     <i class="fas fa-user mr-2"></i> Users
                 </a>
                 <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="@IsActive("Order","Index","Details")">
-                    <i class="fas fa-shopping-bag mr-3"></i> Order Managment
+                    <i class="fas fa-shopping-bag mr-3"></i> Order Management
                 </a>
                 <a asp-area="Customer" asp-controller="Home" asp-action="Home" class="@IsActive("Home","Home")">
                     <i class="fas fa-house mr-2"></i> Homepage
@@ -227,10 +297,11 @@
             @RenderBody()
         </div>
     </div>
+
     @RenderSection("Scripts", required: false)
-    <!-- notifications js -->
+
     <script>
-                document.getElementById('menuToggle').addEventListener('click', function() {
+        document.getElementById('menuToggle').addEventListener('click', function() {
             document.getElementById('mobileMenu').classList.toggle('active');
             document.getElementById('overlay').classList.toggle('hidden');
         });
@@ -239,62 +310,62 @@
             document.getElementById('mobileMenu').classList.remove('active');
             this.classList.add('hidden');
         });
-            // Initialize
-        document.addEventListener('DOMContentLoaded', init);
-         // Notification functions
-                    // In your Scripts section
-            document.addEventListener('DOMContentLoaded', function() {
-                // Show success notification if exists
-                const successNotification = document.getElementById('successNotification');
-                if (successNotification) {
-                    showNotification(successNotification);
-                }
 
-                // Show error notification if exists
-                const errorNotification = document.getElementById('errorNotification');
-                if (errorNotification) {
-                    showNotification(errorNotification);
-                }
-            });
+        // Loading animation from _Layout.cshtml
+        window.addEventListener('load', function () {
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+            }, 1000);
+        });
 
-            function showNotification(notification) {
-                notification.classList.add('show');
-
-                // Auto-hide after 5 seconds (longer for errors)
-                const hideTime = notification.classList.contains('error') ? 5000 : 3000;
-                const autoHide = setTimeout(() => {
-                    hideNotification(notification.id);
-                }, hideTime);
-
-                // Pause on hover
-                notification.addEventListener('mouseenter', () => {
-                    clearTimeout(autoHide);
-                    notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
-                });
-
-                notification.addEventListener('mouseleave', () => {
-                    const progressBar = notification.querySelector('.notification-progress-bar');
-                    const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
-                    const remainingTime = remainingWidth * hideTime;
-
-                    progressBar.style.animationPlayState = 'running';
-                    setTimeout(() => {
-                        hideNotification(notification.id);
-                    }, remainingTime);
-                });
+        // Notification functions
+        document.addEventListener('DOMContentLoaded', function() {
+            const successNotification = document.getElementById('successNotification');
+            if (successNotification) {
+                showNotification(successNotification);
             }
 
-            window.hideNotification = function(id) {
-                const notification = document.getElementById(id);
-                if (notification) {
-                    notification.classList.remove('show');
-                    notification.classList.add('hide');
+            const errorNotification = document.getElementById('errorNotification');
+            if (errorNotification) {
+                showNotification(errorNotification);
+            }
+        });
 
-                    setTimeout(() => {
-                        notification.remove();
-                    }, 500);
-                }
-            };
+        function showNotification(notification) {
+            notification.classList.add('show');
+
+            const hideTime = notification.classList.contains('error') ? 5000 : 3000;
+            const autoHide = setTimeout(() => {
+                hideNotification(notification.id);
+            }, hideTime);
+
+            notification.addEventListener('mouseenter', () => {
+                clearTimeout(autoHide);
+                notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
+            });
+
+            notification.addEventListener('mouseleave', () => {
+                const progressBar = notification.querySelector('.notification-progress-bar');
+                const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
+                const remainingTime = remainingWidth * hideTime;
+
+                progressBar.style.animationPlayState = 'running';
+                setTimeout(() => {
+                    hideNotification(notification.id);
+                }, remainingTime);
+            });
+        }
+
+        window.hideNotification = function(id) {
+            const notification = document.getElementById(id);
+            if (notification) {
+                notification.classList.remove('show');
+                notification.classList.add('hide');
+                setTimeout(() => {
+                    notification.remove();
+                }, 500);
+            }
+        };
     </script>
 </body>
 </html>

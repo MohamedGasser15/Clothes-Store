@@ -7,7 +7,7 @@
 }
 
 <style>
-    /* Existing notification styles remain the same */
+    /* Notification styles */
     .notification-container {
         position: fixed;
         top: 1.5rem;
@@ -213,7 +213,7 @@
                 font-size: 12px;
             }
 
-    ./modal-actions {
+    .modal-actions {
         display: flex;
         justify-content: flex-end;
         gap: 0.75rem;
@@ -369,82 +369,171 @@
         }
 
     @@keyframes spin {
-        0%
+        0% {
+            transform: rotate(0deg);
+        }
 
-    {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
-
+        100% {
+            transform: rotate(360deg);
+        }
     }
 
     /* Responsive adjustments */
     @@media (max-width: 768px) {
-        #pagination
+        #pagination {
+            gap: 6px;
+        }
 
-    {
-        gap: 6px;
+            #pagination a {
+                min-width: 36px;
+                height: 36px;
+                padding: 0 8px;
+                font-size: 0.9rem;
+            }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+        }
+    }
+    /* Quantity Selector Styles */
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        justify-content: center;
     }
 
-    #pagination a {
-        min-width: 36px;
-        height: 36px;
-        padding: 0 8px;
-        font-size: 0.9rem;
+    .quantity-label {
+        margin-right: 1rem;
+        font-weight: 500;
+        color: #333;
+        font-size: 0.95rem;
     }
 
-    .spinner {
-        width: 32px;
-        height: 32px;
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        border: 1px solid #cce7d0;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background-color: #f8f9fa;
     }
 
+    .quantity-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        background-color: #e8f6ea;
+        border: none;
+        font-size: 1.2rem;
+        color: #088178;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+
+        .quantity-btn:hover {
+            background-color: #cce7d0;
+        }
+
+    .quantity-input {
+        width: 3.5rem; /* Increased width */
+        height: 2.5rem;
+        text-align: center;
+        border: none;
+        border-left: 1px solid #cce7d0;
+        border-right: 1px solid #cce7d0;
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 0 0.5rem; /* Added padding */
+        -moz-appearance: textfield; /* Hide arrows in Firefox */
+        background-color: white;
+    }
+
+        /* Hide number input arrows in Chrome/Safari */
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.2);
+        }
+
+    /* Modal layout adjustments */
+    .size-modal {
+        padding: 1.5rem 2rem; /* More horizontal padding */
+    }
+
+    .modal-actions {
+        margin-top: 1rem;
+    }
+
+    /* Stock info styles */
+    .stock-info {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+
+    /* Size with quantity styles */
+    .size-with-quantity {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Banner styles */
+        .banner-slide {
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        z-index: 0;
+        transition: opacity 1s ease-in-out;
+    }
+
+    .banner-slide:first-child {
+        opacity: 1;
+        z-index: 1;
+    }
+
+    @@media (max-width: 768px) {
+        #page-header {
+            height: 30vh;
+        }
     }
 </style>
 
 <!-- Notification Container -->
 <div class="notification-container">
-    @if (showSuccessMessage)
-    {
-        <div id="successNotification" class="notification success">
-            <i class="fas fa-check-circle notification-icon"></i>
-            <span>Item added to cart successfully!</span>
-            <span class="notification-close" onclick="hideNotification('successNotification')">
-                <i class="fas fa-times"></i>
-            </span>
-            <div class="notification-progress">
-                <div class="notification-progress-bar"></div>
-            </div>
-        </div>
-    }
-
-    @if (showErrorMessage)
-    {
-        <div id="errorNotification" class="notification error">
-            <i class="fas fa-exclamation-circle notification-icon"></i>
-            <span>@errorMessage</span>
-            <span class="notification-close" onclick="hideNotification('errorNotification')">
-                <i class="fas fa-times"></i>
-            </span>
-            <div class="notification-progress">
-                <div class="notification-progress-bar"></div>
-            </div>
-        </div>
-    }
+    <!-- Notifications will be added here dynamically -->
 </div>
 
-<!-- Size Selection Modal -->
+<!-- Size and Quantity Selection Modal -->
 <div class="modal-overlay" id="sizeModal">
     <div class="size-modal">
         <div class="modal-header">
-            <h3 class="modal-title">Select Size</h3>
+            <h3 class="modal-title">Select Size & Quantity</h3>
             <button class="close-modal" onclick="hideSizeModal()">×</button>
         </div>
         <div class="size-options" id="sizeOptionsContainer">
-            <!-- Size options will be populated dynamically -->
+            <!-- Size options populated dynamically -->
         </div>
+        <div class="quantity-selector">
+            <span class="quantity-label">Quantity:</span>
+            <div class="quantity-controls">
+                <button class="quantity-btn" id="decrementQty">-</button>
+                <input type="number" id="quantityInput" class="quantity-input" value="1" min="1" max="10">
+                <button class="quantity-btn" id="incrementQty">+</button>
+            </div>
+        </div>
+        <div class="stock-info" id="stockInfo"></div>
         <div class="modal-actions">
             <button class="modal-button cancel-button" onclick="hideSizeModal()">Cancel</button>
             <button class="modal-button confirm-button" id="confirmAddToCart" disabled>Add to Cart</button>
@@ -452,9 +541,42 @@
     </div>
 </div>
 
-<section id="page-header" style="background-image: url('@Url.Content("~/img/banner/b1.jpg")');">
-    <h2>#stayhome</h2>
-    <p>Save More coupons & up to 70% off!</p>
+<!-- Rest of your HTML remains the same -->
+<!-- Replace your current page-header section with this: -->
+<section id="page-header" class="relative h-[40vh] overflow-hidden">
+    <!-- Banner 1 -->
+    <div class="banner-slide absolute inset-0 flex flex-col justify-center items-center text-center text-white" style="background-image: url('https://images.pexels.com/photos/3965557/pexels-photo-3965557.jpeg');">
+        <div class="relative z-10 px-5 max-w-4xl">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 drop-shadow-md">#NewSeason</h2>
+            <p class="text-lg md:text-xl mb-6 drop-shadow-sm">Fresh Styles Just Arrived</p>
+        </div>
+        <div class="absolute inset-0 bg-black/40"></div>
+    </div>
+
+    <!-- Banner 2 -->
+    <div class="banner-slide absolute inset-0 flex flex-col justify-center items-center text-center text-white" style="background-image: url('https://images.pexels.com/photos/5632402/pexels-photo-5632402.jpeg');">
+        <div class="relative z-10 px-5 max-w-4xl">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 drop-shadow-md">#SummerSale</h2>
+            <p class="text-lg md:text-xl mb-6 drop-shadow-sm">Up to 70% Off Summer Essentials</p>
+        </div>
+        <div class="absolute inset-0 bg-black/40"></div>
+    </div>
+
+    <!-- Banner 3 -->
+    <div class="banner-slide absolute inset-0 flex flex-col justify-center items-center text-center text-white" style="background-image: url('https://images.pexels.com/photos/4482900/pexels-photo-4482900.jpeg');">
+        <div class="relative z-10 px-5 max-w-4xl">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 drop-shadow-md">#LimitedOffer</h2>
+            <p class="text-lg md:text-xl mb-6 drop-shadow-sm">Exclusive Deals for Members</p>
+        </div>
+        <div class="absolute inset-0 bg-black/40"></div>
+    </div>
+
+    <!-- Navigation Dots -->
+    <div class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
+        <button class="banner-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300" data-index="0"></button>
+        <button class="banner-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300" data-index="1"></button>
+        <button class="banner-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all duration-300" data-index="2"></button>
+    </div>
 </section>
 
 <section id="product1" class="section-p1">
@@ -465,33 +587,33 @@
     <div id="productContainer" class="pro-container">
         @foreach (var product in Model)
         {
-            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
-                <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
-                <div class="des">
-                    <span class="product-brand">@product.BrandName</span>
-                    <h5 class="product-description">@product.Product_Name</h5>
-                    <div class="star">
+                    <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
+                        <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
+                        <div class="des">
+                            <span class="product-brand">@product.BrandName</span>
+                            <h5 class="product-description">@product.Product_Name</h5>
+                            <div class="star">
                         @for (int i = 0; i < product.Product_Rating; i++)
                         {
-                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
                         }
                         @for (int i = product.Product_Rating; i < 5; i++)
                         {
-                            <i class="far fa-star"></i>
+                                            <i class="far fa-star"></i>
                         }
-                    </div>
-                    <h4 class="product-price">$@product.Product_Price</h4>
-                </div>
-                <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
-                    <i class="fal fa-shopping-cart"></i>
-                </div>
-                <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
+                            </div>
+                            <h4 class="product-price">$@product.Product_Price</h4>
+                        </div>
+                        <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="productId" value="@product.Product_Id" />
-                    <input type="hidden" name="quantity" value="1" />
-                    <input type="hidden" name="size" id="size-@product.Product_Id" value="" />
-                </form>
-            </div>
+                            <input type="hidden" name="productId" value="@product.Product_Id" />
+                            <input type="hidden" name="quantity" id="quantity-@product.Product_Id" value="1" />
+                            <input type="hidden" name="size" id="size-@product.Product_Id" value="" />
+                        </form>
+                    </div>
         }
     </div>
 
@@ -517,32 +639,146 @@
 </section>
 
 <script>
-    // Global variables for size selection
+    // Banner Slider
+        document.addEventListener('DOMContentLoaded', function() {
+        const banners = document.querySelectorAll('.banner-slide');
+        const dots = document.querySelectorAll('.banner-dot');
+        let currentIndex = 0;
+        let interval;
+
+        function showBanner(index) {
+            banners.forEach((banner, i) => {
+                banner.style.opacity = i === index ? '1' : '0';
+                banner.style.zIndex = i === index ? '1' : '0';
+            });
+
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('bg-white', i === index);
+                dot.classList.toggle('bg-white/50', i !== index);
+            });
+        }
+
+        function nextBanner() {
+            currentIndex = (currentIndex + 1) % banners.length;
+            showBanner(currentIndex);
+        }
+
+        function startInterval() {
+            interval = setInterval(nextBanner, 4000); // 5 seconds
+        }
+
+        // Initialize
+        showBanner(0);
+        startInterval();
+
+        // Dot navigation
+        dots.forEach(dot => {
+            dot.addEventListener('click', function() {
+                currentIndex = parseInt(this.getAttribute('data-index'));
+                showBanner(currentIndex);
+                clearInterval(interval);
+                startInterval();
+            });
+        });
+
+        // Pause on hover
+        const container = document.getElementById('page-header');
+        container.addEventListener('mouseenter', () => clearInterval(interval));
+        container.addEventListener('mouseleave', startInterval);
+    });
+    // Notification System
+    function showNotification(isSuccess, message) {
+        const notificationContainer = document.querySelector('.notification-container');
+        const notificationId = 'notification-' + Date.now();
+        const notificationClass = isSuccess ? 'success' : 'error';
+        const iconClass = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
+        const duration = isSuccess ? 3000 : 5000;
+
+        const notificationHTML = `
+            <div id="${notificationId}" class="notification ${notificationClass}">
+                <i class="fas ${iconClass} notification-icon"></i>
+                <span>${message}</span>
+                <span class="notification-close" onclick="hideNotification('${notificationId}')">
+                    <i class="fas fa-times"></i>
+                </span>
+                <div class="notification-progress">
+                    <div class="notification-progress-bar"></div>
+                </div>
+            </div>
+        `;
+
+        notificationContainer.insertAdjacentHTML('afterbegin', notificationHTML);
+        const notification = document.getElementById(notificationId);
+        const progressBar = notification.querySelector('.notification-progress-bar');
+
+        // Show notification
+        setTimeout(() => {
+            notification.classList.add('show');
+            positionNotifications();
+        }, 100);
+
+        // Auto-hide
+        setTimeout(() => {
+            hideNotification(notificationId);
+        }, duration);
+
+        // Pause on hover
+        notification.addEventListener('mouseenter', () => {
+            progressBar.style.animationPlayState = 'paused';
+        });
+
+        notification.addEventListener('mouseleave', () => {
+            progressBar.style.animationPlayState = 'running';
+        });
+    }
+
+    function positionNotifications() {
+        const notifications = document.querySelectorAll('.notification.show');
+        notifications.forEach((notification, index) => {
+            notification.style.top = `${index * (notification.offsetHeight + 10)}px`;
+        });
+    }
+
+    window.hideNotification = function(id) {
+        const notification = document.getElementById(id);
+        if (notification) {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+            setTimeout(() => notification.remove(), 500);
+        }
+    };
+
+    // Size and Quantity Modal
     let currentProductId = null;
     let selectedSize = null;
+    let maxQuantity = 10;
 
-    // Show size selection modal with available sizes
     function showSizeModal(productId) {
         currentProductId = productId;
         selectedSize = null;
+        document.getElementById('quantityInput').value = 1;
         document.getElementById('confirmAddToCart').disabled = true;
+        document.getElementById('stockInfo').textContent = '';
 
         const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
         sizeOptionsContainer.innerHTML = '<p>Loading sizes...</p>';
 
+        // Show modal immediately
         document.getElementById('sizeModal').classList.add('active');
 
+        // Fetch available sizes
         fetch(`/Customer/Home/GetProductSizes?productId=${productId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     updateSizeOptions(data.sizes);
                 } else {
-                    sizeOptionsContainer.innerHTML = `<p class="text-red-500">${data.message}</p>`;
+                    sizeOptionsContainer.innerHTML = `<p>${data.message || 'No sizes available'}</p>`;
                 }
             })
             .catch(error => {
-                sizeOptionsContainer.innerHTML = '<p class="text-red-500">Error loading sizes</p>';
+                sizeOptionsContainer.innerHTML = '<p>Error loading sizes</p>';
+                console.error('Error:', error);
             });
     }
 
@@ -551,252 +787,257 @@
         sizeOptionsContainer.innerHTML = '';
 
         if (!availableSizes || availableSizes.length === 0) {
-            sizeOptionsContainer.innerHTML = '<p class="text-red-500 col-span-3">This product is currently out of stock</p>';
-            document.getElementById('confirmAddToCart').disabled = true;
-        } else {
-            const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
-            allSizes.forEach(size => {
-                const isAvailable = availableSizes.includes(size);
-                const sizeOption = document.createElement('div');
-                sizeOption.className = `size-option ${isAvailable ? '' : 'disabled'}`;
-                sizeOption.textContent = size;
-                sizeOption.dataset.size = size;
-
-                if (isAvailable) {
-                    sizeOption.addEventListener('click', function () {
-                        document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
-                        this.classList.add('active');
-                        selectedSize = this.dataset.size;
-                        document.getElementById('confirmAddToCart').disabled = false;
-                    });
-                }
-
-                sizeOptionsContainer.appendChild(sizeOption);
-            });
+            sizeOptionsContainer.innerHTML = '<p>Currently out of stock</p>';
+            return;
         }
+
+        const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+        allSizes.forEach(size => {
+            const isAvailable = availableSizes.includes(size);
+            const sizeOption = document.createElement('div');
+            sizeOption.className = `size-option ${isAvailable ? '' : 'disabled'}`;
+            sizeOption.textContent = size;
+            sizeOption.dataset.size = size;
+
+            if (isAvailable) {
+                sizeOption.addEventListener('click', function() {
+                    document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedSize = this.dataset.size;
+                    document.getElementById('confirmAddToCart').disabled = false;
+
+                    // Set max quantity (you can enhance this with actual stock later)
+                    maxQuantity = 10;
+                    document.getElementById('quantityInput').max = maxQuantity;
+                    document.getElementById('stockInfo').textContent = `Max ${maxQuantity} available`;
+                });
+            }
+
+            sizeOptionsContainer.appendChild(sizeOption);
+        });
     }
 
     function hideSizeModal() {
         document.getElementById('sizeModal').classList.remove('active');
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        // Confirm add to cart button
-        document.getElementById('confirmAddToCart').addEventListener('click', function () {
-            if (currentProductId && selectedSize) {
-                document.getElementById(`size-${currentProductId}`).value = selectedSize;
-                const form = document.querySelector(`.add-to-cart-form[data-product-id="${currentProductId}"]`);
-                const formData = new FormData(form);
-
-                hideSizeModal();
-
-                fetch('@Url.Action("AddToCart", "Cart", new { area = "Customer" })', {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                    }
-                })
-                    .then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        throw new Error('Network response was not ok.');
-                    })
-                    .then(data => {
-                        showNotification(data.success, data.message);
-                        if (data.success) {
-                            const cartButton = document.querySelector(`.pro-cart-button[onclick*="${currentProductId}"]`);
-                            if (cartButton) {
-                                cartButton.classList.add('bounce-effect');
-                                setTimeout(() => cartButton.classList.remove('bounce-effect'), 1000);
-                            }
-                            if (data.cartCount !== undefined) {
-                                updateCartCount(data.cartCount);
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        showNotification(false, 'An error occurred while adding to cart');
-                    });
-            }
-        });
-
-        function updateCartCount(count) {
-            const cartCountElement = document.querySelector('.cart-count');
-            if (cartCountElement) {
-                cartCountElement.textContent = count;
-                cartCountElement.style.display = count > 0 ? 'inline-block' : 'none';
-            }
+    // Quantity Controls
+    document.getElementById('incrementQty').addEventListener('click', function() {
+        const quantityInput = document.getElementById('quantityInput');
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue < maxQuantity) {
+            quantityInput.value = currentValue + 1;
         }
+    });
 
-        function showNotification(isSuccess, message) {
-            const notificationContainer = document.querySelector('.notification-container');
-            const notificationId = 'notification-' + Date.now();
-            const notificationClass = isSuccess ? 'success' : 'error';
-            const iconClass = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
-
-            const notificationHTML = `
-                <div id="${notificationId}" class="notification ${notificationClass}">
-                    <i class="fas ${iconClass} notification-icon"></i>
-                    <span>${message}</span>
-                    <span class="notification-close" onclick="hideNotification('${notificationId}')">
-                        <i class="fas fa-times"></i>
-                    </span>
-                    <div class="notification-progress">
-                        <div class="notification-progress-bar"></div>
-                    </div>
-                </div>
-            `;
-
-            notificationContainer.insertAdjacentHTML('beforeend', notificationHTML);
-            const notification = document.getElementById(notificationId);
-
-            setTimeout(() => notification.classList.add('show'), 100);
-
-            const autoHide = setTimeout(() => hideNotification(notificationId), 3000);
-
-            notification.addEventListener('mouseenter', () => {
-                clearTimeout(autoHide);
-                notification.querySelector('.notification-progress-bar').style.animationPlayState = 'paused';
-            });
-
-            notification.addEventListener('mouseleave', () => {
-                const progressBar = notification.querySelector('.notification-progress-bar');
-                const remainingWidth = 1 - (progressBar.offsetWidth / progressBar.parentElement.offsetWidth);
-                const remainingTime = remainingWidth * 3000;
-
-                progressBar.style.animationPlayState = 'running';
-                setTimeout(() => hideNotification(notificationId), remainingTime);
-            });
+    document.getElementById('decrementQty').addEventListener('click', function() {
+        const quantityInput = document.getElementById('quantityInput');
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
         }
+    });
 
-        window.hideNotification = function (id) {
-            const notification = document.getElementOfId(id);
-            if (notification) {
-                notification.classList.remove('show');
-                notification.classList.add('hide');
-                setTimeout(() => notification.remove(), 500);
-            }
-        };
-
-        // Pagination JavaScript
-        const pageSize = @ViewBag.PageSize;
-        let currentPage = @ViewBag.CurrentPage;
-        let totalPages = @ViewBag.TotalPages;
-
-        function renderProduct(product) {
-            const stars = Array(5).fill().map((_, i) =>
-                i < product.product_Rating
-                    ? '<i class="fas fa-star"></i>'
-                    : '<i class="far fa-star"></i>'
-            ).join('');
-
-            return `
-                <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer" })?id=${product.product_Id}'">
-                    <img src="${product.imgUrl}" alt="${product.product_Name}" class="product-img">
-                    <div class="des">
-                        <span class="product-brand">${product.brandName}</span>
-                        <h5 class="product-description">${product.product_Name}</h5>
-                        <div class="star">${stars}</div>
-                        <h4 class="product-price">$${product.product_Price}</h4>
-                    </div>
-                    <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(${product.product_Id})">
-                        <i class="fal fa-shopping-cart"></i>
-                    </div>
-                    <form class="add-to-cart-form" data-product-id="${product.product_Id}" style="display: none;">
-                        <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]').value}" />
-                        <input type="hidden" name="productId" value="${product.product_Id}" />
-                        <input type="hidden" name="quantity" value="1" />
-                        <input type="hidden" name="size" id="size-${product.product_Id}" value="" />
-                    </form>
-                </div>
-            `;
+    document.getElementById('quantityInput').addEventListener('change', function() {
+        let value = parseInt(this.value);
+        if (isNaN(value) || value < 1) {
+            this.value = 1;
+        } else if (value > maxQuantity) {
+            this.value = maxQuantity;
         }
+    });
 
-        function renderProducts(products) {
-            const productContainer = document.getElementById('productContainer');
-            productContainer.innerHTML = products.map(renderProduct).join('');
-            attachCartButtonListeners();
-        }
+    // Add to Cart Functionality
+    document.getElementById('confirmAddToCart').addEventListener('click', function() {
+        if (currentProductId && selectedSize) {
+            const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
 
-        function renderPagination() {
-            const paginationContainer = document.getElementById('pagination');
-            paginationContainer.innerHTML = '';
+            // Update hidden form fields
+            document.getElementById(`size-${currentProductId}`).value = selectedSize;
+            document.getElementById(`quantity-${currentProductId}`).value = quantity;
 
-            const prevLink = document.createElement('a');
-            prevLink.innerHTML = '<i class="fal fa-long-arrow-alt-left"></i>';
-            prevLink.className = currentPage === 1 ? 'disabled' : '';
-            prevLink.addEventListener('click', () => {
-                if (currentPage > 1) loadPage(currentPage - 1);
-            });
-            paginationContainer.appendChild(prevLink);
+            const form = document.querySelector(`.add-to-cart-form[data-product-id="${currentProductId}"]`);
+            const formData = new FormData(form);
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageLink = document.createElement('a');
-                pageLink.textContent = i;
-                pageLink.className = i === currentPage ? 'active' : '';
-                pageLink.addEventListener('click', () => loadPage(i));
-                paginationContainer.appendChild(pageLink);
-            }
+            hideSizeModal();
 
-            const nextLink = document.createElement('a');
-            nextLink.innerHTML = '<i class="fal fa-long-arrow-alt-right"></i>';
-            nextLink.className = currentPage === totalPages ? 'disabled' : '';
-            nextLink.addEventListener('click', () => {
-                if (currentPage < totalPages) loadPage(currentPage + 1);
-            });
-            paginationContainer.appendChild(nextLink);
-        }
-
-        function loadPage(page) {
-            const productContainer = document.getElementById('productContainer');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-
-            loadingSpinner.classList.add('active');
-            productContainer.style.opacity = '0.5';
-
-            fetch(`@Url.Action("Shop", "Home", new { area = "Customer" })?page=${page}&pageSize=${pageSize}`, {
+            fetch('@Url.Action("AddToCart", "Cart", new { area = "Customer" })', {
+                method: 'POST',
+                body: formData,
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                 }
             })
-                .then(response => response.json())
-                .then(data => {
-                    renderProducts(data.products);
-                    currentPage = data.currentPage;
-                    totalPages = data.totalPages;
-                    renderPagination();
-                    loadingSpinner.classList.remove('active');
-                    productContainer.style.opacity = '1';
-                })
-                .catch(error => {
-                    console.error('Error loading page:', error);
-                    loadingSpinner.classList.remove('active');
-                    productContainer.style.opacity = '1';
-                    showNotification(false, 'Error loading products');
-                });
-        }
+            .then(response => response.json())
+            .then(data => {
+                showNotification(data.success, data.message || (data.success ? "Item added to cart" : "Failed to add item"));
 
-        function attachCartButtonListeners() {
-            document.querySelectorAll('.pro-cart-button').forEach(button => {
-                button.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    const productId = this.getAttribute('onclick').match(/\d+/)[0];
-                    showSizeModal(productId);
-                });
+                if (data.success) {
+                    // Bounce effect on cart button
+                    const cartButton = document.querySelector(`.pro-cart-button[onclick*="${currentProductId}"]`);
+                    if (cartButton) {
+                        cartButton.classList.add('bounce-effect');
+                        setTimeout(() => cartButton.classList.remove('bounce-effect'), 1000);
+                    }
+
+                    // Update cart count
+                    if (data.cartCount !== undefined) {
+                        updateCartCount(data.cartCount);
+                    }
+                }
+            })
+            .catch(error => {
+                showNotification(false, "You must log in to add items to cart");
             });
         }
-
-        // Initial setup
-        renderPagination();
-        attachCartButtonListeners();
-
-        // Close modal when clicking outside
-        document.getElementById('sizeModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                hideSizeModal();
-            }
-        });
     });
+
+    function updateCartCount(count) {
+        const cartCountElement = document.querySelector('.cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = count;
+            cartCountElement.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('sizeModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideSizeModal();
+        }
+    });
+
+    // Initialize cart button event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.pro-cart-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = this.getAttribute('onclick').match(/\d+/)[0];
+                showSizeModal(productId);
+            });
+        });
+
+        // Show initial notifications if any
+    @if (showSuccessMessage)
+    {
+        @:showNotification(true, "Item added to cart successfully!");
+    }
+
+    @if (showErrorMessage)
+    {
+        @:showNotification(false, "@errorMessage");
+    }
+    });
+
+    // Pagination JavaScript
+    const pageSize = @ViewBag.PageSize;
+    let currentPage = @ViewBag.CurrentPage;
+    let totalPages = @ViewBag.TotalPages;
+
+    function renderProduct(product) {
+        const stars = Array(5).fill().map((_, i) =>
+            i < product.product_Rating
+                ? '<i class="fas fa-star"></i>'
+                : '<i class="far fa-star"></i>'
+        ).join('');
+
+        return `
+            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer" })?id=${product.product_Id}'">
+                <img src="${product.imgUrl}" alt="${product.product_Name}" class="product-img">
+                <div class="des">
+                    <span class="product-brand">${product.brandName}</span>
+                    <h5 class="product-description">${product.product_Name}</h5>
+                    <div class="star">${stars}</div>
+                    <h4 class="product-price">$${product.product_Price}</h4>
+                </div>
+                <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(${product.product_Id})">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <form class="add-to-cart-form" data-product-id="${product.product_Id}" style="display: none;">
+                    <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]').value}" />
+                    <input type="hidden" name="productId" value="${product.product_Id}" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <input type="hidden" name="size" id="size-${product.product_Id}" value="" />
+                </form>
+            </div>
+        `;
+    }
+
+    function renderProducts(products) {
+        const productContainer = document.getElementById('productContainer');
+        productContainer.innerHTML = products.map(renderProduct).join('');
+        attachCartButtonListeners();
+    }
+
+    function renderPagination() {
+        const paginationContainer = document.getElementById('pagination');
+        paginationContainer.innerHTML = '';
+
+        const prevLink = document.createElement('a');
+        prevLink.innerHTML = '<i class="fas fa-long-arrow-alt-left"></i>';
+        prevLink.className = currentPage === 1 ? 'disabled' : '';
+        prevLink.addEventListener('click', () => {
+            if (currentPage > 1) loadPage(currentPage - 1);
+        });
+        paginationContainer.appendChild(prevLink);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageLink = document.createElement('a');
+            pageLink.textContent = i;
+            pageLink.className = i === currentPage ? 'active' : '';
+            pageLink.addEventListener('click', () => loadPage(i));
+            paginationContainer.appendChild(pageLink);
+        }
+
+        const nextLink = document.createElement('a');
+        nextLink.innerHTML = '<i class="fas fa-long-arrow-alt-right"></i>';
+        nextLink.className = currentPage === totalPages ? 'disabled' : '';
+        nextLink.addEventListener('click', () => {
+            if (currentPage < totalPages) loadPage(currentPage + 1);
+        });
+        paginationContainer.appendChild(nextLink);
+    }
+
+    function loadPage(page) {
+        const productContainer = document.getElementById('productContainer');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        loadingSpinner.classList.add('active');
+        productContainer.style.opacity = '0.5';
+
+        fetch(`@Url.Action("Shop", "Home", new { area = "Customer" })?page=${page}&pageSize=${pageSize}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                renderProducts(data.products);
+                currentPage = data.currentPage;
+                totalPages = data.totalPages;
+                renderPagination();
+                loadingSpinner.classList.remove('active');
+                productContainer.style.opacity = '1';
+            })
+            .catch(error => {
+                console.error('Error loading page:', error);
+                loadingSpinner.classList.remove('active');
+                productContainer.style.opacity = '1';
+                showNotification(false, "Error loading products");
+            });
+    }
+
+    function attachCartButtonListeners() {
+        document.querySelectorAll('.pro-cart-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = this.getAttribute('onclick').match(/\d+/)[0];
+                showSizeModal(productId);
+            });
+        });
+    }
+
+    // Initial setup
+    renderPagination();
+    attachCartButtonListeners();
 </script>

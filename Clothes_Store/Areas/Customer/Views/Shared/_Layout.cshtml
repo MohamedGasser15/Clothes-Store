@@ -3,7 +3,7 @@
     {
         var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
         var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
-        return (currentController == controller && currentAction == action) ? "active" : "";
+        return (currentController == controller && currentAction == action) ? "text-[#088170] font-semibold" : "text-gray-800";
     }
 }
 @using Clothes_Models.Models
@@ -14,192 +14,658 @@
     var user = await UserManager.GetUserAsync(User);
 }
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Clothes_Store</title>
-    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - LushThreads</title>
+    <link rel="icon" type="image/png" href="~/img/favicon.png">
+    <!-- Tailwind CSS v3 with JIT -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            safelist: [
+                'text-[#088170]',
+                'hover:text-[#088170]',
+                'bg-[#088170]',
+                'border-[#088170]',
+                'focus:ring-[#088170]'
+            ],
+            theme: {
+                extend: {
+                    fontFamily: {
+                         sans: [
+                        'Inter',
+                        'system-ui',
+                        '-apple-system',
+                        'BlinkMacSystemFont',
+                        '"Segoe UI"',
+                        'Roboto',
+                        '"Helvetica Neue"',
+                        'Arial',
+                        '"Noto Sans"',
+                        'sans-serif',
+                        '"Apple Color Emoji"',
+                        '"Segoe UI Emoji"',
+                        '"Segoe UI Symbol"',
+                        '"Noto Color Emoji"'
+                    ],
+                    },
+                    colors: {
+                        primary: '#088170',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Flowbite v3 -->
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@3.3.0/dist/flowbite.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/87ba71bd3b.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="~/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.css" integrity="sha512-3pIirOrwegjM6erE5gPSwkUzO+3cTjpnV9lexlNZqvupR64iZBnOOTiiLPb9M36zpMScbmUNIcHUqKD47M719g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <!-- GoogleFont v3 -->
+     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Load Inter font with display=swap for better performance -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap&v=1.1" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/style.css">
 
-
-    <link href="https://fonts.googleapis.com/css2?family=Spartan:wght@100;200;300;400;500;600;700;800;900;&display:swap">
     <style>
-        /* Smooth hover animations */
-        .login-btn:hover {
-            background-color: #0a9e8d !important;
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 4px 16px rgba(8, 129, 120, 0.25);
+          body {
+            font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        .tw-navbar a:not(.logo-link):hover,
+        .tw-navbar .active {
+            color: #088170 !important;
         }
 
-            .login-btn:hover .login-icon {
-                transform: translateX(3px) scale(1.1);
-                transition: transform 0.4s ease;
+        /* Search input styles - override all browser defaults */
+        .custom-search-input,
+        #mobile-menu input[type="search"] {
+            border: 1px solid #d1d5db !important; /* gray-300 */
+            transition: all 0.3s ease !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+        }
+
+            .custom-search-input:focus,
+            #mobile-menu input[type="search"]:focus {
+                border-color: #088170 !important;
+                box-shadow: 0 0 0 3px rgba(8, 129, 112, 0.3) !important;
+                outline: none !important;
             }
 
-            .login-btn:hover .login-text {
-                transform: translateX(2px);
-                transition: transform 0.4s ease;
+            /* Remove the clear button in search inputs */
+            .custom-search-input::-webkit-search-cancel-button,
+            .custom-search-input::-webkit-search-decoration {
+                -webkit-appearance: none;
+                appearance: none;
             }
 
-            .login-btn:hover .login-overlay {
-                height: 100%;
-                transition: height 0.4s cubic-bezier(0.28, 0.84, 0.42, 1);
+        .tw-login-btn {
+            background-color: #088170;
+            transition: all 0.3s ease;
+        }
+
+            .tw-login-btn:hover {
+                background-color: #066b63;
+                transform: translateY(-2px);
             }
 
-        /* Initial states */
-        .login-icon,
-        .login-text,
-        .login-overlay {
-            transition: all 0.4s ease;
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+            #loading.hidden {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+        .loading-text {
+            color: #088170;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: #088170;
+            border-radius: 50%;
+            margin: 0 6px;
+            animation: jump 0.8s infinite alternate;
+        }
+
+            .dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+            .dot:nth-child(4) {
+                animation-delay: 0.6s;
+            }
+
+        @@keyframes jump {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(-15px);
+            }
+        }
+
+        #mobile-menu {
+            transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.5s ease;
+            transform: translateX(-100%);
+            opacity: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80%;
+            max-width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 40;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+            #mobile-menu.active {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+        .mobile-menu-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.3);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            z-index: 39;
+        }
+
+            .mobile-menu-backdrop.active {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+        /* Enhanced Cart Icon */
+        .cart-icon {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+            .cart-icon i {
+                transition: all 0.3s ease;
+            }
+
+            .cart-icon:hover i {
+                color: #088170 !important;
+                transform: scale(1.1);
+            }
+
+            .cart-icon .cart-badge {
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #ef4444;
+                color: white;
+                border-radius: 50%;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                font-weight: bold;
+            }
+
+        @@media (max-width: 360px) {
+            .xs\:px-4 {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .xs\:py-4 {
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+            }
+
+            .xs\:px-3 {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            .xs\:py-2 {
+                padding-top: 0.5rem;
+                padding-bottom: 0.5rem;
+            }
+
+            .xs\:pt-6 {
+                padding-top: 1.5rem;
+            }
+
+            .xs\:pb-3 {
+                padding-bottom: 0.75rem;
+            }
+
+            .xs\:text-lg {
+                font-size: 1.125rem;
+            }
+
+            .xs\:text-base {
+                font-size: 1rem;
+            }
+
+            .xs\:text-sm {
+                font-size: 0.875rem;
+            }
+
+            .xs\:text-xs {
+                font-size: 0.75rem;
+            }
+
+            .xs\:w-16 {
+                width: 4rem;
+            }
+
+            .xs\:h-16 {
+                height: 4rem;
+            }
+
+            .xs\:mb-2 {
+                margin-bottom: 0.5rem;
+            }
+
+            .xs\:mb-1 {
+                margin-bottom: 0.25rem;
+            }
+
+            .xs\:mb-4 {
+                margin-bottom: 1rem;
+            }
+
+            .xs\:pl-10 {
+                padding-left: 2.5rem;
+            }
+
+            .xs\:pr-4 {
+                padding-right: 1rem;
+            }
+
+            .xs\:space-y-4 > * + * {
+                margin-top: 1rem;
+            }
+
+            .xs\:space-y-3 > * + * {
+                margin-top: 0.75rem;
+            }
+
+            .xs\:mr-3 {
+                margin-right: 0.75rem;
+            }
+
+            .xs\:max-w-48 {
+                max-width: 12rem;
+            }
+
+            .xs\:min-w-5 {
+                min-width: 1.25rem;
+            }
+        }
+
+        @@media (max-width: 640px) {
+            .navbar {
+                padding: 0 1rem;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+
+            .login-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .mobile-menu a {
+                font-size: 1rem;
+                padding: 0.75rem 1rem;
+                font-weight: 600;
+            }
+
+            footer .grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            footer img {
+                height: 2.5rem;
+            }
+        }
+
+        @@media (min-width: 641px) and (max-width: 768px) {
+            .search-input {
+                width: 12rem;
+            }
+
+            .navbar .flex {
+                gap: 1rem;
+            }
+
+            footer .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
-<body>
-    <section id="header">
-        <a asp-controller="Home" asp-action="Home" class="logo-link">
-            <img src="~/img/logo.png" alt="logo" class="logo-img">
-        </a>
-        <!-- Search -->
-        <form asp-controller="Home" asp-action="Search" method="get" class="search-form">
-            <div class="sb-example-3">
-                <div class="search__container">
-                    <input class="search__input" type="search"
-                           placeholder="Need Something ?"
-                           aria-label="Need Something ?"
-                           name="searchTerm">
+<body class="bg-gray-100 overscroll-contain antialiased">
+    <div id="loading">
+        <span class="loading-text">Loading</span>
+        <div class="flex">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    </div>
+
+    <div id="mobile-menu-backdrop" class="mobile-menu-backdrop hidden"></div>
+
+    <nav class="tw-navbar fixed top-0 left-0 w-full z-50 shadow-lg bg-white border-b-2 border-[#088170]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20">
+                <div class="flex items-center">
+                    <a asp-controller="Home" asp-action="Home" class="flex-shrink-0 logo-link">
+                        <img class="h-24 w-auto" src="~/img/logo9.png" alt="Clothes Store">
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a asp-area="customer" asp-controller="Home" asp-action="Home" class="px-3 py-2 text-base font-medium @IsActive("Home", "Home")">Home</a>
+                    <a asp-area="customer" asp-controller="Home" asp-action="Shop" class="px-3 py-2 text-base font-medium @IsActive("Home", "Shop")">Shop</a>
+                    <a asp-area="customer" asp-controller="Home" asp-action="About" class="px-3 py-2 text-base font-medium @IsActive("Home", "About")">About</a>
+                    <a asp-area="customer" asp-controller="Home" asp-action="Contact" class="px-3 py-2 text-base font-medium @IsActive("Home", "Contact")">Contact</a>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <div class="flex items-center space-x-3 md:hidden">
+                        @if (_signInManager.IsSignedIn(User) && user != null)
+                        {
+                            <a asp-area="Customer" asp-controller="Cart" asp-action="Index" class="cart-icon relative p-2">
+                                <i class="fas fa-shopping-bag text-lg text-gray-500"></i>
+                                @if (ViewBag.CartItemCount > 0)
+                                {
+                                    <span class="cart-badge">@(ViewBag.CartItemCount)</span>
+                                }
+                            </a>
+                            <button id="mobile-menu-btn" class="p-2 rounded-md focus:outline-none">
+                                <img src="https://api.dicebear.com/7.x/initials/svg?seed=@(user.Name?[0])&backgroundColor=088170&textColor=ffffff"
+                                     class="rounded-full w-9 h-9 transition-transform duration-300 hover:rotate-[15deg]" alt="User">
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="tw-login-btn text-white px-4 py-2 rounded-full text-sm font-medium">Login</a>
+                            <button id="mobile-menu-btn" class="p-2 rounded-md focus:outline-none">
+                                <img src="https://api.dicebear.com/7.x/initials/svg?seed=Guest&backgroundColor=088170&textColor=ffffff"
+                                     class="rounded-full w-9 h-9 transition-transform duration-300 hover:rotate-[15deg]" alt="Guest">
+                            </button>
+                        }
+                    </div>
+
+                    <form asp-controller="Home" asp-action="Search" method="get" class="hidden md:block">
+                        <input type="search" name="searchTerm" placeholder="Search..."
+                               class="custom-search-input px-4 py-2 rounded-full border border-gray-300 text-sm font-medium">
+                    </form>
+
+                    <div class="flex items-center space-x-3 hidden md:flex">
+                        @if (_signInManager.IsSignedIn(User))
+                        {
+                            <div class="flex items-center space-x-3">
+                                <partial name="_LoginPartialView" />
+                                <a asp-area="Customer" asp-controller="Cart" asp-action="Index" class="cart-icon relative p-2">
+                                    <i class="fas fa-shopping-bag text-lg text-gray-500"></i>
+                                    @if (ViewBag.CartItemCount > 0)
+                                    {
+                                        <span class="cart-badge">@(ViewBag.CartItemCount)</span>
+                                    }
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" class="tw-login-btn text-white px-4 py-2 rounded-full text-sm font-medium">Login</a>
+                        }
+                    </div>
                 </div>
             </div>
-        </form>
+        </div>
 
-        <!-- End of Search -->
-        <div>
-            <ul id="navbar">
-                <li><a asp-area="customer" asp-controller="Home" asp-action="Home" class="@IsActive("Home", "Home")">Home</a></li>
-                <li><a asp-area="customer" asp-controller="Home" asp-action="Shop" class="@IsActive("Home", "Shop")">Shop</a></li>
-                <li><a asp-area="customer" asp-controller="Home" asp-action="About" class="@IsActive("Home", "About")">About</a></li>
-                <li><a asp-area="customer" asp-controller="Home" asp-action="Contact" class="@IsActive("Home", "Contact")">Contact</a></li>
-                @if (_signInManager.IsSignedIn(User))
-                {
-                    <partial name="_LoginPartialView" />
-                }
-                else
-                {
-                    <li class="ms-3">
-                        <a asp-controller="Account" asp-action="Login"
-                           class="login-btn btn text-white d-flex align-items-center position-relative overflow-hidden px-4 py-2"
-                           style="
-           background-color: #088178;
-           border: none;
-           border-radius: 8px;
-           transition: all 0.4s cubic-bezier(0.28, 0.84, 0.42, 1);
-               ">
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white">
+            @if (user != null)
+            {
+                <div class="px-4 py-4 border-b border-gray-200 text-center">
+                    <a asp-controller="Profile" asp-action="Index" class="flex-shrink-0 logo-link">
+                        <img src="https://api.dicebear.com/7.x/initials/svg?seed=@(user.Name?[0])&backgroundColor=088170&textColor=ffffff"
+                             class="rounded-full w-16 h-16 mx-auto mb-2" alt="User">
+                        <h6 class="text-[#088170] font-semibold text-lg mb-1">@user.Name</h6>
+                        <small class="text-gray-500 block truncate max-w-[200px] mx-auto text-sm">@user.Email</small>
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="px-4 py-4 border-b border-gray-200 text-center">
+                    <img src="https://api.dicebear.com/7.x/initials/svg?seed=Guest&backgroundColor=088170&textColor=ffffff"
+                         class="rounded-full w-16 h-16 mx-auto mb-2" alt="Guest">
+                    <h6 class="text-[#088170] font-semibold text-lg mb-1">Guest</h6>
+                    <small class="text-gray-500 block truncate max-w-[200px] mx-auto text-sm">Not logged in</small>
+                </div>
+            }
+            <div class="p-4 space-y-4">
+                <form asp-controller="Home" asp-action="Search" method="get" class="mb-4">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="search" name="searchTerm" placeholder="Search for items..."
+                               class="custom-search-input w-full pl-10 pr-4 py-2 rounded-full text-sm font-medium">
+                    </div>
+                </form>
 
-                            <span class="login-content z-10 d-flex align-items-center">
-                                <i class="login-icon fas fa-sign-in-alt me-2"></i>
-                                <span class="login-text">Login</span>
-                            </span>
+                <div class="space-y-2">
+                    <a asp-area="customer" asp-controller="Home" asp-action="Home" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base @IsActive("Home", "Home")">
+                        <i class="fas fa-home mr-3 text-[#088170] text-sm"></i>
+                        Home
+                    </a>
+                    <a asp-area="customer" asp-controller="Home" asp-action="Shop" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base @IsActive("Home", "Shop")">
+                        <i class="fas fa-store mr-3 text-[#088170] text-sm"></i>
+                        Shop
+                    </a>
+                    <a asp-area="customer" asp-controller="Home" asp-action="About" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base @IsActive("Home", "About")">
+                        <i class="fas fa-info-circle mr-3 text-[#088170] text-sm"></i>
+                        About
+                    </a>
+                    <a asp-area="customer" asp-controller="Home" asp-action="Contact" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base @IsActive("Home", "Contact")">
+                        <i class="fas fa-envelope mr-3 text-[#088170] text-sm"></i>
+                        Contact
+                    </a>
+                </div>
 
-                            <span class="login-overlay position-absolute top-0 left-0 w-full h-0 bg-white opacity-10"></span>
+                <hr class="my-4 border-gray-200">
+
+                <div class="space-y-2">
+                    @if (user != null)
+                    {
+                        <a asp-area="Admin" asp-controller="Analytics" asp-action="Index" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base">
+                            <i class="fas fa-user-shield mr-3 text-[#088170]"></i>
+                            Admin Dashboard
                         </a>
-                    </li>
-                }
-                <li><a href="#" id="close"<i class="far fa-times"></i></a></li>
-            </ul>
-        </div>
-        <div id="mobile">
-            <button id="bar" class="nav-button">
-                <span class="nav-button-text"></span>
-                <div class="nav-button-icon">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </div>
-            </button>
-        </div>
-    </section>
-    @RenderBody()
-    <footer class="section-p1">
-        <div class="col">
-            <img class="logo" src="~/img/logo.png" alt="">
-            <h4> contact</h4>
-            <p><strong>Address: </strong> grandplaza towrs, Elamin street, portsaid </p>
-            <p><strong>Phone: </strong>+201201055894/+201020749292</p>
-            <p><strong>Hours: </strong> 10:00 - 20:00, Sat-thur </p>
-            <div class="follow">
-                <h4>Follow us</h4>
-                <div class="icon">
-                    <a class="iconss" href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a class="iconss" href="#"><i class="fab fa-instagram"></i></a>
-                    <a class="iconss" href="#"><i class="fab fa-whatsapp"></i></a>
-                    <a class="iconss" href="#"><i class="fab fa-twitter"></i></a>
-                    <a class="iconss" href="#"><i class="fab fa-youtube"></i></a>
+                        <a asp-area="Customer" asp-controller="Cart" asp-action="Index" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base relative">
+                            <i class="fas fa-shopping-bag mr-3 text-[#088170]"></i>
+                            My Cart
+                            @if (ViewBag.CartItemCount > 0)
+                            {
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[1.25rem]">
+                                    @(ViewBag.CartItemCount)
+                                </span>
+                            }
+                        </a>
+                        <a asp-area="Customer" asp-controller="Profile" asp-action="Index" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base">
+                            <i class="fas fa-user-circle mr-3 text-[#088170]"></i>
+                            My Profile
+                        </a>
+                        <a asp-area="Customer" asp-controller="Setting" asp-action="Index" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base">
+                            <i class="fas fa-cog mr-3 text-[#088170]"></i>
+                            Settings
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base">
+                            <i class="fas fa-sign-in-alt mr-3 text-[#088170]"></i>
+                            Login
+                        </a>
+                    }
                 </div>
             </div>
-            <br>
+        </div>
+    </nav>
 
-        </div>
-        <div class="col">
-            <h4>About</h4>
-            <a asp-controller="Home" asp-action="Contact">
-                About Us
-            </a>
-            <a href="#">Delivery Information</a>
-            <a href="#">Privacy Policy</a>
-            <a href="#">Term & conditions</a>
-            <a asp-controller="Profile" asp-action="ContactUs">Contact Us</a>
-        </div>
-        <div class="col">
-            <h4>My Account</h4>
-            <a asp-controller="Account" asp-action="Login">Sign In</a>
-            <a asp-controller="cart" asp-action="Index">View Cart</a>
-            <a href="#">My Wishlist</a>
-            <a href="#">Track My Order</a>
-            <a href="#">Help</a>
-        </div>
-        <div class="col install">
-            <h4> Install App</h4>
-            <p> From App Store or Google Play</p>
-            <div class="row">
-                <a href="google.com"><img src="~/img/pay/app.jpg" alt=""></a>
-                <a href="apple.com"><img src="~/img/pay/play.jpg" alt=""></a>
+    <main class="mt-20">
+        @RenderBody()
+    </main>
+
+    <footer class="bg-white text-gray-800 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <a asp-controller="Home" asp-action="Home" class="flex-shrink-0 logo-link">
+                        <img class="h-24 w-auto" src="~/img/logo9.png" alt="Clothes Store">
+                    </a>
+                    <h4 class="text-lg font-semibold mb-4">Contact</h4>
+                    <p class="text-sm mb-2"><strong>Address:</strong> Grandplaza Towers, Elamin Street, Portsaid</p>
+                    <p class="text-sm mb-2"><strong>Phone:</strong> +201201055894 / +201020749292</p>
+                    <p class="text-sm mb-4"><strong>Hours:</strong> 10:00 - 20:00, Sat-Thur</p>
+                    <h4 class="text-lg font-semibold mb-4">Follow Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-600 hover:text-[#088170]"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-600 hover:text-[#088170]"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-gray-600 hover:text-[#088170]"><i class="fab fa-whatsapp"></i></a>
+                        <a href="#" class="text-gray-600 hover:text-[#088170]"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-600 hover:text-[#088170]"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">About</h4>
+                    <a asp-controller="Home" asp-action="Contact" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">About Us</a>
+                    <a href="#" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">Delivery Information</a>
+                    <a href="#" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">Privacy Policy</a>
+                    <a href="#" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">Terms & Conditions</a>
+                    <a asp-controller="Profile" asp-action="ContactUs" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">Contact Us</a>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">My Account</h4>
+                    <a asp-controller="Account" asp-action="Login" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">Sign In</a>
+                    <a asp-controller="cart" asp-action="Index" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">View Cart</a>
+                    <a href="#" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">My Wishlist</a>
+                    <a href="#" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">Track My Order</a>
+                    <a href="#" class="block text-sm text-gray-600 hover:text-[#088170] mb-2">Help</a>
+                </div>
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Install App</h4>
+                    <p class="text-sm mb-4">From App Store or Google Play</p>
+                    <div class="flex space-x-4 mb-4">
+                        <a href="google.com"><img class="h-10" src="~/img/pay/app.jpg" alt="Google Play"></a>
+                        <a href="apple.com"><img class="h-10" src="~/img/pay/play.jpg" alt="App Store"></a>
+                    </div>
+                    <p class="text-sm mb-4">Secured Payment Gateways</p>
+                    <img class="h-10" src="~/img/pay/pay.png" alt="Payment Gateways">
+                </div>
             </div>
-            <p> Secured Payment Gateways</p>
-            <img src="~/img/pay/pay.png" alt="">
-        </div>
-        <div class="copyright">
-            <p> 2024, Mohamed Gasser - Clothes Store Project</p>
+            <div class="mt-8 text-center">
+                <p class="text-sm">© 2024, Mohamed Gasser - Clothes Store Project</p>
+            </div>
         </div>
     </footer>
 
-
-    <script src="~/js/script.js" asp-append-version="true"></script>
+    <!-- Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.3.0/dist/flowbite.min.js"></script>
+    <script src="~/js/script.js" asp-append-version="true"></script>
+
     <script>
-        const bar = document.getElementById('bar')
-        const close = document.getElementById('close')
-        const nav = document.getElementById('navbar')
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mobile menu toggle
+            const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const backdrop = document.getElementById('mobile-menu-backdrop');
+            const body = document.body;
+            let isMenuOpen = false;
 
-        if (bar) {
-          bar.addEventListener('click', () => {
-            nav.classList.add('active')
-          })
+            function toggleMenu() {
+                isMenuOpen = !isMenuOpen;
+                mobileMenu.classList.toggle('hidden', !isMenuOpen);
+                backdrop.classList.toggle('hidden', !isMenuOpen);
 
-         if (close) {
-           close.addEventListener('click', () => {
-             nav.classList.remove('active')
-           })
-         }
-        }
+                // Trigger transitions
+                setTimeout(() => {
+                    mobileMenu.classList.toggle('active', isMenuOpen);
+                    backdrop.classList.toggle('active', isMenuOpen);
+                    body.style.overflow = isMenuOpen ? 'hidden' : '';
+                }, 10);
+            }
+
+            mobileMenuBtn.addEventListener('click', toggleMenu);
+            backdrop.addEventListener('click', toggleMenu);
+
+            // Close menu when clicking links
+            const menuLinks = document.querySelectorAll('#mobile-menu a');
+            menuLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    if (isMenuOpen) toggleMenu();
+                });
+            });
+
+            // Loading animation
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+            }, 500);
+
+            // Escape key to close menu
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && isMenuOpen) {
+                    toggleMenu();
+                }
+            });
+        });
     </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

@@ -110,7 +110,7 @@ namespace Clothes_Store.Controllers
             }
 
             var sizes = product.Stocks?
-                .Where(s => s.Quantity > 0) // Only include sizes with stock available
+                .Where(s => s.Quantity > 0)
                 .Select(s => s.Size)
                 .ToList() ?? new List<string>();
 
