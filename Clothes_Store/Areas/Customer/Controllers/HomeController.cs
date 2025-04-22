@@ -24,7 +24,50 @@ namespace Clothes_Store.Controllers
             _logger = logger;
             _db = db;
         }
-       
+        public IActionResult ShopByBrand(string brand)
+        {
+            if (string.IsNullOrEmpty(brand))
+            {
+                return NotFound();
+            }
+
+            // Map URL-friendly brand name to database brand name
+            var brandName = brand switch
+            {
+                "nike" => "Nike",
+                "adidas" => "Adidas",
+                "puma" => "Puma",
+                "zara" => "Zara",
+                "lacoste" => "Lacoste",
+                "hm" => "H&M",
+                "levis" => "Levi's",
+                "local" => "Local Brands",
+                _ => null
+            };
+
+            // Get products for the specified brand
+            var products = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => brand == "local"
+                    ? !new[] { "Nike", "Adidas", "Puma", "Zara", "Lacoste", "H&M", "Levi's" }.Contains(p.Brand.Brand_Name)
+                    : p.Brand.Brand_Name == brandName)
+                .ToList();
+
+            if (brandName == null && brand != "local")
+            {
+                return NotFound();
+            }
+
+            if (products == null || !products.Any())
+            {
+                return View(products);
+            }
+
+            ViewBag.Brand = brand == "local" ? "Local Brands" : brandName;
+            return View(products);
+        }
         public IActionResult ShopByCategory(string category)
         {
             if (string.IsNullOrEmpty(category))

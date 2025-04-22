@@ -1,18 +1,18 @@
 ﻿@model IEnumerable<Clothes_Models.Models.Product>
 
 @{
-    ViewData["Title"] = $"Shop {ViewBag.Category}";
+    ViewData["Title"] = $"Shop {ViewBag.Brand}";
 }
 
 <link rel="stylesheet" href="~/css/style.css">
 
 <style>
     /* Reuse styles from Home page for consistency */
+     .pro:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
 
-    .pro:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
-    }
     .pro-cart-button {
         width: 40px;
         height: 40px;
@@ -382,11 +382,11 @@
     </div>
 </div>
 
-<!-- Category Products Section -->
+<!-- Brand Products Section -->
 <section id="product1" class="section-p1 py-12 bg-gray-50">
     <div class="text-center mb-8">
-        <h2 class="text-3xl font-bold text-gray-800 mb-2">@ViewBag.Category</h2>
-        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Explore our collection of @ViewBag.Category products</p>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">@ViewBag.Brand</h2>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Explore our collection of @ViewBag.Brand products</p>
     </div>
 
     @if (Model.Any())
@@ -441,7 +441,7 @@
                 </div>
                 <h3 class="text-2xl font-semibold text-gray-800 mb-3">No Products Found</h3>
                 <p class="text-gray-600 mb-6 leading-relaxed">
-                    It looks like we don't have any products in this category yet. Check out our other collections!
+                    It looks like we don't have any products for this brand yet. Check out our other collections!
                 </p>
                 <div class="mt-6">
                     <a href="@Url.Action("Shop", "Home", new { area = "Customer" })"
@@ -456,7 +456,6 @@
 </section>
 
 <script>
-    // Reuse the same scripts from Home.cshtml for notifications, size modal, and add-to-cart functionality
     function showNotification(isSuccess, message) {
         const notificationContainer = document.querySelector('.notification-container');
         const notificationId = 'notification-' + Date.now();
@@ -599,7 +598,7 @@
         }
     });
 
-    document.getElementById('quantityInput').addEventListener('change', function() {
+    document.getElementById('quantityInput').addEventListener('click', function() {
         let value = parseInt(this.value);
         if (isNaN(value) || value < 1) {
             this.value = 1;
