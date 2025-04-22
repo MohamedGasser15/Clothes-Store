@@ -216,5 +216,33 @@ namespace Clothes_Store.Areas.Admin.Controllers
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MakeFeatured(int id)
+        {
+            var obj = await _db.Products.FirstOrDefaultAsync(p => p.Product_Id == id);
+            if (obj == null)
+            {
+                TempData["Error"] = "Oops! Something went wrong. Please try again.";
+                return NotFound();
+            }
+
+            if (obj.IsFeatured)
+            {
+                obj.IsFeatured = false;
+                TempData["Success"] = "Product has been removed from featured items!";
+            }
+            else
+            {
+                obj.IsFeatured = true;
+                TempData["Success"] = "Product has been added to featured items!";
+            }
+
+            await _unitOfWork.Products.UpdateAsync(obj);
+            await _unitOfWork.SaveAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
     }
 }
