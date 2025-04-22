@@ -24,6 +24,7 @@ namespace Clothes_Store.Controllers
             _logger = logger;
             _db = db;
         }
+       
         public IActionResult ShopByCategory(string category)
         {
             if (string.IsNullOrEmpty(category))
@@ -41,7 +42,7 @@ namespace Clothes_Store.Controllers
                 "accessories" => "Accessories",
                 "sportswear" => "Sportswear",
                 "luxury-collection" => "Luxury Collection",
-                "summer-essentials" => "Summer Essentials",
+                "summer-essentials" => "Seasonal Collections",
                 _ => null
             };
 

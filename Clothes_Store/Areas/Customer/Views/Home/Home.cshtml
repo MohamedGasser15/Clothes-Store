@@ -595,7 +595,7 @@
                      alt="Summer Essentials"
                      class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
                 <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Summer Essentials</h3>
+                    <h3 class="text-xl font-bold text-white mb-2">Seasonal Collections</h3>
                     <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "summer-essentials" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
                         Shop Now
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
@@ -696,6 +696,155 @@
         </div>
     }
 </section>
+<!-- Brands Section -->
+<section id="brands" class="px-8 sm:px-12 lg:px-16 py-20 bg-gray-50">
+    <div class="max-w-7xl mx-auto">
+        <!-- Centered Header -->
+        <div class="text-center mb-20">
+            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Shop By Brand</h2>
+            <p class="text-xl text-gray-600 mx-auto max-w-2xl">Discover products from your favorite brands</p>
+        </div>
+
+        <!-- Brands Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+            <!-- 1. Nike (Kept original as it was good) -->
+            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                     alt="Nike"
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">Nike</h3>
+                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "nike" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                        Shop Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. Adidas (Kept original as it was good) -->
+            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                <img src="~/img/brands/adidas.jpg"
+                     alt="Adidas"
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">Adidas</h3>
+                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "adidas" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                        Shop Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. Zara (Kept original as it was good) -->
+            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                <img src="~/img/brands/zara.jpg"
+                     alt="Zara"
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">Zara</h3>
+                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "zara" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                        Shop Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. H&M - Updated Image -->
+            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                <img src="~/img/brands/h&m.jpg"
+                     alt="H&M"
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">H&M</h3>
+                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "hm" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                        Shop Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 5. Puma - Updated Image -->
+            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                <img src="https://images.unsplash.com/photo-1604671801908-6f0c6a092c05?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                     alt="Puma"
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">Puma</h3>
+                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "puma" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                        Shop Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 6. Levi's - Updated Image -->
+            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                <img src="~/img/brands/levis.jpg"
+                     alt="Levi's"
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">Levi's</h3>
+                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "levis" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                        Shop Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 7. Gucci - Updated Image -->
+            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                <img src="~/img/brands/lacoste.jpg"
+                     alt="Gucci"
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">Lacoste</h3>
+                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "lacoste" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                        Shop Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 8. Local Brand - Updated Image -->
+            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                <img src="~/img/brands/local.jpg"
+                     alt="Local Brand"
+                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                    <h3 class="text-xl font-bold text-white mb-2">Local Brands</h3>
+                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "local" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                        Shop Now
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- Rotating Banner Container -->
 <div class="relative h-[500px] overflow-hidden my-16 rounded-xl shadow-lg">
@@ -707,7 +856,7 @@
                 <span class="text-[#ffbd27]">70% OFF</span> Summer Essentials
             </h2>
             <p class="text-xl opacity-90 mb-8">Refresh your wardrobe with our seasonal collection</p>
-            <a href="/summer-sale" class="bg-white text-[#088170] hover:bg-gray-100 font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
+            <a asp-action="shop" class="bg-white text-[#088170] hover:bg-gray-100 font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
                 Shop Now
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
             </a>
@@ -723,7 +872,7 @@
                 <span class="text-[#ffbd27]">2024</span> <span class="text-[#ffff]">Fashion Trends</span>
             </h2>
             <p class="text-xl opacity-90 mb-8 text-[#ffff]">Discover the latest designer arrivals</p>
-            <a href="/new-arrivals" class="bg-[#ffbd27] text-gray-900 hover:bg-[#e6a922] font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
+            <a asp-action="shop" class="bg-[#ffbd27] text-gray-900 hover:bg-[#e6a922] font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
                 Explore
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
             </a>
@@ -739,7 +888,7 @@
                 <span class="text-[#088170]">Premium</span> <span class="text-[#ffff]">Styles</span>
             </h2>
             <p class="text-xl opacity-90 mb-8">Elevate your look with exclusive pieces</p>
-            <a href="/luxury" class="bg-[#088170] hover:bg-[#0a9a85] text-white font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
+            <a asp-action="shop" class="bg-[#088170] hover:bg-[#0a9a85] text-white font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
                 Discover
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
             </a>
@@ -799,13 +948,6 @@
             </div>
         }
     </div>
-    <div class="flex justify-between items-center mb-6">
-        <div class="ml-auto">
-            <a href="@Url.Action("Shop", "Home", new { area = "Customer" })" class="view-all-btn">
-                View All <i class="fas fa-arrow-right ml-2"></i>
-            </a>
-        </div>
-    </div>
 </section>
 
 <section id="sm-banner" class="px-6 sm:px-8 lg:px-12 py-12">
@@ -819,9 +961,9 @@
                 <span class="text-base font-bold uppercase tracking-widest mb-3">Crazy Deals</span>
                 <h2 class="text-3xl md:text-4xl font-bold mb-4">Buy 1 Get 1 Free</h2>
                 <p class="text-base mb-6 text-[#f0f0f0]">Classic dresses at unbeatable prices</p>
-                <button class="bg-white text-gray-900 hover:bg-gray-100 font-medium py-2.5 px-6 rounded-full w-max transition-all shadow-md hover:shadow-lg">
+                <a asp-action="shop" class="bg-white text-gray-900 hover:bg-gray-100 font-medium py-2.5 px-6 rounded-full w-max transition-all shadow-md hover:shadow-lg">
                     Shop Now
-                </button>
+                </a>
             </div>
         </div>
 
@@ -833,9 +975,9 @@
                 <span class="text-base font-bold uppercase tracking-widest mb-3">Seasonal</span>
                 <h2 class="text-3xl md:text-4xl font-bold mb-4">Spring Florals</h2>
                 <p class="text-base mb-6 text-[#f0f0f0]">Fresh patterns for sunny days</p>
-                <button class="bg-white text-[#088170] hover:bg-gray-100 font-medium py-2.5 px-6 rounded-full w-max transition-all shadow-md hover:shadow-lg">
+                <a asp-action="shop" class="bg-white text-[#088170] hover:bg-gray-100 font-medium py-2.5 px-6 rounded-full w-max transition-all shadow-md hover:shadow-lg">
                     View Collection
-                </button>
+                </a>
             </div>
         </div>
 
@@ -847,9 +989,9 @@
                 <span class="text-base font-bold uppercase tracking-widest mb-3">Just In</span>
                 <h2 class="text-3xl md:text-4xl font-bold mb-4">New Arrivals</h2>
                 <p class="text-base mb-6 text-[#f0f0f0]">Trending styles this season</p>
-                <button class="bg-[#088170] hover:bg-[#0a9a85] text-white font-medium py-2.5 px-6 rounded-full w-max ml-auto transition-all shadow-md hover:shadow-lg">
+                <a asp-action="shop" class="bg-[#088170] hover:bg-[#0a9a85] text-white font-medium py-2.5 px-6 rounded-full w-max ml-auto transition-all shadow-md hover:shadow-lg">
                     Explore
-                </button>
+                </a>
             </div>
         </div>
 
