@@ -1,5 +1,33 @@
 ﻿@model IEnumerable<Clothes_Models.Models.Category>
 
+<style>
+    /* Main Category Styling */
+    .main-category {
+        background-color: #f8fafc;
+        border-left: 4px solid #3b82f6;
+    }
+
+    .subcategory {
+        background-color: white;
+        border-left: 4px solid #e2e8f0;
+    }
+
+    .expand-collapse-btn {
+        transition: transform 0.2s ease;
+        width: 20px;
+        text-align: center;
+        cursor: pointer;
+    }
+
+        .expand-collapse-btn.expanded {
+            transform: rotate(90deg);
+        }
+
+    .subcategory.hidden {
+        display: none;
+    }
+</style>
+
 <div class="max-w-7xl mx-auto px-0 sm:px-4 sm:px-6 lg:px-8 py-2 sm:py-8 min-h-[150vh]">
     <!-- Header Section -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 sm:mb-8 gap-3 sm:gap-4 px-3 sm:px-0">
@@ -53,11 +81,13 @@
         <div class="bg-white p-3 sm:p-5 rounded-lg sm:rounded-xl shadow-sm border-l-4 border-green-500 hover:shadow-md transition-shadow duration-200">
             <div class="flex items-center justify-between">
                 <div>
-                    <p class="text-xs sm:text-sm font-medium text-gray-500">Featured</p>
-                    <p class="text-lg sm:text-2xl font-semibold text-gray-900">0</p>
+                    <p class="text-xs sm:text-sm font-medium text-gray-500">Parent Categories</p>
+                    <p class="text-lg sm:text-2xl font-semibold text-gray-900">
+                        @Model.Count(c => c.ParentCategoryId == null)
+                    </p>
                 </div>
                 <div class="p-2 sm:p-3 rounded-full bg-green-500 bg-opacity-10 text-green-500">
-                    <i class="fas fa-star text-sm sm:text-xl"></i>
+                    <i class="fas fa-folder text-sm sm:text-xl"></i>
                 </div>
             </div>
         </div>
@@ -120,6 +150,9 @@
                                 </div>
                             </th>
                             <th scope="col" class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Products
+                            </th>
+                            <th scope="col" class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
                             </th>
                         </tr>
@@ -127,16 +160,33 @@
                     <tbody class="bg-white divide-y divide-gray-200" id="tableBody">
                         @{
                             var i = 1;
+                            var mainCategories = Model.Where(c => c.ParentCategoryId == null).ToList();
                         }
-                        @foreach (var category in Model)
+                        @foreach (var category in mainCategories)
                         {
-                            <tr class="hover:bg-gray-50 transition-colors duration-150 block sm:table-row mb-3 sm:mb-0 border-b sm:border-b-0 border-gray-200">
+                            <tr class="hover:bg-gray-50 transition-colors duration-150 block sm:table-row mb-3 sm:mb-0 border-b sm:border-b-0 border-gray-200 main-category" data-main-id="@category.Category_Id">
                                 <!-- Mobile View -->
                                 <td class="block sm:hidden px-3 py-3">
                                     <div class="flex justify-between items-start">
                                         <div class="font-medium text-gray-900 text-sm">Category #@i</div>
                                     </div>
-                                    <div class="mt-1 text-sm text-gray-900">@category.Category_Name</div>
+                                    <div class="mt-1 text-sm text-gray-900 flex items-center">
+                                        @{
+                                            var subcategories = Model.Where(c => c.ParentCategoryId == category.Category_Id).ToList();
+                                        }
+                                        @if (subcategories.Any())
+                                        {
+                                            <button class="expand-collapse-btn mr-2 text-gray-500 hover:text-primary focus:outline-none" data-main-id="@category.Category_Id">
+                                                <i class="fas fa-chevron-right text-xs"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="w-5 mr-2"></span>
+                                        }
+                                        <i class="fas fa-folder mr-2 text-blue-500"></i>
+                                        <span class="category-name">@category.Category_Name</span>
+                                    </div>
 
                                     <!-- Mobile Actions -->
                                     <div class="mt-2 flex flex-wrap gap-1">
@@ -153,20 +203,82 @@
 
                                 <!-- Desktop View -->
                                 <td class="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">@i</td>
-                                <td class="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 category-name">@category.Category_Name</td>
+                                <td class="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 font-bold flex items-center">
+                                    @if (subcategories.Any())
+                                    {
+                                        <button class="expand-collapse-btn mr-2 text-gray-500 hover:text-primary focus:outline-none" data-main-id="@category.Category_Id">
+                                            <i class="fas fa-chevron-right text-xs"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="w-5 mr-2"></span>
+                                    }
+                                    <i class="fas fa-folder mr-2 text-blue-500"></i>
+                                    <span class="category-name">@category.Category_Name</span>
+                                </td>
                                 <td class="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
                                     <div class="flex flex-wrap gap-1 sm:gap-2">
                                         <a asp-action="Upsert" asp-route-Id="@category.Category_Id"
-                                           class="inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
+                                           class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
                                             <i class="fas fa-edit mr-1 sm:mr-2 text-xs"></i> Edit
                                         </a>
                                         <button onclick="confirmDelete('@category.Category_Id', '@category.Category_Name')"
-                                                class="inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-red-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
+                                                class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-red-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
                                             <i class="fas fa-trash-alt mr-1 sm:mr-2 text-xs"></i> Delete
                                         </button>
                                     </div>
                                 </td>
                             </tr>
+
+                            <!-- Subcategories -->
+                            @foreach (var subcategory in subcategories)
+                            {
+                                <tr class="hover:bg-gray-50 transition-colors duration-150 block sm:table-row mb-3 sm:mb-0 border-b sm:border-b-0 border-gray-200 subcategory hidden" data-parent-id="@category.Category_Id">
+                                    <!-- Mobile View -->
+                                    <td class="block sm:hidden px-3 py-3">
+                                        <div class="flex justify-between items-start">
+                                            <div class="font-medium text-gray-900 text-sm">Subcategory #@i</div>
+                                        </div>
+                                        <div class="mt-1 text-sm text-gray-900 pl-8 flex items-center">
+                                            <i class="fas fa-file-alt mr-2 text-gray-400"></i>
+                                            <span class="category-name">@subcategory.Category_Name</span>
+                                        </div>
+
+                                        <!-- Mobile Actions -->
+                                        <div class="mt-2 flex flex-wrap gap-1">
+                                            <a asp-action="Upsert" asp-route-Id="@subcategory.Category_Id"
+                                               class="inline-flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs">
+                                                <i class="fas fa-edit mr-1"></i> Edit
+                                            </a>
+                                            <button onclick="confirmDelete('@subcategory.Category_Id', '@subcategory.Category_Name')"
+                                                    class="inline-flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 text-xs">
+                                                <i class="fas fa-trash-alt mr-1"></i> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+
+                                    <!-- Desktop View -->
+                                    <td class="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">@i</td>
+                                    <td class="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900 pl-8">
+                                        <i class="fas fa-file-alt mr-2 text-gray-400"></i>
+                                        <span class="category-name">@subcategory.Category_Name</span>
+                                    </td>
+                                    <td class="hidden sm:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-500">
+                                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                                            <a asp-action="Upsert" asp-route-Id="@subcategory.Category_Id"
+                                               class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
+                                                <i class="fas fa-edit mr-1 sm:mr-2 text-xs"></i> Edit
+                                            </a>
+                                            <button onclick="confirmDelete('@subcategory.Category_Id', '@subcategory.Category_Name')"
+                                                    class="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-red-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
+                                                <i class="fas fa-trash-alt mr-1 sm:mr-2 text-xs"></i> Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                i++;
+                            }
                             i++;
                         }
                     </tbody>
@@ -291,39 +403,103 @@
 
     let currentPage = 1;
     let rowsPerPageValue = 10;
-    let allCategories = Array.from(tableBody.querySelectorAll('tr'));
-    let filteredCategories = [...allCategories];
+    let allCategories = [];
+    let filteredCategories = [];
     let sortColumn = null;
     let sortDirection = 1;
+    let expandedCategories = new Set();
 
     function init() {
-        updateTable();
+        console.log('Initializing table...');
+        updateAllCategories();
+        filteredCategories = [...allCategories];
         setupEventListeners();
+        updateTable();
+    }
+
+    function updateAllCategories() {
+        allCategories = Array.from(tableBody?.querySelectorAll('tr') || []);
+        console.log('Total categories loaded:', allCategories.length);
     }
 
     function setupEventListeners() {
-        searchInput.addEventListener('input', handleSearch);
-        rowsPerPage.addEventListener('change', handleRowsPerPageChange);
-        prevPage.addEventListener('click', () => changePage(-1));
-        nextPage.addEventListener('click', () => changePage(1));
-        firstPage.addEventListener('click', () => goToPage(1));
-        lastPage.addEventListener('click', () => goToPage(Math.ceil(filteredCategories.length / rowsPerPageValue)));
-        prevPageMobile.addEventListener('click', () => changePage(-1));
-        nextPageMobile.addEventListener('click', () => changePage(1));
+        if (searchInput) searchInput.addEventListener('input', handleSearch);
+        if (rowsPerPage) rowsPerPage.addEventListener('change', handleRowsPerPageChange);
+        if (prevPage) prevPage.addEventListener('click', () => changePage(-1));
+        if (nextPage) nextPage.addEventListener('click', () => changePage(1));
+        if (firstPage) firstPage.addEventListener('click', () => goToPage(1));
+        if (lastPage) lastPage.addEventListener('click', () => goToPage(Math.ceil(filteredCategories.length / rowsPerPageValue)));
+        if (prevPageMobile) prevPageMobile.addEventListener('click', () => changePage(-1));
+        if (nextPageMobile) nextPageMobile.addEventListener('click', () => changePage(1));
+
+        // Setup expand/collapse buttons
+        if (tableBody) {
+            tableBody.addEventListener('click', (e) => {
+                const btn = e.target.closest('.expand-collapse-btn');
+                if (btn) {
+                    const mainId = btn.getAttribute('data-main-id');
+                    toggleSubcategories(mainId, btn);
+                }
+            });
+        }
+    }
+
+    function toggleSubcategories(mainId, btn) {
+        if (!mainId) return;
+        const subcategories = tableBody?.querySelectorAll(`tr.subcategory[data-parent-id="${mainId}"]`) || [];
+        const isExpanded = expandedCategories.has(mainId);
+
+        console.log(`Toggling subcategories for mainId: ${mainId}, isExpanded: ${isExpanded}`);
+        subcategories.forEach(row => {
+            row.classList.toggle('hidden', isExpanded);
+        });
+
+        btn.classList.toggle('expanded', !isExpanded);
+        if (isExpanded) {
+            expandedCategories.delete(mainId);
+        } else {
+            expandedCategories.add(mainId);
+        }
     }
 
     function handleSearch() {
-        const searchTerm = searchInput.value.toLowerCase();
-        filteredCategories = allCategories.filter(row => {
-            const categoryName = row.querySelector('.category-name')?.textContent?.toLowerCase() || '';
-            return categoryName.includes(searchTerm);
+        const searchTerm = searchInput?.value.toLowerCase() || '';
+        filteredCategories = [];
+
+        allCategories.forEach(row => {
+            const categoryName = row.querySelector('.category-name')?.textContent.toLowerCase() || '';
+            const isMainCategory = row.classList.contains('main-category');
+
+            if (categoryName.includes(searchTerm) && isMainCategory) {
+                filteredCategories.push(row);
+                let nextRow = row.nextElementSibling;
+                while (nextRow && nextRow.classList.contains('subcategory')) {
+                    filteredCategories.push(nextRow);
+                    nextRow = nextRow.nextElementSibling;
+                }
+            } else if (categoryName.includes(searchTerm) && !isMainCategory) {
+                let prevRow = row.previousElementSibling;
+                while (prevRow && !prevRow.classList.contains('main-category')) {
+                    prevRow = prevRow.previousElementSibling;
+                }
+                if (prevRow && !filteredCategories.includes(prevRow)) {
+                    filteredCategories.push(prevRow);
+                    let nextRow = prevRow.nextElementSibling;
+                    while (nextRow && nextRow.classList.contains('subcategory')) {
+                        filteredCategories.push(nextRow);
+                        nextRow = nextRow.nextElementSibling;
+                    }
+                }
+            }
         });
+
+        console.log('Filtered categories:', filteredCategories.length);
         currentPage = 1;
         updateTable();
     }
 
     function handleRowsPerPageChange() {
-        rowsPerPageValue = parseInt(rowsPerPage.value);
+        rowsPerPageValue = parseInt(rowsPerPage?.value || 10);
         currentPage = 1;
         updateTable();
     }
@@ -355,17 +531,34 @@
             sortDirection = 1;
         }
 
-        filteredCategories.sort((a, b) => {
-            const aValue = a.cells[columnIndex].textContent;
-            const bValue = b.cells[columnIndex].textContent;
+        const groupedCategories = [];
+        let currentGroup = [];
+
+        allCategories.forEach(row => {
+            if (row.classList.contains('main-category')) {
+                if (currentGroup.length > 0) {
+                    groupedCategories.push(currentGroup);
+                }
+                currentGroup = [row];
+            } else {
+                currentGroup.push(row);
+            }
+        });
+        if (currentGroup.length > 0) {
+            groupedCategories.push(currentGroup);
+        }
+
+        groupedCategories.sort((groupA, groupB) => {
+            const aValue = groupA[0].cells[columnIndex].textContent.trim();
+            const bValue = groupB[0].cells[columnIndex].textContent.trim();
 
             if (columnIndex === 0) {
                 return (parseInt(aValue) - parseInt(bValue)) * sortDirection;
             }
-
             return aValue.localeCompare(bValue) * sortDirection;
         });
 
+        filteredCategories = groupedCategories.flat();
         currentPage = 1;
         updateTable();
     }
@@ -375,56 +568,83 @@
         const endIndex = startIndex + rowsPerPageValue;
         const paginatedCategories = filteredCategories.slice(startIndex, endIndex);
 
-        tableBody.innerHTML = '';
-        paginatedCategories.forEach(row => tableBody.appendChild(row.cloneNode(true)));
+        if (tableBody) {
+            tableBody.innerHTML = '';
+            paginatedCategories.forEach(row => {
+                const clonedRow = row.cloneNode(true);
+                if (clonedRow.classList.contains('subcategory')) {
+                    const parentId = clonedRow.getAttribute('data-parent-id');
+                    if (parentId && !expandedCategories.has(parentId)) {
+                        clonedRow.classList.add('hidden');
+                    }
+                }
+                tableBody.appendChild(clonedRow);
+            });
+
+            // Reapply expand/collapse state
+            tableBody.querySelectorAll('.expand-collapse-btn').forEach(btn => {
+                const mainId = btn.getAttribute('data-main-id');
+                if (mainId && expandedCategories.has(mainId)) {
+                    btn.classList.add('expanded');
+                    tableBody.querySelectorAll(`tr.subcategory[data-parent-id="${mainId}"]`).forEach(row => {
+                        row.classList.remove('hidden');
+                    });
+                }
+            });
+        }
 
         updatePaginationInfo();
         updatePaginationControls();
+        updateAllCategories(); // Refresh allCategories to reflect current table state
     }
 
     function updatePaginationInfo() {
         const startItem = (currentPage - 1) * rowsPerPageValue + 1;
         const endItem = Math.min(currentPage * rowsPerPageValue, filteredCategories.length);
 
-        paginationInfo.innerHTML = `
-            Showing <span class="font-medium">${startItem}</span> to <span class="font-medium">${endItem}</span> of
-            <span class="font-medium">${filteredCategories.length}</span> results
-        `;
+        if (paginationInfo) {
+            paginationInfo.innerHTML = `
+                Showing <span class="font-medium">${startItem}</span> to <span class="font-medium">${endItem}</span> of
+                <span class="font-medium">${filteredCategories.length}</span> results
+            `;
+        }
     }
 
     function updatePaginationControls() {
         const totalPages = Math.ceil(filteredCategories.length / rowsPerPageValue);
 
-        pageNumbers.innerHTML = '';
+        if (pageNumbers) {
+            pageNumbers.innerHTML = '';
 
-        let startPage = Math.max(1, currentPage - 2);
-        let endPage = Math.min(totalPages, currentPage + 2);
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
 
-        if (currentPage <= 3) {
-            endPage = Math.min(5, totalPages);
+            if (currentPage <= 3) {
+                endPage = Math.min(5, totalPages);
+            }
+            if (currentPage >= totalPages - 2) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.className = `relative inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 border text-xs sm:text-sm font-medium transition-colors duration-200 ${
+                    i === currentPage
+                        ? 'z-10 bg-primary border-primary text-white'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                }`;
+                pageBtn.textContent = i;
+                pageBtn.addEventListener('click', () => goToPage(i));
+                pageNumbers.appendChild(pageBtn);
+            }
         }
-        if (currentPage >= totalPages - 2) {
-            startPage = Math.max(1, totalPages - 4);
-        }
 
-        for (let i = startPage; i <= endPage; i++) {
-            const pageBtn = document.createElement('button');
-            pageBtn.className = `relative inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 border text-xs sm:text-sm font-medium transition-colors duration-200 ${
-                i === currentPage
-                    ? 'z-10 bg-primary border-primary text-white'
-                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-            }`;
-            pageBtn.textContent = i;
-            pageBtn.addEventListener('click', () => goToPage(i));
-            pageNumbers.appendChild(pageBtn);
-        }
-
-        prevPage.disabled = currentPage === 1;
-        nextPage.disabled = currentPage === totalPages;
-        firstPage.disabled = currentPage === 1;
-        lastPage.disabled = currentPage === totalPages;
-        prevPageMobile.disabled = currentPage === 1;
-        nextPageMobile.disabled = currentPage === totalPages;
+        if (prevPage) prevPage.disabled = currentPage === 1;
+        if (nextPage) nextPage.disabled = currentPage === totalPages;
+        if (firstPage) firstPage.disabled = currentPage === 1;
+        if (lastPage) lastPage.disabled = currentPage === totalPages;
+        if (prevPageMobile) prevPageMobile.disabled = currentPage === 1;
+        if (nextPageMobile) nextPageMobile.disabled = currentPage === totalPages;
     }
 
     document.addEventListener('DOMContentLoaded', init);

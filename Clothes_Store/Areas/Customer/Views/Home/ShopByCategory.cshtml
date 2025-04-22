@@ -1,0 +1,671 @@
+﻿@model IEnumerable<Clothes_Models.Models.Product>
+
+@{
+    ViewData["Title"] = $"Shop {ViewBag.Category}";
+}
+
+<link rel="stylesheet" href="~/css/style.css">
+
+<style>
+    /* Reuse styles from Home page for consistency */
+
+
+    .pro-cart-button {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 50px;
+        background-color: #e8f6ea;
+        font-weight: 500;
+        color: #088178;
+        border: 1px solid #cce7d0;
+        position: absolute;
+        bottom: 20px;
+        right: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+        .pro-cart-button:hover {
+            background-color: #cce7d0;
+            color: #066156;
+            transform: scale(1.05);
+        }
+
+    /* Notification and Modal styles (same as Home page) */
+    .notification-container {
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 1000;
+    }
+
+    .notification {
+        padding: 1rem 1.5rem;
+        color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        transform: translateX(150%);
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .notification.success {
+            background-color: #088178;
+        }
+
+        .notification.error {
+            background-color: #ef4444;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.hide {
+            transform: translateX(150%);
+            opacity: 0;
+        }
+
+    .notification-icon {
+        margin-right: 0.75rem;
+        font-size: 1.25rem;
+    }
+
+    .notification-close {
+        margin-left: 1rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+    }
+
+        .notification-close:hover {
+            opacity: 1;
+        }
+
+    .notification-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .notification-progress-bar {
+        height: 100%;
+        width: 100%;
+        background: white;
+        animation: progress 3s linear forwards;
+        transform-origin: left;
+    }
+
+    @@keyframes progress {
+        0%
+
+    {
+        transform: scaleX(0);
+    }
+
+    100% {
+        transform: scaleX(1);
+    }
+
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+    .size-modal {
+        background-color: white;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 400px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .modal-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .close-modal {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
+    }
+
+    .size-options {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .size-option {
+        border: 1px solid #cce7d0;
+        background-color: #e8f6ea;
+        color: #088178;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+        .size-option:hover {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
+
+        .size-option.active {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
+
+        .size-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            position: relative;
+        }
+
+            .size-option.disabled::after {
+                content: "×";
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #ef4444;
+                color: white;
+                border-radius: 50%;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
+
+    .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .modal-button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .cancel-button {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        color: #333;
+    }
+
+    .confirm-button {
+        background-color: #088178;
+        border: 1px solid #088178;
+        color: white;
+    }
+
+        .confirm-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .quantity-selector {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        justify-content: center;
+    }
+
+    .quantity-label {
+        margin-right: 1rem;
+        font-weight: 500;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        border: 1px solid #cce7d0;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background-color: #f8f9fa;
+    }
+
+    .quantity-btn {
+        width: 2.5rem;
+        height: 2.5rem;
+        background-color: #e8f6ea;
+        border: none;
+        font-size: 1.2rem;
+        color: #088178;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+
+        .quantity-btn:hover {
+            background-color: #cce7d0;
+        }
+
+    .quantity-input {
+        width: 3.5rem;
+        height: 2.5rem;
+        text-align: center;
+        border: none;
+        border-left: 1px solid #cce7d0;
+        border-right: 1px solid #cce7d0;
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 0 0.5rem;
+        -moz-appearance: textfield;
+        background-color: white;
+    }
+
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .quantity-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.2);
+        }
+
+    .stock-info {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.5rem;
+        text-align: center;
+    }
+
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100%
+
+    {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-10px);
+    }
+
+    60% {
+        transform: translateY(-5px);
+    }
+
+    }
+
+    .bounce-effect {
+        animation: bounce 1s;
+    }
+</style>
+
+<!-- Notification Container -->
+<div class="notification-container"></div>
+
+<!-- Size and Quantity Selection Modal -->
+<div class="modal-overlay" id="sizeModal">
+    <div class="size-modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Select Size & Quantity</h3>
+            <button class="close-modal" onclick="hideSizeModal()">×</button>
+        </div>
+        <div class="size-options" id="sizeOptionsContainer"></div>
+        <div class="quantity-selector">
+            <span class="quantity-label">Quantity:</span>
+            <div class="quantity-controls">
+                <button class="quantity-btn" id="decrementQty">-</button>
+                <input type="number" id="quantityInput" class="quantity-input" value="1" min="1" max="10">
+                <button class="quantity-btn" id="incrementQty">+</button>
+            </div>
+        </div>
+        <div class="stock-info" id="stockInfo"></div>
+        <div class="modal-actions">
+            <button class="modal-button cancel-button" onclick="hideSizeModal()">Cancel</button>
+            <button class="modal-button confirm-button" id="confirmAddToCart" disabled>Add to Cart</button>
+        </div>
+    </div>
+</div>
+
+<!-- Category Products Section -->
+<section id="product1" class="section-p1 py-12 bg-gray-50">
+    <div class="text-center mb-8">
+        <h2 class="text-3xl font-bold text-gray-800 mb-2">@ViewBag.Category</h2>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Explore our collection of @ViewBag.Category products</p>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div id="productContainer" class="pro-container mb-12">
+            @foreach (var product in Model)
+            {
+                <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
+                    <div class="relative">
+                        <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
+                        @if (product.IsFeatured)
+                        {
+                            <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                                FEATURED
+                            </span>
+                        }
+                    </div>
+                    <div class="des">
+                        <span class="product-brand">@product.Brand?.Brand_Name</span>
+                        <h5 class="product-description">@product.Product_Name</h5>
+                        <div class="star">
+                            @for (int i = 0; i < product.Product_Rating; i++)
+                            {
+                                <i class="fas fa-star"></i>
+                            }
+                            @for (int i = product.Product_Rating; i < 5; i++)
+                            {
+                                <i class="far fa-star"></i>
+                            }
+                        </div>
+                        <h4 class="product-price">$@product.Product_Price</h4>
+                    </div>
+                    <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@product.Product_Id" />
+                        <input type="hidden" name="quantity" id="quantity-@product.Product_Id" value="1" />
+                        <input type="hidden" name="size" id="size-@product.Product_Id" value="" />
+                    </form>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="w-full flex flex-col items-center justify-center py-12 px-4">
+            <div class="text-center max-w-md mx-auto">
+                <div class="mb-6">
+                    <i class="fas fa-shopping-bag text-gray-300 text-5xl animate-pulse"></i>
+                </div>
+                <h3 class="text-2xl font-semibold text-gray-800 mb-3">No Products Found</h3>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    It looks like we don't have any products in this category yet. Check out our other collections!
+                </p>
+                <div class="mt-6">
+                    <a href="@Url.Action("Shop", "Home", new { area = "Customer" })"
+                       class="inline-flex items-center px-6 py-3 bg-[#088178] text-white rounded-lg hover:bg-[#066156] transition-all duration-300 transform hover:scale-105 shadow-md">
+                        <i class="fas fa-store mr-3"></i>
+                        <span class="font-medium">Explore All Products</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+</section>
+
+<script>
+    // Reuse the same scripts from Home.cshtml for notifications, size modal, and add-to-cart functionality
+    function showNotification(isSuccess, message) {
+        const notificationContainer = document.querySelector('.notification-container');
+        const notificationId = 'notification-' + Date.now();
+        const notificationClass = isSuccess ? 'success' : 'error';
+        const iconClass = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
+        const duration = isSuccess ? 3000 : 5000;
+
+        const notificationHTML = `
+            <div id="${notificationId}" class="notification ${notificationClass}">
+                <i class="fas ${iconClass} notification-icon"></i>
+                <span>${message}</span>
+                <span class="notification-close" onclick="hideNotification('${notificationId}')">
+                    <i class="fas fa-times"></i>
+                </span>
+                <div class="notification-progress">
+                    <div class="notification-progress-bar"></div>
+                </div>
+            </div>
+        `;
+
+        notificationContainer.insertAdjacentHTML('afterbegin', notificationHTML);
+        const notification = document.getElementById(notificationId);
+        const progressBar = notification.querySelector('.notification-progress-bar');
+
+        setTimeout(() => {
+            notification.classList.add('show');
+            positionNotifications();
+        }, 100);
+
+        setTimeout(() => {
+            hideNotification(notificationId);
+        }, duration);
+
+        notification.addEventListener('mouseenter', () => {
+            progressBar.style.animationPlayState = 'paused';
+        });
+
+        notification.addEventListener('mouseleave', () => {
+            progressBar.style.animationPlayState = 'running';
+        });
+    }
+
+    function positionNotifications() {
+        const notifications = document.querySelectorAll('.notification.show');
+        notifications.forEach((notification, index) => {
+            notification.style.top = `${index * (notification.offsetHeight + 10)}px`;
+        });
+    }
+
+    window.hideNotification = function(id) {
+        const notification = document.getElementById(id);
+        if (notification) {
+            notification.classList.remove('show');
+            notification.classList.add('hide');
+            setTimeout(() => notification.remove(), 500);
+        }
+    };
+
+    let currentProductId = null;
+    let selectedSize = null;
+    let maxQuantity = 10;
+
+    function showSizeModal(productId) {
+        currentProductId = productId;
+        selectedSize = null;
+        document.getElementById('quantityInput').value = 1;
+        document.getElementById('confirmAddToCart').disabled = true;
+        document.getElementById('stockInfo').textContent = '';
+
+        const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
+        sizeOptionsContainer.innerHTML = '<p>Loading sizes...</p>';
+
+        document.getElementById('sizeModal').classList.add('active');
+
+        fetch(`/Customer/Home/GetProductSizes?productId=${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateSizeOptions(data.sizes);
+                } else {
+                    sizeOptionsContainer.innerHTML = `<p>${data.message || 'No sizes available'}</p>`;
+                }
+            })
+            .catch(error => {
+                sizeOptionsContainer.innerHTML = '<p>Error loading sizes</p>';
+                console.error('Error:', error);
+            });
+    }
+
+    function updateSizeOptions(availableSizes) {
+        const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
+        sizeOptionsContainer.innerHTML = '';
+
+        if (!availableSizes || availableSizes.length === 0) {
+            sizeOptionsContainer.innerHTML = '<p>Currently out of stock</p>';
+            return;
+        }
+
+        const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+        allSizes.forEach(size => {
+            const isAvailable = availableSizes.includes(size);
+            const sizeOption = document.createElement('div');
+            sizeOption.className = `size-option ${isAvailable ? '' : 'disabled'}`;
+            sizeOption.textContent = size;
+            sizeOption.dataset.size = size;
+
+            if (isAvailable) {
+                sizeOption.addEventListener('click', function() {
+                    document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedSize = this.dataset.size;
+                    document.getElementById('confirmAddToCart').disabled = false;
+                    maxQuantity = 10;
+                    document.getElementById('quantityInput').max = maxQuantity;
+                    document.getElementById('stockInfo').textContent = `Max ${maxQuantity} available`;
+                });
+            }
+
+            sizeOptionsContainer.appendChild(sizeOption);
+        });
+    }
+
+    function hideSizeModal() {
+        document.getElementById('sizeModal').classList.remove('active');
+    }
+
+    document.getElementById('incrementQty').addEventListener('click', function() {
+        const quantityInput = document.getElementById('quantityInput');
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue < maxQuantity) {
+            quantityInput.value = currentValue + 1;
+        }
+    });
+
+    document.getElementById('decrementQty').addEventListener('click', function() {
+        const quantityInput = document.getElementById('quantityInput');
+        let currentValue = parseInt(quantityInput.value);
+        if (currentValue > 1) {
+            quantityInput.value = currentValue - 1;
+        }
+    });
+
+    document.getElementById('quantityInput').addEventListener('change', function() {
+        let value = parseInt(this.value);
+        if (isNaN(value) || value < 1) {
+            this.value = 1;
+        } else if (value > maxQuantity) {
+            this.value = maxQuantity;
+        }
+    });
+
+    document.getElementById('confirmAddToCart').addEventListener('click', function() {
+        if (currentProductId && selectedSize) {
+            const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
+            document.getElementById(`size-${currentProductId}`).value = selectedSize;
+            document.getElementById(`quantity-${currentProductId}`).value = quantity;
+
+            const form = document.querySelector(`.add-to-cart-form[data-product-id="${currentProductId}"]`);
+            const formData = new FormData(form);
+
+            hideSizeModal();
+
+            fetch('@Url.Action("AddToCart", "Cart", new { area = "Customer" })', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showNotification(data.success, data.message || (data.success ? "Item added to cart" : "Failed to add item"));
+
+                if (data.success) {
+                    const cartButton = document.querySelector(`.pro-cart-button[onclick*="${currentProductId}"]`);
+                    if (cartButton) {
+                        cartButton.classList.add('bounce-effect');
+                        setTimeout(() => cartButton.classList.remove('bounce-effect'), 1000);
+                    }
+
+                    if (data.cartCount !== undefined) {
+                        updateCartCount(data.cartCount);
+                    }
+                }
+            })
+            .catch(error => {
+                showNotification(false, "You must log in to add items to cart");
+            });
+        }
+    });
+
+    function updateCartCount(count) {
+        const cartCountElement = document.querySelector('.cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = count;
+            cartCountElement.style.display = count > 0 ? 'inline-block' : 'none';
+        }
+    }
+
+    document.getElementById('sizeModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideSizeModal();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.pro-cart-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = this.getAttribute('onclick').match(/\d+/)[0];
+                showSizeModal(productId);
+            });
+        });
+    });
+</script>

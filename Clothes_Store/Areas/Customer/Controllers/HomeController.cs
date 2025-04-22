@@ -24,11 +24,66 @@ namespace Clothes_Store.Controllers
             _logger = logger;
             _db = db;
         }
+        public IActionResult ShopByCategory(string category)
+        {
+            if (string.IsNullOrEmpty(category))
+            {
+                return NotFound();
+            }
 
+            // Map the URL-friendly category to the database category name
+            var categoryName = category switch
+            {
+                "mens-fashion" => "Men's Fashion",
+                "womens-fashion" => "Women's Fashion",
+                "kids-fashion" => "Kids Fashion",
+                "footwear" => "Footwear",
+                "accessories" => "Accessories",
+                "sportswear" => "Sportswear",
+                "luxury-collection" => "Luxury Collection",
+                "summer-essentials" => "Summer Essentials",
+                _ => null
+            };
+
+            if (categoryName == null)
+            {
+                return NotFound();
+            }
+
+            // Get the parent category and its subcategories
+            var parentCategory = _db.Categories.FirstOrDefault(c => c.Category_Name == categoryName && c.ParentCategoryId == null);
+            if (parentCategory == null)
+            {
+                return NotFound();
+            }
+
+            // Get all subcategory IDs (including the parent category)
+            var categoryIds = _db.Categories
+                .Where(c => c.ParentCategoryId == parentCategory.Category_Id || c.Category_Id == parentCategory.Category_Id)
+                .Select(c => c.Category_Id)
+                .ToList();
+
+            // Get products for the parent category and its subcategories
+            var products = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => categoryIds.Contains(p.Category_Id))
+                .ToList();
+
+            if (products == null || !products.Any())
+            {
+                return View(products); // Return the view even if no products, to show "No Products Found"
+            }
+
+            ViewBag.Category = categoryName;
+            return View(products);
+        }
         public IActionResult Home()
         {
             var productsQuery = _db.Products
                                   .Include(p => p.Brand)
+                                  .Include(p => p.Category)
                                   .OrderByDescending(p => p.Product_Id);
             var products = productsQuery
                 .Take(8)

@@ -39,18 +39,25 @@ namespace Clothes_Store.Areas.Admin.Controllers
         public async Task<IActionResult> Upsert(int id)
         {
             ProductViewModel obj = new();
-            var Brands = await _unitOfWork.Brands.GetAll();
-            obj.BrandList = Brands.Select(i => new SelectListItem
+
+            // Populate BrandList
+            var brands = await _db.Brands.ToListAsync();
+            obj.BrandList = brands.Select(i => new SelectListItem
             {
                 Text = i.Brand_Name,
                 Value = i.Brand_Id.ToString()
-            });
-            var Categories = await _unitOfWork.Categories.GetAll();
-            obj.CategoryList = Categories.Select(i => new SelectListItem
+            }).ToList();
+
+            // Populate CategoryList with hierarchical display
+            var categories = await _db.Categories.ToListAsync();
+            var categoryLookup = categories.ToDictionary(c => c.Category_Id, c => c.Category_Name);
+            obj.CategoryList = categories.Select(i => new SelectListItem
             {
-                Text = i.Category_Name,
+                Text = i.ParentCategoryId == null
+                    ? i.Category_Name
+                    : $"-- {(categoryLookup.TryGetValue(i.ParentCategoryId.Value, out var parentName) ? parentName : "Unknown")} > {i.Category_Name}",
                 Value = i.Category_Id.ToString()
-            });
+            }).ToList();
 
             if (id == 0) // Create new product
             {
@@ -79,18 +86,28 @@ namespace Clothes_Store.Areas.Admin.Controllers
         public async Task<IActionResult> Upsert(ProductViewModel obj, IFormFile? file, string? croppedImageData)
         {
             // Repopulate dropdowns in case of validation errors
-            var Brands = await _unitOfWork.Brands.GetAll();
-            obj.BrandList = Brands.Select(i => new SelectListItem
+            var brands = await _db.Brands.ToListAsync();
+            obj.BrandList = brands.Select(i => new SelectListItem
             {
                 Text = i.Brand_Name,
                 Value = i.Brand_Id.ToString()
-            });
-            var Categories = await _unitOfWork.Categories.GetAll();
-            obj.CategoryList = Categories.Select(i => new SelectListItem
+            }).ToList();
+
+            var categories = await _db.Categories.ToListAsync();
+            var categoryLookup = categories.ToDictionary(c => c.Category_Id, c => c.Category_Name);
+            obj.CategoryList = categories.Select(i => new SelectListItem
             {
-                Text = i.Category_Name,
+                Text = i.ParentCategoryId == null
+                    ? i.Category_Name
+                    : $"-- {(categoryLookup.TryGetValue(i.ParentCategoryId.Value, out var parentName) ? parentName : "Unknown")} > {i.Category_Name}",
                 Value = i.Category_Id.ToString()
-            });
+            }).ToList();
+
+            var selectedCategory = await _db.Categories.FirstOrDefaultAsync(c => c.Category_Id == obj.Product.Category_Id);
+            if (selectedCategory != null && selectedCategory.ParentCategoryId == null)
+            {
+                ModelState.AddModelError("Product.Category_Id", "Products must be assigned to a subcategory, not a parent category.");
+            }
 
             // Handle image upload - prioritize cropped image if available
             string wwwRootPath = _webHostEnvironment.WebRootPath;
@@ -137,50 +154,56 @@ namespace Clothes_Store.Areas.Admin.Controllers
             else if (obj.Product.Product_Id != 0)
             {
                 // Retain existing image if no new file is uploaded
-                var existingProduct = await _unitOfWork.Products.GetById(obj.Product.Product_Id);
+                var existingProduct = await _db.Products.FirstOrDefaultAsync(p => p.Product_Id == obj.Product.Product_Id);
                 obj.Product.imgUrl = existingProduct?.imgUrl;
             }
 
-            if (obj.Product.Product_Id == 0) // Create
+            if (ModelState.IsValid)
             {
-                await _unitOfWork.Products.Add(obj.Product);
-                await _unitOfWork.SaveAsync(); // Save product to get Product_Id
-
-                // Add stock entries
-                if (obj.Stocks != null && obj.Stocks.Any())
+                if (obj.Product.Product_Id == 0) // Create
                 {
-                    foreach (var stock in obj.Stocks)
+                    _db.Products.Add(obj.Product);
+                    await _db.SaveChangesAsync(); // Save product to get Product_Id
+
+                    // Add stock entries
+                    if (obj.Stocks != null && obj.Stocks.Any())
                     {
-                        stock.Product_Id = obj.Product.Product_Id;
-                        _db.Stocks.Add(stock);
+                        foreach (var stock in obj.Stocks)
+                        {
+                            stock.Product_Id = obj.Product.Product_Id;
+                            _db.Stocks.Add(stock);
+                        }
                     }
+                    TempData["Success"] = "Product Added successfully";
                 }
-                TempData["Success"] = "Product Added successfully";
-            }
-            else // Update
-            {
-                _unitOfWork.Products.UpdateAsync(obj.Product);
-
-                // Remove existing stock entries
-                var existingStocks = await _db.Stocks
-                    .Where(s => s.Product_Id == obj.Product.Product_Id)
-                    .ToListAsync();
-                _db.Stocks.RemoveRange(existingStocks);
-
-                // Add new stock entries
-                if (obj.Stocks != null && obj.Stocks.Any())
+                else // Update
                 {
-                    foreach (var stock in obj.Stocks)
+                    _db.Products.Update(obj.Product);
+
+                    // Remove existing stock entries
+                    var existingStocks = await _db.Stocks
+                        .Where(s => s.Product_Id == obj.Product.Product_Id)
+                        .ToListAsync();
+                    _db.Stocks.RemoveRange(existingStocks);
+
+                    // Add new stock entries
+                    if (obj.Stocks != null && obj.Stocks.Any())
                     {
-                        stock.Product_Id = obj.Product.Product_Id;
-                        _db.Stocks.Add(stock);
+                        foreach (var stock in obj.Stocks)
+                        {
+                            stock.Product_Id = obj.Product.Product_Id;
+                            _db.Stocks.Add(stock);
+                        }
                     }
+                    TempData["Success"] = $"('{obj.Product.Product_Name}') updated successfully";
                 }
-                TempData["Success"] = $"('{obj.Product.Product_Name}') updated successfully";
+
+                await _db.SaveChangesAsync();
+                return RedirectToAction(nameof(Index));
             }
 
-            await _unitOfWork.SaveAsync();
-            return RedirectToAction(nameof(Index));
+            // Return view with validation errors
+            return View(obj);
         }
 
         public async Task<IActionResult> Delete(int id)
