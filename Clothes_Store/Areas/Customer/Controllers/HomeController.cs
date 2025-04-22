@@ -13,7 +13,6 @@ using SendGrid.Helpers.Mail;
 namespace Clothes_Store.Controllers
 {
     [Area("Customer")]
-    [AllowAnonymous]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -28,7 +27,34 @@ namespace Clothes_Store.Controllers
 
         public IActionResult Home()
         {
-            return View();
+            var productsQuery = _db.Products
+                                  .Include(p => p.Brand)
+                                  .OrderByDescending(p => p.Product_Id);
+            var products = productsQuery
+                .Take(8)
+                .Select(p => new
+                {
+                    p.Product_Id,
+                    p.Product_Name,
+                    p.imgUrl,
+                    BrandName = p.Brand.Brand_Name,
+                    p.IsFeatured,
+                    p.Product_Rating,
+                    p.Product_Price,
+                    AvailableSizes = p.Stocks
+                    .Where(s => s.Quantity > 0)
+                    .Select(s => s.Size)
+                    .Distinct()
+                    .OrderBy(s => s)
+                    .ToList()
+                })
+                .ToList();
+            if (products == null)
+            {
+                return NotFound();
+            }
+
+            return View(products);
         }
 
         public async Task<IActionResult> Shop(int page = 1, int pageSize = 8)
@@ -51,6 +77,7 @@ namespace Clothes_Store.Controllers
                                      p.Product_Name,
                                      p.imgUrl,
                                      BrandName = p.Brand.Brand_Name,
+                                     p.IsFeatured,
                                      p.Product_Rating,
                                      p.Product_Price,
                                      AvailableSizes = p.Stocks
@@ -116,6 +143,7 @@ namespace Clothes_Store.Controllers
 
             return Json(new { success = true, sizes });
         }
+
         public ActionResult Search(string searchTerm)
         {
             var viewModel = new SearchViewModel

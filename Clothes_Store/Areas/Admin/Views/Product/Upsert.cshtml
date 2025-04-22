@@ -204,7 +204,17 @@
                     <span asp-validation-for="Product.Category_Id" class="mt-1 md:mt-2 text-xs md:text-sm text-red-600"></span>
                 </div>
             </div>
-
+            <!-- Add this section right after the Category select field -->
+            <div class="mb-4 md:mb-6">
+                <div class="flex items-center">
+                    <input asp-for="Product.IsFeatured" type="checkbox"
+                           class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                    <label asp-for="Product.IsFeatured" class="ml-2 block text-sm md:text-base text-gray-700">
+                        Featured Product
+                    </label>
+                </div>
+                <span class="mt-1 text-xs md:text-sm text-gray-500">Check this box to feature this product on the homepage</span>
+            </div>
             <!-- Form Actions -->
             <div class="mt-6 md:mt-8 flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-4">
                 <a asp-action="Index" class="inline-flex items-center justify-center px-4 md:px-6 py-2 md:py-3 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all">

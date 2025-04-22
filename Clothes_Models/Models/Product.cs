@@ -29,6 +29,8 @@ namespace Clothes_Models.Models
         [Required(ErrorMessage = "Color is required")]
         public string Product_Color { get; set; }
 
+        public bool IsFeatured { get; set; }
+
         [ForeignKey("Category")]
         [Required(ErrorMessage = "Category is required")]
         public int Category_Id { get; set; }

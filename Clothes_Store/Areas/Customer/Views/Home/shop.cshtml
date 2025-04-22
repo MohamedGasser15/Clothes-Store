@@ -589,6 +589,12 @@
         {
                     <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
                         <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
+                @if (product.IsFeatured)
+                {
+                    <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                        FEATURED
+                    </span>
+                }
                         <div class="des">
                             <span class="product-brand">@product.BrandName</span>
                             <h5 class="product-description">@product.Product_Name</h5>
