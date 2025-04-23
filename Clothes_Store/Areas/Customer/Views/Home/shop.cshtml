@@ -4,9 +4,52 @@
     var showSuccessMessage = TempData["AddToCartSuccess"] != null && (bool)TempData["AddToCartSuccess"];
     var showErrorMessage = TempData["AddToCartError"] != null && (bool)TempData["AddToCartError"];
     var errorMessage = TempData["ErrorMessage"]?.ToString() ?? "An error occurred while adding to cart";
+    var currentCategory = ViewBag.CurrentCategory?.ToString() ?? string.Empty;
+    var currentCategoryId = ViewBag.CurrentCategoryId?.ToString() ?? string.Empty;
 }
 
 <style>
+    .filter-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-options {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 0.25rem;
+        background-color: #f5f5f5;
+        color: #088178;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+        .filter-btn:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(8, 129, 120, 0.15);
+        }
+
+        .filter-btn.active {
+            background-color: #e8f6ea;
+            border-color: #cce7d0;
+            color: #088178;
+            font-weight: 600;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(8, 129, 120, 0.25);
+        }
     /* Notification styles */
     .notification-container {
         position: fixed;
@@ -248,6 +291,7 @@
         transform: translateY(-5px);
         box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
     }
+
     .pro-cart-button {
         width: 40px;
         height: 40px;
@@ -494,7 +538,7 @@
     }
 
     /* Banner styles */
-        .banner-slide {
+    .banner-slide {
         background-size: cover;
         background-position: center;
         opacity: 0;
@@ -502,10 +546,10 @@
         transition: opacity 1s ease-in-out;
     }
 
-    .banner-slide:first-child {
-        opacity: 1;
-        z-index: 1;
-    }
+        .banner-slide:first-child {
+            opacity: 1;
+            z-index: 1;
+        }
 
     @@media (max-width: 768px) {
         #page-header {
@@ -587,43 +631,70 @@
     <h2>Featured Products</h2>
     <p>Summer Collection New Modern Design</p>
 
+    <!-- Filter Section -->
+    <!-- In your filter section -->
+    <div class="filter-container">
+        <div class="filter-options">
+            <button class="filter-btn @(string.IsNullOrEmpty(currentCategoryId) ? "active" : "")"
+                    data-category-id=""
+                    data-category="">
+                All Products
+            </button>
+            <button class="filter-btn @(currentCategoryId == "17" ? "active" : "")"
+                    data-category-id="17"
+                    data-category="Men's Fashion">
+                Men's Fashion
+            </button>
+            <button class="filter-btn @(currentCategoryId == "18" ? "active" : "")"
+                    data-category-id="18"
+                    data-category="Women's Fashion">
+                Women's Fashion
+            </button>
+            <button class="filter-btn @(currentCategoryId == "19" ? "active" : "")"
+                    data-category-id="19"
+                    data-category="Kids Fashion">
+                Kids Fashion
+            </button>
+        </div>
+    </div>
+
     <!-- Product List Container -->
     <div id="productContainer" class="pro-container">
         @foreach (var product in Model)
         {
-                    <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
-                        <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
+                <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.ProductId })';">
+                    <img src="@product.ImgUrl" alt="@product.ProductName" class="product-img">
                 @if (product.IsFeatured)
                 {
-                    <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                        FEATURED
-                    </span>
+                            <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                                FEATURED
+                            </span>
                 }
-                        <div class="des">
-                            <span class="product-brand">@product.BrandName</span>
-                            <h5 class="product-description">@product.Product_Name</h5>
-                            <div class="star">
-                        @for (int i = 0; i < product.Product_Rating; i++)
+                    <div class="des">
+                        <span class="product-brand">@product.BrandName</span>
+                        <h5 class="product-description">@product.ProductName</h5>
+                        <div class="star">
+                        @for (int i = 0; i < product.ProductRating; i++)
                         {
-                                            <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
                         }
-                        @for (int i = product.Product_Rating; i < 5; i++)
+                        @for (int i = product.ProductRating; i < 5; i++)
                         {
-                                            <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
                         }
-                            </div>
-                            <h4 class="product-price">$@product.Product_Price</h4>
                         </div>
-                        <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                        <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
-                    @Html.AntiForgeryToken()
-                            <input type="hidden" name="productId" value="@product.Product_Id" />
-                            <input type="hidden" name="quantity" id="quantity-@product.Product_Id" value="1" />
-                            <input type="hidden" name="size" id="size-@product.Product_Id" value="" />
-                        </form>
+                        <h4 class="product-price">$@product.ProductPrice</h4>
                     </div>
+                    <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.ProductId)">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <form class="add-to-cart-form" data-product-id="@product.ProductId" style="display: none;">
+                    @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@product.ProductId" />
+                        <input type="hidden" name="quantity" id="quantity-@product.ProductId" value="1" />
+                        <input type="hidden" name="size" id="size-@product.ProductId" value="" />
+                    </form>
+                </div>
         }
     </div>
 
@@ -649,8 +720,221 @@
 </section>
 
 <script>
-    // Banner Slider
-        document.addEventListener('DOMContentLoaded', function() {
+    const pageSize = @ViewBag.PageSize;
+    let currentPage = @ViewBag.CurrentPage;
+    let totalPages = @ViewBag.TotalPages;
+    let currentCategoryId = '@currentCategoryId'; // This should now match your database IDs (17,18,19)
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up filter buttons
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Get the category ID from data attribute
+                currentCategoryId = this.dataset.categoryId || '';
+
+                // Update active state
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+
+                // Reset to first page when changing category
+                loadPage(1);
+            });
+        });
+
+        // Initialize banner slider
+        initializeBannerSlider();
+
+        // Set up pagination and cart buttons
+        renderPagination();
+        attachCartButtonListeners();
+
+        // Show initial notifications if any
+    @if (showSuccessMessage)
+    {
+        @:showNotification(true, "Item added to cart successfully!");
+    }
+
+    @if (showErrorMessage)
+    {
+        @:showNotification(false, "@errorMessage");
+    }
+    });
+
+    // Load products for a specific page
+        function loadPage(page) {
+        const productContainer = document.getElementById('productContainer');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Validate page number
+        page = Math.max(1, page);
+        if (totalPages > 0) {
+            page = Math.min(page, totalPages);
+        }
+
+        loadingSpinner.classList.add('active');
+        productContainer.style.opacity = '0.5';
+
+        // Build URL with current category ID
+        let url = `@Url.Action("Shop", "Home", new { area = "Customer" })?page=${page}&pageSize=${pageSize}`;
+        if (currentCategoryId) {
+            url += `&categoryId=${currentCategoryId}`;
+        }
+
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (!data.products || !Array.isArray(data.products)) {
+                throw new Error('Invalid products data received');
+            }
+
+            renderProducts(data.products);
+            currentPage = data.currentPage;
+            totalPages = data.totalPages;
+            renderPagination();
+        })
+        .catch(error => {
+            console.error('Error loading page:', error);
+            showNotification(false, "Error loading products");
+            // Reset to first page on error
+            if (page !== 1) {
+                loadPage(1);
+            }
+        })
+        .finally(() => {
+            loadingSpinner.classList.remove('active');
+            productContainer.style.opacity = '1';
+        });
+    }
+
+    // Render products in the container
+          function renderProducts(products) {
+        const productContainer = document.getElementById('productContainer');
+        productContainer.innerHTML = products.map(product => `
+            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer" })?id=${product.productId || ''}'">
+                <img src="${product.imgUrl || ''}" alt="${product.productName || 'Product'}" class="product-img">
+                ${product.isFeatured ?
+                    '<span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">FEATURED</span>'
+                    : ''}
+                <div class="des">
+                    <span class="product-brand">${product.brandName || ''}</span>
+                    <h5 class="product-description">${product.productName || ''}</h5>
+                    <div class="star">
+                        ${Array(5).fill().map((_, i) =>
+                            i < (product.productRating || 0) ?
+                            '<i class="fas fa-star"></i>' :
+                            '<i class="far fa-star"></i>'
+                        ).join('')}
+                    </div>
+                    <h4 class="product-price">$${product.productPrice || '0.00'}</h4>
+                </div>
+                <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(${product.productId || 0})">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <form class="add-to-cart-form" data-product-id="${product.productId || ''}" style="display: none;">
+                    <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''}" />
+                    <input type="hidden" name="productId" value="${product.productId || ''}" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <input type="hidden" name="size" id="size-${product.productId || ''}" value="" />
+                </form>
+            </div>
+        `).join('');
+
+        attachCartButtonListeners();
+    }
+
+    // Render pagination controls
+       function renderPagination() {
+        const paginationContainer = document.getElementById('pagination');
+        paginationContainer.innerHTML = '';
+
+        if (totalPages <= 1) return; // Don't show pagination if only one page
+
+        // Previous button
+        const prevLink = document.createElement('a');
+        prevLink.innerHTML = '<i class="fas fa-long-arrow-alt-left"></i>';
+        prevLink.className = currentPage === 1 ? 'disabled' : '';
+        prevLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentPage > 1) loadPage(currentPage - 1);
+        });
+        paginationContainer.appendChild(prevLink);
+
+        // Page numbers - show limited range around current page
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            const firstPageLink = document.createElement('a');
+            firstPageLink.textContent = '1';
+            firstPageLink.className = currentPage === 1 ? 'active' : '';
+            firstPageLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                loadPage(1);
+            });
+            paginationContainer.appendChild(firstPageLink);
+
+            if (startPage > 2) {
+                const ellipsis = document.createElement('span');
+                ellipsis.textContent = '...';
+                ellipsis.style.padding = '0 10px';
+                paginationContainer.appendChild(ellipsis);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageLink = document.createElement('a');
+            pageLink.textContent = i;
+            pageLink.className = i === currentPage ? 'active' : '';
+            pageLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                loadPage(i);
+            });
+            paginationContainer.appendChild(pageLink);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                const ellipsis = document.createElement('span');
+                ellipsis.textContent = '...';
+                ellipsis.style.padding = '0 10px';
+                paginationContainer.appendChild(ellipsis);
+            }
+
+            const lastPageLink = document.createElement('a');
+            lastPageLink.textContent = totalPages;
+            lastPageLink.className = currentPage === totalPages ? 'active' : '';
+            lastPageLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                loadPage(totalPages);
+            });
+            paginationContainer.appendChild(lastPageLink);
+        }
+
+        // Next button
+        const nextLink = document.createElement('a');
+        nextLink.innerHTML = '<i class="fas fa-long-arrow-alt-right"></i>';
+        nextLink.className = currentPage === totalPages ? 'disabled' : '';
+        nextLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (currentPage < totalPages) loadPage(currentPage + 1);
+        });
+        paginationContainer.appendChild(nextLink);
+    }
+
+    // Initialize banner slider
+    function initializeBannerSlider() {
         const banners = document.querySelectorAll('.banner-slide');
         const dots = document.querySelectorAll('.banner-dot');
         let currentIndex = 0;
@@ -674,7 +958,7 @@
         }
 
         function startInterval() {
-            interval = setInterval(nextBanner, 4000); // 5 seconds
+            interval = setInterval(nextBanner, 3000);
         }
 
         // Initialize
@@ -695,7 +979,19 @@
         const container = document.getElementById('page-header');
         container.addEventListener('mouseenter', () => clearInterval(interval));
         container.addEventListener('mouseleave', startInterval);
-    });
+    }
+
+    // Attach event listeners to cart buttons
+    function attachCartButtonListeners() {
+        document.querySelectorAll('.pro-cart-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const productId = this.getAttribute('onclick').match(/\d+/)[0];
+                showSizeModal(productId);
+            });
+        });
+    }
+
     // Notification System
     function showNotification(isSuccess, message) {
         const notificationContainer = document.querySelector('.notification-container');
@@ -916,138 +1212,4 @@
             hideSizeModal();
         }
     });
-
-    // Initialize cart button event listeners
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.pro-cart-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const productId = this.getAttribute('onclick').match(/\d+/)[0];
-                showSizeModal(productId);
-            });
-        });
-
-        // Show initial notifications if any
-    @if (showSuccessMessage)
-    {
-        @:showNotification(true, "Item added to cart successfully!");
-    }
-
-    @if (showErrorMessage)
-    {
-        @:showNotification(false, "@errorMessage");
-    }
-    });
-
-    // Pagination JavaScript
-    const pageSize = @ViewBag.PageSize;
-    let currentPage = @ViewBag.CurrentPage;
-    let totalPages = @ViewBag.TotalPages;
-
-    function renderProduct(product) {
-        const stars = Array(5).fill().map((_, i) =>
-            i < product.product_Rating
-                ? '<i class="fas fa-star"></i>'
-                : '<i class="far fa-star"></i>'
-        ).join('');
-
-        return `
-            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer" })?id=${product.product_Id}'">
-                <img src="${product.imgUrl}" alt="${product.product_Name}" class="product-img">
-                <div class="des">
-                    <span class="product-brand">${product.brandName}</span>
-                    <h5 class="product-description">${product.product_Name}</h5>
-                    <div class="star">${stars}</div>
-                    <h4 class="product-price">$${product.product_Price}</h4>
-                </div>
-                <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(${product.product_Id})">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
-                <form class="add-to-cart-form" data-product-id="${product.product_Id}" style="display: none;">
-                    <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]').value}" />
-                    <input type="hidden" name="productId" value="${product.product_Id}" />
-                    <input type="hidden" name="quantity" value="1" />
-                    <input type="hidden" name="size" id="size-${product.product_Id}" value="" />
-                </form>
-            </div>
-        `;
-    }
-
-    function renderProducts(products) {
-        const productContainer = document.getElementById('productContainer');
-        productContainer.innerHTML = products.map(renderProduct).join('');
-        attachCartButtonListeners();
-    }
-
-    function renderPagination() {
-        const paginationContainer = document.getElementById('pagination');
-        paginationContainer.innerHTML = '';
-
-        const prevLink = document.createElement('a');
-        prevLink.innerHTML = '<i class="fas fa-long-arrow-alt-left"></i>';
-        prevLink.className = currentPage === 1 ? 'disabled' : '';
-        prevLink.addEventListener('click', () => {
-            if (currentPage > 1) loadPage(currentPage - 1);
-        });
-        paginationContainer.appendChild(prevLink);
-
-        for (let i = 1; i <= totalPages; i++) {
-            const pageLink = document.createElement('a');
-            pageLink.textContent = i;
-            pageLink.className = i === currentPage ? 'active' : '';
-            pageLink.addEventListener('click', () => loadPage(i));
-            paginationContainer.appendChild(pageLink);
-        }
-
-        const nextLink = document.createElement('a');
-        nextLink.innerHTML = '<i class="fas fa-long-arrow-alt-right"></i>';
-        nextLink.className = currentPage === totalPages ? 'disabled' : '';
-        nextLink.addEventListener('click', () => {
-            if (currentPage < totalPages) loadPage(currentPage + 1);
-        });
-        paginationContainer.appendChild(nextLink);
-    }
-
-    function loadPage(page) {
-        const productContainer = document.getElementById('productContainer');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-
-        loadingSpinner.classList.add('active');
-        productContainer.style.opacity = '0.5';
-
-        fetch(`@Url.Action("Shop", "Home", new { area = "Customer" })?page=${page}&pageSize=${pageSize}`, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                renderProducts(data.products);
-                currentPage = data.currentPage;
-                totalPages = data.totalPages;
-                renderPagination();
-                loadingSpinner.classList.remove('active');
-                productContainer.style.opacity = '1';
-            })
-            .catch(error => {
-                console.error('Error loading page:', error);
-                loadingSpinner.classList.remove('active');
-                productContainer.style.opacity = '1';
-                showNotification(false, "Error loading products");
-            });
-    }
-
-    function attachCartButtonListeners() {
-        document.querySelectorAll('.pro-cart-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const productId = this.getAttribute('onclick').match(/\d+/)[0];
-                showSizeModal(productId);
-            });
-        });
-    }
-
-    // Initial setup
-    renderPagination();
-    attachCartButtonListeners();
 </script>

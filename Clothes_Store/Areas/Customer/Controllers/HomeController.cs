@@ -156,42 +156,73 @@ namespace Clothes_Store.Controllers
             return View(products);
         }
 
-        public async Task<IActionResult> Shop(int page = 1, int pageSize = 8)
+        public async Task<IActionResult> Shop(int? categoryId = null, int page = 1, int pageSize = 8)
         {
+            // Validate inputs
+            page = Math.Max(1, page);
+            pageSize = Math.Max(1, Math.Min(pageSize, 100));
+
             var productsQuery = _db.Products
-                                   .Include(p => p.Brand)
-                                   .OrderBy(p => p.Product_Id);
+                                  .Include(p => p.Brand)
+                                  .Include(p => p.Category)
+                                  .OrderBy(p => p.Product_Id);
+
+            // Filter by category ID if specified
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                // Get subcategories of the selected categoryId
+                var subCategoryIds = await _db.Categories
+                                            .Where(c => c.ParentCategoryId == categoryId.Value)
+                                            .Select(c => c.Category_Id)
+                                            .ToListAsync();
+
+                if (subCategoryIds.Any())
+                {
+                    // If there are subcategories, filter products by those IDs
+                    productsQuery = (IOrderedQueryable<Product>)productsQuery
+                        .Where(p => subCategoryIds.Contains(p.Category_Id));
+                }
+                else
+                {
+                    // If no subcategories, filter directly by categoryId
+                    productsQuery = (IOrderedQueryable<Product>)productsQuery
+                        .Where(p => p.Category_Id == categoryId.Value);
+                }
+            }
 
             var totalProducts = await productsQuery.CountAsync();
             var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
-            page = Math.Max(1, page);
-            page = Math.Min(page, totalPages);
+
+            // Ensure page is within valid range
+            page = Math.Min(page, Math.Max(1, totalPages));
 
             var products = await productsQuery
-                                 .Skip((page - 1) * pageSize)
-                                 .Take(pageSize)
-                                 .Select(p => new
-                                 {
-                                     p.Product_Id,
-                                     p.Product_Name,
-                                     p.imgUrl,
-                                     BrandName = p.Brand.Brand_Name,
-                                     p.IsFeatured,
-                                     p.Product_Rating,
-                                     p.Product_Price,
-                                     AvailableSizes = p.Stocks
-                                         .Where(s => s.Quantity > 0)
-                                         .Select(s => s.Size)
-                                         .Distinct()
-                                         .OrderBy(s => s)
-                                         .ToList()
-                                 })
-                                 .ToListAsync();
+     .Skip((page - 1) * pageSize)
+     .Take(pageSize)
+     .Select(p => new
+     {
+         ProductId = p.Product_Id,        // Changed from Product_Id
+         ProductName = p.Product_Name,    // Changed from Product_Name
+         ImgUrl = p.imgUrl,              // Already camelCase in model, keep as is
+         BrandName = p.Brand.Brand_Name,  // Remains unchanged
+         CategoryName = p.Category.Category_Name, // Remains unchanged
+         IsFeatured = p.IsFeatured,       // Remains unchanged
+         ProductRating = p.Product_Rating, // Changed from Product_Rating
+         ProductPrice = p.Product_Price,  // Changed from Product_Price
+         AvailableSizes = p.Stocks
+             .Where(s => s.Quantity > 0)
+             .Select(s => s.Size)
+             .Distinct()
+             .OrderBy(s => s)
+             .ToList()
+     })
+     .ToListAsync();
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalProducts = totalProducts;
+            ViewBag.CurrentCategoryId = categoryId;
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
@@ -200,7 +231,8 @@ namespace Clothes_Store.Controllers
                     products,
                     currentPage = page,
                     totalPages,
-                    pageSize
+                    pageSize,
+                    currentCategoryId = categoryId
                 });
             }
 
