@@ -24,6 +24,41 @@ namespace Clothes_Store.Controllers
             _logger = logger;
             _db = db;
         }
+        [HttpGet]
+        public IActionResult GetProductDetails(int productId)
+        {
+            var product = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => p.Product_Id == productId)
+                .Select(p => new
+                {
+                    productId = p.Product_Id,
+                    productName = p.Product_Name,
+                    imgUrl = p.imgUrl,
+                    productRating = p.Product_Rating,
+                    productPrice = p.Product_Price,
+                    description = p.Product_Description,
+                    color = p.Product_Color, // Single string
+                    brandName = p.Brand.Brand_Name,
+                    categoryName = p.Category.Category_Name,
+                    availableSizes = p.Stocks
+                        .Where(s => s.Quantity > 0)
+                        .Select(s => s.Size)
+                        .Distinct()
+                        .OrderBy(s => s)
+                        .ToList()
+                })
+                .FirstOrDefault();
+
+            if (product == null)
+            {
+                return Json(new { success = false, message = "Product not found" });
+            }
+
+            return Json(new { success = true, product });
+        }
         public IActionResult ShopByBrand(string brand)
         {
             if (string.IsNullOrEmpty(brand))

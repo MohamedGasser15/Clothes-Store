@@ -9,6 +9,260 @@
 }
 
 <style>
+    .modal-header {
+        display: flex;
+        justify-content: space-between; /* This spreads items to edges */
+        align-items: center;
+    }
+
+    .modal-title {
+        margin-left: auto; /* Pushes title to right */
+        padding-right: 180px; /* Space between title and close button */
+        text-align: right; /* Aligns text to right within its container */
+    }
+
+    .confirm-button {
+        background-color: #088178;
+        border: 1px solid #088178;
+        color: white;
+    }
+
+    .quick-view-actions .confirm-button:hover {
+        background-color: #066156; /* Darker teal */
+        transform: scale(1.05); /* Slight scale-up effect */
+        transition: all 0.3s ease; /* Smooth transition */
+    }
+    /* Quick View Modal Styles */
+    .quick-view-modal {
+        background-color: white;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 700px; /* Increased from 600px to fit larger image */
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .quick-view-content {
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .quick-view-image {
+        flex: 1;
+    }
+
+
+        .quick-view-image img {
+            width: 100%;
+            max-width: 400px; /* Increase this value as desired */
+            height: auto;
+            border-radius: 0.5rem;
+        }
+
+    .quick-view-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .quick-view-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+        .quick-view-rating i {
+            color: #f5c518; /* Gold color for stars */
+            font-size: 0.9rem;
+        }
+
+    .quick-view-price {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #088178; /* Teal color for price */
+    }
+
+    .quick-view-description {
+        font-size: 0.9rem;
+        color: #666;
+        line-height: 1.5;
+    }
+
+    .quick-view-colors,
+    .quick-view-sizes {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .color-label,
+    .size-label {
+        font-weight: 500;
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .color-options {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .color-option {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+        .color-option.selected {
+            border-color: #088178; /* Teal border for selected color */
+            box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.2);
+        }
+
+    .size-options {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .size-option {
+        border: 1px solid #cce7d0;
+        background-color: #e8f6ea;
+        color: #088178;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        font-size: 0.9rem;
+    }
+
+        .size-option:hover {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
+
+        .size-option.selected {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
+
+    .quick-view-actions {
+        margin-top: 1rem;
+    }
+
+        .quick-view-actions .confirm-button {
+            width: 100%; /* Full-width button */
+            padding: 0.75rem;
+            font-size: 1rem;
+        }
+
+    #quickViewColorText {
+        font-size: 0.9rem;
+        color: #333; /* Darker color for readability */
+        line-height: 1.5;
+    }
+    /* Product Card Image Zoom Effect */
+    #product1 .pro {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .product-brand,
+    .product-description {
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+        .product-brand:hover,
+        .product-description:hover {
+            color: #088178 !important;
+            transform: translateY(-1px);
+            cursor: pointer;
+            text-decoration: none;
+            text-underline-offset: 2px;
+        }
+
+    .icon-overlay {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Increased spacing for a cleaner look */
+        opacity: 0; /* Hidden by default */
+        transition: opacity 0.3s ease, transform 0.3s ease; /* Added transform for slide effect */
+        transform: translateX(20px); /* Start slightly off to the right */
+    }
+
+    .pro:hover .icon-overlay {
+        opacity: 1; /* Show icons on hover */
+        transform: translateX(0); /* Slide in from the right */
+    }
+
+    /* Style for the icons */
+    /* Style both a and button in icon-overlay */
+    .icon-overlay a,
+    .icon-overlay button {
+        width: 38px;
+        height: 38px;
+        background-color: #088178;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+        position: relative;
+        cursor: pointer; /* Ensure button has pointer cursor */
+        padding: 0; /* Remove default button padding */
+        text-decoration: none; /* For a, no underline */
+        border: none; /* Remove default button border */
+    }
+
+        .icon-overlay a:hover,
+        .icon-overlay button:hover {
+            transform: scale(1.15);
+            background-color: #066156;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Tooltip styling */
+        .icon-overlay a::after,
+        .icon-overlay button::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            right: 50px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            z-index: 10;
+        }
+
+        .icon-overlay a:hover::after,
+        .icon-overlay button:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+    /*Category Filter*/
     .filter-container {
         display: flex;
         justify-content: space-between;
@@ -26,10 +280,10 @@
 
     .filter-btn {
         padding: 0.5rem 1rem;
-        border: 1px solid #ddd;
+        border: 1px solid #eeeeee;
         border-radius: 0.25rem;
-        background-color: #f5f5f5;
-        color: #088178;
+        background-color: #eeeeee;
+        color: #454545;
         cursor: pointer;
         transition: all 0.3s ease;
         font-size: 0.95rem;
@@ -37,18 +291,18 @@
     }
 
         .filter-btn:hover {
-            background-color: #e0e0e0;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(8, 129, 120, 0.15);
+            background-color: #fde1bd;
+            border-color: #fde1bd;
+            transform: translateY(-4px);
+            color: #088178;
         }
 
         .filter-btn.active {
-            background-color: #e8f6ea;
-            border-color: #cce7d0;
+            background-color: #fde1bd;
+            border-color: #fde1bd;
             color: #088178;
             font-weight: 600;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(8, 129, 120, 0.25);
         }
     /* Notification styles */
     .notification-container {
@@ -563,6 +817,44 @@
     <!-- Notifications will be added here dynamically -->
 </div>
 
+<!-- Quick View Modal -->
+<div class="modal-overlay" id="quickViewModal">
+    <div class="quick-view-modal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="quickViewProductName"></h3>
+            <button class="close-modal" onclick="hideQuickViewModal()">×</button>
+        </div>
+        <div class="quick-view-content">
+            <div class="quick-view-image">
+                <img id="quickViewProductImage" src="" alt="Product Image">
+            </div>
+            <div class="quick-view-details">
+                <div class="quick-view-rating" id="quickViewRating"></div>
+                <h4 class="quick-view-price" id="quickViewPrice"></h4>
+                <p class="quick-view-description" id="quickViewDescription"></p>
+                <div class="quick-view-colors">
+                    <span class="color-label">Color: </span>
+                    <span id="quickViewColorText"></span>
+                </div>
+                <div class="quick-view-sizes">
+                    <span class="size-label">Size:</span>
+                    <div class="size-options" id="quickViewSizes"></div>
+                </div>
+                <div class="quick-view-actions">
+                    <div class="quantity-selector">
+                        <span class="quantity-label">Quantity:</span>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" id="quickViewDecrementQty">-</button>
+                            <input type="number" id="quickViewQuantityInput" class="quantity-input" value="1" min="1" max="10">
+                            <button class="quantity-btn" id="quickViewIncrementQty">+</button>
+                        </div>
+                    </div>
+                    <button class="modal-button confirm-button" id="quickViewAddToCart">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Size and Quantity Selection Modal -->
 <div class="modal-overlay" id="sizeModal">
     <div class="size-modal">
@@ -590,7 +882,6 @@
 </div>
 
 <!-- Rest of your HTML remains the same -->
-<!-- Replace your current page-header section with this: -->
 <section id="page-header" class="relative h-[40vh] overflow-hidden">
     <!-- Banner 1 -->
     <div class="banner-slide absolute inset-0 flex flex-col justify-center items-center text-center text-white" style="background-image: url('https://images.pexels.com/photos/3965557/pexels-photo-3965557.jpeg');">
@@ -628,7 +919,7 @@
 </section>
 
 <section id="product1" class="section-p1">
-    <h2>Featured Products</h2>
+    <h2>All Products</h2>
     <p>Summer Collection New Modern Design</p>
 
     <!-- Filter Section -->
@@ -662,39 +953,42 @@
     <div id="productContainer" class="pro-container">
         @foreach (var product in Model)
         {
-                <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.ProductId })';">
-                    <img src="@product.ImgUrl" alt="@product.ProductName" class="product-img">
+            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.ProductId })';">
+                <img src="@product.ImgUrl" alt="@product.ProductName" class="product-img">
                 @if (product.IsFeatured)
                 {
-                            <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                                FEATURED
-                            </span>
+                    <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                        FEATURED
+                    </span>
                 }
-                    <div class="des">
-                        <span class="product-brand">@product.BrandName</span>
-                        <h5 class="product-description">@product.ProductName</h5>
-                        <div class="star">
+                <div class="icon-overlay">
+                    <button onclick="event.stopPropagation(); showQuickViewModal(@product.ProductId);" data-tooltip="Quick View"><i class="fas fa-eye"></i></button>
+                </div>
+                <div class="des">
+                    <span class="product-brand">@product.BrandName</span>
+                    <h5 class="product-description">@product.ProductName</h5>
+                    <div class="star">
                         @for (int i = 0; i < product.ProductRating; i++)
                         {
-                                    <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
                         }
                         @for (int i = product.ProductRating; i < 5; i++)
                         {
-                                    <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
                         }
-                        </div>
-                        <h4 class="product-price">$@product.ProductPrice</h4>
                     </div>
-                    <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.ProductId)">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <form class="add-to-cart-form" data-product-id="@product.ProductId" style="display: none;">
-                    @Html.AntiForgeryToken()
-                        <input type="hidden" name="productId" value="@product.ProductId" />
-                        <input type="hidden" name="quantity" id="quantity-@product.ProductId" value="1" />
-                        <input type="hidden" name="size" id="size-@product.ProductId" value="" />
-                    </form>
+                    <h4 class="product-price">$@product.ProductPrice</h4>
                 </div>
+                <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.ProductId)">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <form class="add-to-cart-form" data-product-id="@product.ProductId" style="display: none;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@product.ProductId" />
+                    <input type="hidden" name="quantity" id="quantity-@product.ProductId" value="1" />
+                    <input type="hidden" name="size" id="size-@product.ProductId" value="" />
+                </form>
+            </div>
         }
     </div>
 
@@ -720,40 +1014,40 @@
 </section>
 
 <script>
-    const pageSize = @ViewBag.PageSize;
-    let currentPage = @ViewBag.CurrentPage;
-    let totalPages = @ViewBag.TotalPages;
-    let currentCategoryId = '@currentCategoryId'; // This should now match your database IDs (17,18,19)
+        const pageSize = @ViewBag.PageSize;
+        let currentPage = @ViewBag.CurrentPage;
+        let totalPages = @ViewBag.TotalPages;
+        let currentCategoryId = '@currentCategoryId'; // This should now match your database IDs (17,18,19)
 
-    // Initialize when DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        // Set up filter buttons
-        document.querySelectorAll('.filter-btn').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up filter buttons
+            document.querySelectorAll('.filter-btn').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
 
-                // Get the category ID from data attribute
-                currentCategoryId = this.dataset.categoryId || '';
+                    // Get the category ID from data attribute
+                    currentCategoryId = this.dataset.categoryId || '';
 
-                // Update active state
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.remove('active');
+                    // Update active state
+                    document.querySelectorAll('.filter-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+
+                    // Reset to first page when changing category
+                    loadPage(1);
                 });
-                this.classList.add('active');
-
-                // Reset to first page when changing category
-                loadPage(1);
             });
-        });
 
-        // Initialize banner slider
-        initializeBannerSlider();
+            // Initialize banner slider
+            initializeBannerSlider();
 
-        // Set up pagination and cart buttons
-        renderPagination();
-        attachCartButtonListeners();
+            // Set up pagination and cart buttons
+            renderPagination();
+            attachCartButtonListeners();
 
-        // Show initial notifications if any
+            // Show initial notifications if any
     @if (showSuccessMessage)
     {
         @:showNotification(true, "Item added to cart successfully!");
@@ -763,453 +1057,586 @@
     {
         @:showNotification(false, "@errorMessage");
     }
-    });
+        });
 
-    // Load products for a specific page
-        function loadPage(page) {
-        const productContainer = document.getElementById('productContainer');
-        const loadingSpinner = document.getElementById('loadingSpinner');
+        // Load products for a specific page
+            function loadPage(page) {
+            const productContainer = document.getElementById('productContainer');
+            const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // Validate page number
-        page = Math.max(1, page);
-        if (totalPages > 0) {
-            page = Math.min(page, totalPages);
-        }
-
-        loadingSpinner.classList.add('active');
-        productContainer.style.opacity = '0.5';
-
-        // Build URL with current category ID
-        let url = `@Url.Action("Shop", "Home", new { area = "Customer" })?page=${page}&pageSize=${pageSize}`;
-        if (currentCategoryId) {
-            url += `&categoryId=${currentCategoryId}`;
-        }
-
-        fetch(url, {
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data => {
-            if (!data.products || !Array.isArray(data.products)) {
-                throw new Error('Invalid products data received');
+            // Validate page number
+            page = Math.max(1, page);
+            if (totalPages > 0) {
+                page = Math.min(page, totalPages);
             }
 
-            renderProducts(data.products);
-            currentPage = data.currentPage;
-            totalPages = data.totalPages;
-            renderPagination();
-        })
-        .catch(error => {
-            console.error('Error loading page:', error);
-            showNotification(false, "Error loading products");
-            // Reset to first page on error
-            if (page !== 1) {
-                loadPage(1);
-            }
-        })
-        .finally(() => {
-            loadingSpinner.classList.remove('active');
-            productContainer.style.opacity = '1';
-        });
-    }
+            loadingSpinner.classList.add('active');
+            productContainer.style.opacity = '0.5';
 
-    // Render products in the container
-          function renderProducts(products) {
-        const productContainer = document.getElementById('productContainer');
-        productContainer.innerHTML = products.map(product => `
-            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer" })?id=${product.productId || ''}'">
-                <img src="${product.imgUrl || ''}" alt="${product.productName || 'Product'}" class="product-img">
-                ${product.isFeatured ?
-                    '<span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">FEATURED</span>'
-                    : ''}
-                <div class="des">
-                    <span class="product-brand">${product.brandName || ''}</span>
-                    <h5 class="product-description">${product.productName || ''}</h5>
-                    <div class="star">
-                        ${Array(5).fill().map((_, i) =>
-                            i < (product.productRating || 0) ?
-                            '<i class="fas fa-star"></i>' :
-                            '<i class="far fa-star"></i>'
-                        ).join('')}
-                    </div>
-                    <h4 class="product-price">$${product.productPrice || '0.00'}</h4>
-                </div>
-                <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(${product.productId || 0})">
-                    <i class="fas fa-shopping-cart"></i>
-                </div>
-                <form class="add-to-cart-form" data-product-id="${product.productId || ''}" style="display: none;">
-                    <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''}" />
-                    <input type="hidden" name="productId" value="${product.productId || ''}" />
-                    <input type="hidden" name="quantity" value="1" />
-                    <input type="hidden" name="size" id="size-${product.productId || ''}" value="" />
-                </form>
-            </div>
-        `).join('');
-
-        attachCartButtonListeners();
-    }
-
-    // Render pagination controls
-       function renderPagination() {
-        const paginationContainer = document.getElementById('pagination');
-        paginationContainer.innerHTML = '';
-
-        if (totalPages <= 1) return; // Don't show pagination if only one page
-
-        // Previous button
-        const prevLink = document.createElement('a');
-        prevLink.innerHTML = '<i class="fas fa-long-arrow-alt-left"></i>';
-        prevLink.className = currentPage === 1 ? 'disabled' : '';
-        prevLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (currentPage > 1) loadPage(currentPage - 1);
-        });
-        paginationContainer.appendChild(prevLink);
-
-        // Page numbers - show limited range around current page
-        const startPage = Math.max(1, currentPage - 2);
-        const endPage = Math.min(totalPages, currentPage + 2);
-
-        if (startPage > 1) {
-            const firstPageLink = document.createElement('a');
-            firstPageLink.textContent = '1';
-            firstPageLink.className = currentPage === 1 ? 'active' : '';
-            firstPageLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                loadPage(1);
-            });
-            paginationContainer.appendChild(firstPageLink);
-
-            if (startPage > 2) {
-                const ellipsis = document.createElement('span');
-                ellipsis.textContent = '...';
-                ellipsis.style.padding = '0 10px';
-                paginationContainer.appendChild(ellipsis);
-            }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            const pageLink = document.createElement('a');
-            pageLink.textContent = i;
-            pageLink.className = i === currentPage ? 'active' : '';
-            pageLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                loadPage(i);
-            });
-            paginationContainer.appendChild(pageLink);
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                const ellipsis = document.createElement('span');
-                ellipsis.textContent = '...';
-                ellipsis.style.padding = '0 10px';
-                paginationContainer.appendChild(ellipsis);
+            // Build URL with current category ID
+            let url = `@Url.Action("Shop", "Home", new { area = "Customer" })?page=${page}&pageSize=${pageSize}`;
+            if (currentCategoryId) {
+                url += `&categoryId=${currentCategoryId}`;
             }
 
-            const lastPageLink = document.createElement('a');
-            lastPageLink.textContent = totalPages;
-            lastPageLink.className = currentPage === totalPages ? 'active' : '';
-            lastPageLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                loadPage(totalPages);
-            });
-            paginationContainer.appendChild(lastPageLink);
-        }
-
-        // Next button
-        const nextLink = document.createElement('a');
-        nextLink.innerHTML = '<i class="fas fa-long-arrow-alt-right"></i>';
-        nextLink.className = currentPage === totalPages ? 'disabled' : '';
-        nextLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (currentPage < totalPages) loadPage(currentPage + 1);
-        });
-        paginationContainer.appendChild(nextLink);
-    }
-
-    // Initialize banner slider
-    function initializeBannerSlider() {
-        const banners = document.querySelectorAll('.banner-slide');
-        const dots = document.querySelectorAll('.banner-dot');
-        let currentIndex = 0;
-        let interval;
-
-        function showBanner(index) {
-            banners.forEach((banner, i) => {
-                banner.style.opacity = i === index ? '1' : '0';
-                banner.style.zIndex = i === index ? '1' : '0';
-            });
-
-            dots.forEach((dot, i) => {
-                dot.classList.toggle('bg-white', i === index);
-                dot.classList.toggle('bg-white/50', i !== index);
-            });
-        }
-
-        function nextBanner() {
-            currentIndex = (currentIndex + 1) % banners.length;
-            showBanner(currentIndex);
-        }
-
-        function startInterval() {
-            interval = setInterval(nextBanner, 3000);
-        }
-
-        // Initialize
-        showBanner(0);
-        startInterval();
-
-        // Dot navigation
-        dots.forEach(dot => {
-            dot.addEventListener('click', function() {
-                currentIndex = parseInt(this.getAttribute('data-index'));
-                showBanner(currentIndex);
-                clearInterval(interval);
-                startInterval();
-            });
-        });
-
-        // Pause on hover
-        const container = document.getElementById('page-header');
-        container.addEventListener('mouseenter', () => clearInterval(interval));
-        container.addEventListener('mouseleave', startInterval);
-    }
-
-    // Attach event listeners to cart buttons
-    function attachCartButtonListeners() {
-        document.querySelectorAll('.pro-cart-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const productId = this.getAttribute('onclick').match(/\d+/)[0];
-                showSizeModal(productId);
-            });
-        });
-    }
-
-    // Notification System
-    function showNotification(isSuccess, message) {
-        const notificationContainer = document.querySelector('.notification-container');
-        const notificationId = 'notification-' + Date.now();
-        const notificationClass = isSuccess ? 'success' : 'error';
-        const iconClass = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
-        const duration = isSuccess ? 3000 : 5000;
-
-        const notificationHTML = `
-            <div id="${notificationId}" class="notification ${notificationClass}">
-                <i class="fas ${iconClass} notification-icon"></i>
-                <span>${message}</span>
-                <span class="notification-close" onclick="hideNotification('${notificationId}')">
-                    <i class="fas fa-times"></i>
-                </span>
-                <div class="notification-progress">
-                    <div class="notification-progress-bar"></div>
-                </div>
-            </div>
-        `;
-
-        notificationContainer.insertAdjacentHTML('afterbegin', notificationHTML);
-        const notification = document.getElementById(notificationId);
-        const progressBar = notification.querySelector('.notification-progress-bar');
-
-        // Show notification
-        setTimeout(() => {
-            notification.classList.add('show');
-            positionNotifications();
-        }, 100);
-
-        // Auto-hide
-        setTimeout(() => {
-            hideNotification(notificationId);
-        }, duration);
-
-        // Pause on hover
-        notification.addEventListener('mouseenter', () => {
-            progressBar.style.animationPlayState = 'paused';
-        });
-
-        notification.addEventListener('mouseleave', () => {
-            progressBar.style.animationPlayState = 'running';
-        });
-    }
-
-    function positionNotifications() {
-        const notifications = document.querySelectorAll('.notification.show');
-        notifications.forEach((notification, index) => {
-            notification.style.top = `${index * (notification.offsetHeight + 10)}px`;
-        });
-    }
-
-    window.hideNotification = function(id) {
-        const notification = document.getElementById(id);
-        if (notification) {
-            notification.classList.remove('show');
-            notification.classList.add('hide');
-            setTimeout(() => notification.remove(), 500);
-        }
-    };
-
-    // Size and Quantity Modal
-    let currentProductId = null;
-    let selectedSize = null;
-    let maxQuantity = 10;
-
-    function showSizeModal(productId) {
-        currentProductId = productId;
-        selectedSize = null;
-        document.getElementById('quantityInput').value = 1;
-        document.getElementById('confirmAddToCart').disabled = true;
-        document.getElementById('stockInfo').textContent = '';
-
-        const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
-        sizeOptionsContainer.innerHTML = '<p>Loading sizes...</p>';
-
-        // Show modal immediately
-        document.getElementById('sizeModal').classList.add('active');
-
-        // Fetch available sizes
-        fetch(`/Customer/Home/GetProductSizes?productId=${productId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    updateSizeOptions(data.sizes);
-                } else {
-                    sizeOptionsContainer.innerHTML = `<p>${data.message || 'No sizes available'}</p>`;
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (!data.products || !Array.isArray(data.products)) {
+                    throw new Error('Invalid products data received');
+                }
+
+                renderProducts(data.products);
+                currentPage = data.currentPage;
+                totalPages = data.totalPages;
+                renderPagination();
+            })
             .catch(error => {
-                sizeOptionsContainer.innerHTML = '<p>Error loading sizes</p>';
-                console.error('Error:', error);
+                console.error('Error loading page:', error);
+                showNotification(false, "Error loading products");
+                // Reset to first page on error
+                if (page !== 1) {
+                    loadPage(1);
+                }
+            })
+            .finally(() => {
+                loadingSpinner.classList.remove('active');
+                productContainer.style.opacity = '1';
             });
-    }
-
-    function updateSizeOptions(availableSizes) {
-        const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
-        sizeOptionsContainer.innerHTML = '';
-
-        if (!availableSizes || availableSizes.length === 0) {
-            sizeOptionsContainer.innerHTML = '<p>Currently out of stock</p>';
-            return;
         }
 
-        const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
-        allSizes.forEach(size => {
-            const isAvailable = availableSizes.includes(size);
-            const sizeOption = document.createElement('div');
-            sizeOption.className = `size-option ${isAvailable ? '' : 'disabled'}`;
-            sizeOption.textContent = size;
-            sizeOption.dataset.size = size;
+        // Render products in the container
+        function renderProducts(products) {
+            const productContainer = document.getElementById('productContainer');
+            productContainer.innerHTML = products.map(product => `
+                <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer" })?id=${product.productId || ''}'">
+                    <img src="${product.imgUrl || ''}" alt="${product.productName || 'Product'}" class="product-img">
+                    ${product.isFeatured ?
+                        '<span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">FEATURED</span>'
+                        : ''}
+                    <div class="icon-overlay">
+                        <a href="#" onclick="event.stopPropagation(); showQuickViewModal(${product.productId || 0});" data-tooltip="Quick View"><i class="fas fa-eye"></i></a>
+                    </div>
+                    <div class="des">
+                        <span class="product-brand">${product.brandName || ''}</span>
+                        <h5 class="product-description">${product.productName || ''}</h5>
+                        <div class="star">
+                            ${Array(5).fill().map((_, i) =>
+                                i < (product.productRating || 0) ?
+                                '<i class="fas fa-star"></i>' :
+                                '<i class="far fa-star"></i>'
+                            ).join('')}
+                        </div>
+                        <h4 class="product-price">$${parseFloat(product.productPrice || '0.00').toFixed(2)}</h4>
+                    </div>
+                    <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(${product.productId || 0})">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <form class="add-to-cart-form" data-product-id="${product.productId || ''}" style="display: none;">
+                        <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''}" />
+                        <input type="hidden" name="productId" value="${product.productId || ''}" />
+                        <input type="hidden" name="quantity" value="1" />
+                        <input type="hidden" name="size" id="size-${product.productId || ''}" value="" />
+                    </form>
+                </div>
+            `).join('');
 
-            if (isAvailable) {
-                sizeOption.addEventListener('click', function() {
-                    document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
-                    this.classList.add('active');
-                    selectedSize = this.dataset.size;
-                    document.getElementById('confirmAddToCart').disabled = false;
+            attachCartButtonListeners();
+        }
 
-                    // Set max quantity (you can enhance this with actual stock later)
-                    maxQuantity = 10;
-                    document.getElementById('quantityInput').max = maxQuantity;
-                    document.getElementById('stockInfo').textContent = `Max ${maxQuantity} available`;
+        // Render pagination controls
+           function renderPagination() {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+
+            if (totalPages <= 1) return; // Don't show pagination if only one page
+
+            // Previous button
+            const prevLink = document.createElement('a');
+            prevLink.innerHTML = '<i class="fas fa-long-arrow-alt-left"></i>';
+            prevLink.className = currentPage === 1 ? 'disabled' : '';
+            prevLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage > 1) loadPage(currentPage - 1);
+            });
+            paginationContainer.appendChild(prevLink);
+
+            // Page numbers - show limited range around current page
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                const firstPageLink = document.createElement('a');
+                firstPageLink.textContent = '1';
+                firstPageLink.className = currentPage === 1 ? 'active' : '';
+                firstPageLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    loadPage(1);
+                });
+                paginationContainer.appendChild(firstPageLink);
+
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.padding = '0 10px';
+                    paginationContainer.appendChild(ellipsis);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageLink = document.createElement('a');
+                pageLink.textContent = i;
+                pageLink.className = i === currentPage ? 'active' : '';
+                pageLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    loadPage(i);
+                });
+                paginationContainer.appendChild(pageLink);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.padding = '0 10px';
+                    paginationContainer.appendChild(ellipsis);
+                }
+
+                const lastPageLink = document.createElement('a');
+                lastPageLink.textContent = totalPages;
+                lastPageLink.className = currentPage === totalPages ? 'active' : '';
+                lastPageLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    loadPage(totalPages);
+                });
+                paginationContainer.appendChild(lastPageLink);
+            }
+
+            // Next button
+            const nextLink = document.createElement('a');
+            nextLink.innerHTML = '<i class="fas fa-long-arrow-alt-right"></i>';
+            nextLink.className = currentPage === totalPages ? 'disabled' : '';
+            nextLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) loadPage(currentPage + 1);
+            });
+            paginationContainer.appendChild(nextLink);
+        }
+
+        // Initialize banner slider
+        function initializeBannerSlider() {
+            const banners = document.querySelectorAll('.banner-slide');
+            const dots = document.querySelectorAll('.banner-dot');
+            let currentIndex = 0;
+            let interval;
+
+            function showBanner(index) {
+                banners.forEach((banner, i) => {
+                    banner.style.opacity = i === index ? '1' : '0';
+                    banner.style.zIndex = i === index ? '1' : '0';
+                });
+
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('bg-white', i === index);
+                    dot.classList.toggle('bg-white/50', i !== index);
                 });
             }
 
-            sizeOptionsContainer.appendChild(sizeOption);
-        });
-    }
+            function nextBanner() {
+                currentIndex = (currentIndex + 1) % banners.length;
+                showBanner(currentIndex);
+            }
 
-    function hideSizeModal() {
-        document.getElementById('sizeModal').classList.remove('active');
-    }
+            function startInterval() {
+                interval = setInterval(nextBanner, 3000);
+            }
 
-    // Quantity Controls
-    document.getElementById('incrementQty').addEventListener('click', function() {
-        const quantityInput = document.getElementById('quantityInput');
-        let currentValue = parseInt(quantityInput.value);
-        if (currentValue < maxQuantity) {
-            quantityInput.value = currentValue + 1;
+            // Initialize
+            showBanner(0);
+            startInterval();
+
+            // Dot navigation
+            dots.forEach(dot => {
+                dot.addEventListener('click', function() {
+                    currentIndex = parseInt(this.getAttribute('data-index'));
+                    showBanner(currentIndex);
+                    clearInterval(interval);
+                    startInterval();
+                });
+            });
+
+            // Pause on hover
+            const container = document.getElementById('page-header');
+            container.addEventListener('mouseenter', () => clearInterval(interval));
+            container.addEventListener('mouseleave', startInterval);
         }
-    });
 
-    document.getElementById('decrementQty').addEventListener('click', function() {
-        const quantityInput = document.getElementById('quantityInput');
-        let currentValue = parseInt(quantityInput.value);
-        if (currentValue > 1) {
-            quantityInput.value = currentValue - 1;
+        // Attach event listeners to cart buttons
+        function attachCartButtonListeners() {
+            document.querySelectorAll('.pro-cart-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const productId = this.getAttribute('onclick').match(/\d+/)[0];
+                    showSizeModal(productId);
+                });
+            });
         }
-    });
 
-    document.getElementById('quantityInput').addEventListener('change', function() {
-        let value = parseInt(this.value);
-        if (isNaN(value) || value < 1) {
-            this.value = 1;
-        } else if (value > maxQuantity) {
-            this.value = maxQuantity;
+        // Notification System
+        function showNotification(isSuccess, message) {
+            const notificationContainer = document.querySelector('.notification-container');
+            const notificationId = 'notification-' + Date.now();
+            const notificationClass = isSuccess ? 'success' : 'error';
+            const iconClass = isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle';
+            const duration = isSuccess ? 3000 : 5000;
+
+            const notificationHTML = `
+                <div id="${notificationId}" class="notification ${notificationClass}">
+                    <i class="fas ${iconClass} notification-icon"></i>
+                    <span>${message}</span>
+                    <span class="notification-close" onclick="hideNotification('${notificationId}')">
+                        <i class="fas fa-times"></i>
+                    </span>
+                    <div class="notification-progress">
+                        <div class="notification-progress-bar"></div>
+                    </div>
+                </div>
+            `;
+
+            notificationContainer.insertAdjacentHTML('afterbegin', notificationHTML);
+            const notification = document.getElementById(notificationId);
+            const progressBar = notification.querySelector('.notification-progress-bar');
+
+            // Show notification
+            setTimeout(() => {
+                notification.classList.add('show');
+                positionNotifications();
+            }, 100);
+
+            // Auto-hide
+            setTimeout(() => {
+                hideNotification(notificationId);
+            }, duration);
+
+            // Pause on hover
+            notification.addEventListener('mouseenter', () => {
+                progressBar.style.animationPlayState = 'paused';
+            });
+
+            notification.addEventListener('mouseleave', () => {
+                progressBar.style.animationPlayState = 'running';
+            });
         }
-    });
 
-    // Add to Cart Functionality
-    document.getElementById('confirmAddToCart').addEventListener('click', function() {
-        if (currentProductId && selectedSize) {
-            const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
+        function positionNotifications() {
+            const notifications = document.querySelectorAll('.notification.show');
+            notifications.forEach((notification, index) => {
+                notification.style.top = `${index * (notification.offsetHeight + 10)}px`;
+            });
+        }
 
-            // Update hidden form fields
-            document.getElementById(`size-${currentProductId}`).value = selectedSize;
-            document.getElementById(`quantity-${currentProductId}`).value = quantity;
+        window.hideNotification = function(id) {
+            const notification = document.getElementById(id);
+            if (notification) {
+                notification.classList.remove('show');
+                notification.classList.add('hide');
+                setTimeout(() => notification.remove(), 500);
+            }
+        };
 
-            const form = document.querySelector(`.add-to-cart-form[data-product-id="${currentProductId}"]`);
-            const formData = new FormData(form);
+        // Size and Quantity Modal
+        let currentProductId = null;
+        let selectedSize = null;
+        let maxQuantity = 10;
 
-            hideSizeModal();
+        function showSizeModal(productId) {
+            currentProductId = productId;
+            selectedSize = null;
+            document.getElementById('quantityInput').value = 1;
+            document.getElementById('confirmAddToCart').disabled = true;
+            document.getElementById('stockInfo').textContent = '';
 
-            fetch('@Url.Action("AddToCart", "Cart", new { area = "Customer" })', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
+            sizeOptionsContainer.innerHTML = '<p>Loading sizes...</p>';
+
+            // Show modal immediately
+            document.getElementById('sizeModal').classList.add('active');
+
+            // Fetch available sizes
+            fetch(`/Customer/Home/GetProductSizes?productId=${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateSizeOptions(data.sizes);
+                    } else {
+                        sizeOptionsContainer.innerHTML = `<p>${data.message || 'No sizes available'}</p>`;
+                    }
+                })
+                .catch(error => {
+                    sizeOptionsContainer.innerHTML = '<p>Error loading sizes</p>';
+                    console.error('Error:', error);
+                });
+        }
+
+        function updateSizeOptions(availableSizes) {
+            const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
+            sizeOptionsContainer.innerHTML = '';
+
+            if (!availableSizes || availableSizes.length === 0) {
+                sizeOptionsContainer.innerHTML = '<p>Currently out of stock</p>';
+                return;
+            }
+
+            const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+            allSizes.forEach(size => {
+                const isAvailable = availableSizes.includes(size);
+                const sizeOption = document.createElement('div');
+                sizeOption.className = `size-option ${isAvailable ? '' : 'disabled'}`;
+                sizeOption.textContent = size;
+                sizeOption.dataset.size = size;
+
+                if (isAvailable) {
+                    sizeOption.addEventListener('click', function() {
+                        document.querySelectorAll('.size-option').forEach(opt => opt.classList.remove('active'));
+                        this.classList.add('active');
+                        selectedSize = this.dataset.size;
+                        document.getElementById('confirmAddToCart').disabled = false;
+
+                        // Set max quantity (you can enhance this with actual stock later)
+                        maxQuantity = 10;
+                        document.getElementById('quantityInput').max = maxQuantity;
+                        document.getElementById('stockInfo').textContent = `Max ${maxQuantity} available`;
+                    });
                 }
-            })
+
+                sizeOptionsContainer.appendChild(sizeOption);
+            });
+        }
+
+        function hideSizeModal() {
+            document.getElementById('sizeModal').classList.remove('active');
+        }
+
+        // Quantity Controls
+        document.getElementById('incrementQty').addEventListener('click', function() {
+            const quantityInput = document.getElementById('quantityInput');
+            let currentValue = parseInt(quantityInput.value);
+            if (currentValue < maxQuantity) {
+                quantityInput.value = currentValue + 1;
+            }
+        });
+
+        document.getElementById('decrementQty').addEventListener('click', function() {
+            const quantityInput = document.getElementById('quantityInput');
+            let currentValue = parseInt(quantityInput.value);
+            if (currentValue > 1) {
+                quantityInput.value = currentValue - 1;
+            }
+        });
+
+        document.getElementById('quantityInput').addEventListener('change', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value) || value < 1) {
+                this.value = 1;
+            } else if (value > maxQuantity) {
+                this.value = maxQuantity;
+            }
+        });
+
+        // Add to Cart Functionality
+        document.getElementById('confirmAddToCart').addEventListener('click', function() {
+            if (currentProductId && selectedSize) {
+                const quantity = parseInt(document.getElementById('quantityInput').value) || 1;
+
+                // Update hidden form fields
+                document.getElementById(`size-${currentProductId}`).value = selectedSize;
+                document.getElementById(`quantity-${currentProductId}`).value = quantity;
+
+                const form = document.querySelector(`.add-to-cart-form[data-product-id="${currentProductId}"]`);
+                const formData = new FormData(form);
+
+                hideSizeModal();
+
+                fetch('@Url.Action("AddToCart", "Cart", new { area = "Customer" })', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showNotification(data.success, data.message || (data.success ? "Item added to cart" : "Failed to add item"));
+
+                    if (data.success) {
+                        // Bounce effect on cart button
+                        const cartButton = document.querySelector(`.pro-cart-button[onclick*="${currentProductId}"]`);
+                        if (cartButton) {
+                            cartButton.classList.add('bounce-effect');
+                            setTimeout(() => cartButton.classList.remove('bounce-effect'), 1000);
+                        }
+
+                        // Update cart count
+                        if (data.cartCount !== undefined) {
+                            updateCartCount(data.cartCount);
+                        }
+                    }
+                })
+                .catch(error => {
+                    showNotification(false, "You must log in to add items to cart");
+                });
+            }
+        });
+
+        function updateCartCount(count) {
+            const cartCountElement = document.querySelector('.cart-count');
+            if (cartCountElement) {
+                cartCountElement.textContent = count;
+                cartCountElement.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('sizeModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideSizeModal();
+            }
+        });
+               // Quick View Modal Functions
+        let selectedQuickViewColor = null;
+        let selectedQuickViewSize = null;
+
+     function showQuickViewModal(productId) {
+        fetch(`/Customer/Home/GetProductDetails?productId=${productId}`)
             .then(response => response.json())
             .then(data => {
-                showNotification(data.success, data.message || (data.success ? "Item added to cart" : "Failed to add item"));
-
                 if (data.success) {
-                    // Bounce effect on cart button
-                    const cartButton = document.querySelector(`.pro-cart-button[onclick*="${currentProductId}"]`);
-                    if (cartButton) {
-                        cartButton.classList.add('bounce-effect');
-                        setTimeout(() => cartButton.classList.remove('bounce-effect'), 1000);
+                    const product = data.product;
+                    document.getElementById('quickViewProductName').textContent = product.productName || 'Product Name';
+                    document.getElementById('quickViewProductImage').src = product.imgUrl || 'https://via.placeholder.com/300';
+                    document.getElementById('quickViewPrice').textContent = `$${parseFloat(product.productPrice || 0).toFixed(2)}`;
+                    document.getElementById('quickViewDescription').textContent = product.description || 'No description available';
+
+                    const ratingContainer = document.getElementById('quickViewRating');
+                    const rating = product.productRating || 0;
+                    ratingContainer.innerHTML = Array(5).fill().map((_, i) =>
+                        i < rating ? '<i class="fas fa-star"></i>' : '<i class="far fa-star"></i>'
+                    ).join('');
+
+                    document.getElementById('quickViewColorText').textContent = product.color || 'Not specified';
+
+                   const quantityInput = document.getElementById('quickViewQuantityInput');
+                    quantityInput.value = 1;
+
+                    // Populate sizes and other elements as before
+                    const sizes = product.availableSizes || ['S', 'M', 'L'];
+                    const sizeContainer = document.getElementById('quickViewSizes');
+                    sizeContainer.innerHTML = sizes.map(size => `
+                        <div class="size-option" data-size="${size}">${size}</div>
+                    `).join('');
+                    const firstSizeOption = sizeContainer.querySelector('.size-option');
+                    if (firstSizeOption) {
+                        firstSizeOption.classList.add('selected');
+                        selectedQuickViewSize = firstSizeOption.dataset.size;
                     }
 
-                    // Update cart count
-                    if (data.cartCount !== undefined) {
-                        updateCartCount(data.cartCount);
-                    }
+                    document.querySelectorAll('#quickViewSizes .size-option').forEach(option => {
+                        option.addEventListener('click', function () {
+                            document.querySelectorAll('#quickViewSizes .size-option').forEach(opt => opt.classList.remove('selected'));
+                            this.classList.add('selected');
+                            selectedQuickViewSize = this.dataset.size;
+                        });
+                    });
+
+                    // Quantity event listeners
+                    document.getElementById('quickViewIncrementQty').addEventListener('click', function() {
+                        let currentValue = parseInt(quantityInput.value);
+                        if (currentValue < 10) { // Adjust max as needed
+                            quantityInput.value = currentValue + 1;
+                        }
+                    });
+
+                    document.getElementById('quickViewDecrementQty').addEventListener('click', function() {
+                        let currentValue = parseInt(quantityInput.value);
+                        if (currentValue > 1) {
+                            quantityInput.value = currentValue - 1;
+                        }
+                    });
+
+                    document.getElementById('quickViewAddToCart').onclick = () => addToCartFromQuickView(productId);
+
+                    document.getElementById('quickViewModal').classList.add('active');
+                } else {
+                    alert('Failed to load product details: ' + data.message);
                 }
             })
             .catch(error => {
-                showNotification(false, "You must log in to add items to cart");
+                alert('Error loading product details');
+                console.error('Fetch error:', error);
             });
-        }
-    });
-
-    function updateCartCount(count) {
-        const cartCountElement = document.querySelector('.cart-count');
-        if (cartCountElement) {
-            cartCountElement.textContent = count;
-            cartCountElement.style.display = count > 0 ? 'inline-block' : 'none';
-        }
     }
 
-    // Close modal when clicking outside
-    document.getElementById('sizeModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            hideSizeModal();
+        function hideQuickViewModal() {
+            document.getElementById('quickViewModal').classList.remove('active');
         }
-    });
+
+     function addToCartFromQuickView(productId) {
+        if (!selectedQuickViewSize) {
+            showNotification(false, "Please select a size");
+            return;
+        }
+
+        const quantity = parseInt(document.getElementById('quickViewQuantityInput').value) || 1;
+
+        fetch(`/Customer/Home/GetProductDetails?productId=${productId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const product = data.product;
+                    const form = document.querySelector(`.add-to-cart-form[data-product-id="${productId}"]`);
+                    const formData = new FormData(form);
+                    formData.set('size', selectedQuickViewSize);
+                    formData.set('quantity', quantity); // Use selected quantity
+                    formData.set('color', product.color || 'Not specified');
+
+                    fetch('@Url.Action("AddToCart", "Cart", new { area = "Customer" })', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        showNotification(data.success, data.message || (data.success ? "Item added to cart" : "Failed to add item"));
+                        if (data.success) {
+                            const cartButton = document.querySelector(`.pro-cart-button[onclick*="${productId}"]`);
+                            if (cartButton) {
+                                cartButton.classList.add('bounce-effect');
+                                setTimeout(() => cartButton.classList.remove('bounce-effect'), 1000);
+                            }
+                            if (data.cartCount !== undefined) {
+                                updateCartCount(data.cartCount);
+                            }
+                            hideQuickViewModal();
+                        }
+                    })
+                    .catch(error => {
+                        showNotification(false, "You must log in to add items to cart");
+                        console.error('Error adding to cart:', error);
+                    });
+                }
+            })
+            .catch(error => {
+                showNotification(false, "Error retrieving product details");
+                console.error('Error:', error);
+            });
+    }
 </script>
