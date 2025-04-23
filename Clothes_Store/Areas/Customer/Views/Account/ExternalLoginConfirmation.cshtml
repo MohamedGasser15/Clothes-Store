@@ -1,7 +1,6 @@
-﻿@using Clothes_Models.Models
-@using Clothes_Models.ViewModels
+﻿@using Clothes_Models.ViewModels
 @using Microsoft.AspNetCore.Identity
-
+@using Clothes_Models.Models
 @model ExternalLoginConfirmationViewModel
 @inject SignInManager<ApplicationUser> signInManager
 @{
@@ -35,6 +34,9 @@
         </div>
 
         <form class="mt-6" method="post" asp-controller="Account" asp-action="ExternalLoginConfirmation" asp-route-returnUrl="@ViewData["ReturnUrl"]">
+            <!-- Display all model state errors -->
+            <div asp-validation-summary="All" class="text-danger mb-4"></div>
+
             <input type="hidden" asp-for="Email" />
 
             <div class="mb-4">
@@ -50,26 +52,8 @@
                 <input type="hidden" asp-for="Email" />
             </div>
 
-            <div class="mt-4 mb-6">
-                <label class="relative flex items-start gap-3 text-sm text-gray-700 cursor-pointer">
-                    <input type="checkbox" required name="AcceptTerms" class="sr-only peer">
-                    <div class="w-5 h-5 border-2 border-gray-300 rounded flex items-center justify-center transition-all peer-checked:bg-[#088178] peer-checked:border-[#088178] peer-hover:border-[#088178] accent-[#088178]">
-                        <svg class="w-3 h-3 text-white opacity-0 transition-opacity peer-checked:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                    <span>
-                        I agree to the <a href="#" class="text-[#088178] hover:underline">Terms of Service</a> and
-                        <a href="#" class="text-[#088178] hover:underline">Privacy Policy</a>
-                    </span>
-                </label>
-                <span id="termsError" class="text-red-600 text-sm hidden">You must accept the terms and conditions</span>
-            </div>
-
-            <button type="submit" id="registerButton"
-                    class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center">
-                <span id="registerText">Complete Registration</span>
-                <div id="loadingSpinner" class="hidden ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            <button type="submit" class="w-full bg-[#088178] text-white py-2 rounded-lg hover:bg-[#066d65]">
+                Register
             </button>
         </form>
 

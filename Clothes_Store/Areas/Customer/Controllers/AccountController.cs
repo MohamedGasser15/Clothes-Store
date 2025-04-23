@@ -789,6 +789,8 @@ private bool SecureEquals(string a, string b)
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
+                Console.WriteLine("External login info is null");
+                TempData["ErrorMessage"] = "Unable to retrieve login information from the provider.";
                 return RedirectToAction(nameof(Login));
             }
 
@@ -796,41 +798,14 @@ private bool SecureEquals(string a, string b)
             var user = await _userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
             if (user == null)
             {
-                // New user flow remains the same
+                // New user flow
                 ViewData["ReturnUrl"] = returnurl;
                 ViewData["ProviderDisplayName"] = info.ProviderDisplayName;
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
                 return RedirectToAction("ExternalLoginConfirmation", new { returnurl, email });
             }
 
-            // Existing user - Check 2FA status
-            if (await _userManager.GetTwoFactorEnabledAsync(user))
-            {
-                // Generate and send 2FA code (same as email/password login)
-                var code = new Random().Next(100000, 999999).ToString();
-                var emailBody = GenerateEmail2FA(user, code);
-
-                HttpContext.Session.SetString("2FA_Code", code);
-                HttpContext.Session.SetString("2FA_User", user.Id);
-                HttpContext.Session.SetString("2FA_Provider", info.LoginProvider); // Store provider for later
-
-                try
-                {
-                    await _emailSender.SendEmailAsync(
-                        user.Email,
-                        "Your Login Verification Code",
-                        emailBody
-                    );
-                    return RedirectToAction("Enter2FACode", new { returnurl });
-                }
-                catch
-                {
-                    TempData["ErrorMessage"] = "Failed to send verification code";
-                    return RedirectToAction(nameof(Login));
-                }
-            }
-
-            // No 2FA required - proceed with login
+            // Existing user - sign in directly
             var result = await _signInManager.ExternalLoginSignInAsync(
                 info.LoginProvider,
                 info.ProviderKey,
@@ -856,7 +831,7 @@ private bool SecureEquals(string a, string b)
 
             return View(new ExternalLoginConfirmationViewModel
             {
-                Email = email,
+                Email = email
             });
         }
 
@@ -867,27 +842,38 @@ private bool SecureEquals(string a, string b)
         {
             returnurl = returnurl ?? Url.Content("~/");
 
+            // Retrieve external login info
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
                 return View("Error");
             }
 
+            // Check if the email already exists
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError(string.Empty, "Email already registered");
+                ViewData["ReturnUrl"] = returnurl;
+                return View(model);
+            }
+
+            // Create the new user
             var user = new ApplicationUser
             {
                 Name = model.Name,
                 Email = model.Email,
-                UserName = model.Email // Make sure to set UserName
+                UserName = model.Email // Ensure UserName is set as required by your app
             };
 
             var result = await _userManager.CreateAsync(user);
             if (result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, SD.User);
-                result = await _userManager.AddLoginAsync(user, info);
+                await _userManager.AddToRoleAsync(user, SD.User); // Assign user role
+                result = await _userManager.AddLoginAsync(user, info); // Associate external login
                 if (result.Succeeded)
                 {
-                    await TrackUserDevice(user);
+                    await TrackUserDevice(user); // Custom method (assumed)
                     user.EmailConfirmed = true;
                     await _userManager.UpdateAsync(user);
                     await _signInManager.SignInAsync(user, isPersistent: false);
@@ -896,6 +882,7 @@ private bool SecureEquals(string a, string b)
                 }
             }
 
+            // Handle any errors during user creation or login association
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
