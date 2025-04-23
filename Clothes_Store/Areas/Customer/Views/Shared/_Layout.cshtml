@@ -544,6 +544,12 @@
                             <i class="fas fa-cog mr-3 text-[#088170]"></i>
                             Settings
                         </a>
+                        <form asp-area="Customer" asp-controller="Account" asp-action="Logout" method="post">
+                            <button type="submit" class="flex items-center text-gray-800 hover:text-[#088170] w-full px-3 py-2 font-medium text-base">
+                                <i class="fas fa-sign-out-alt mr-3 text-[#088170]"></i>
+                                Logout
+                            </button>
+                        </form>
                     }
                     else
                     {
