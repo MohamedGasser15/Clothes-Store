@@ -39,14 +39,12 @@ namespace Clothes_Store.Areas.Admin.Controllers
         public async Task<IActionResult> Upsert(int id)
         {
             ProductViewModel obj = new();
-
-            // Populate BrandList
-            var brands = await _db.Brands.ToListAsync();
-            obj.BrandList = brands.Select(i => new SelectListItem
+            var Brands = await _unitOfWork.Brands.GetAll();
+            obj.BrandList = Brands.Select(i => new SelectListItem
             {
                 Text = i.Brand_Name,
                 Value = i.Brand_Id.ToString()
-            }).ToList();
+            });
 
             // Populate CategoryList with hierarchical display
             var categories = await _db.Categories.ToListAsync();
@@ -86,12 +84,12 @@ namespace Clothes_Store.Areas.Admin.Controllers
         public async Task<IActionResult> Upsert(ProductViewModel obj, IFormFile? file, string? croppedImageData)
         {
             // Repopulate dropdowns in case of validation errors
-            var brands = await _db.Brands.ToListAsync();
-            obj.BrandList = brands.Select(i => new SelectListItem
+            var Brands = await _unitOfWork.Brands.GetAll();
+            obj.BrandList = Brands.Select(i => new SelectListItem
             {
                 Text = i.Brand_Name,
                 Value = i.Brand_Id.ToString()
-            }).ToList();
+            });
 
             var categories = await _db.Categories.ToListAsync();
             var categoryLookup = categories.ToDictionary(c => c.Category_Id, c => c.Category_Name);
@@ -154,16 +152,14 @@ namespace Clothes_Store.Areas.Admin.Controllers
             else if (obj.Product.Product_Id != 0)
             {
                 // Retain existing image if no new file is uploaded
-                var existingProduct = await _db.Products.FirstOrDefaultAsync(p => p.Product_Id == obj.Product.Product_Id);
+                var existingProduct = await _unitOfWork.Products.GetById(obj.Product.Product_Id);
                 obj.Product.imgUrl = existingProduct?.imgUrl;
             }
 
-            if (ModelState.IsValid)
-            {
                 if (obj.Product.Product_Id == 0) // Create
                 {
-                    _db.Products.Add(obj.Product);
-                    await _db.SaveChangesAsync(); // Save product to get Product_Id
+                    await _unitOfWork.Products.Add(obj.Product);
+                    await _unitOfWork.SaveAsync(); // Save product to get Product_Id
 
                     // Add stock entries
                     if (obj.Stocks != null && obj.Stocks.Any())
@@ -178,7 +174,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 }
                 else // Update
                 {
-                    _db.Products.Update(obj.Product);
+                    _unitOfWork.Products.UpdateAsync(obj.Product);
 
                     // Remove existing stock entries
                     var existingStocks = await _db.Stocks
@@ -198,12 +194,8 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     TempData["Success"] = $"('{obj.Product.Product_Name}') updated successfully";
                 }
 
-                await _db.SaveChangesAsync();
+                await _unitOfWork.SaveAsync();
                 return RedirectToAction(nameof(Index));
-            }
-
-            // Return view with validation errors
-            return View(obj);
         }
 
         public async Task<IActionResult> Delete(int id)
