@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Security.Claims;
 using Clothes_DataAccess.Data;
@@ -59,50 +59,6 @@ namespace Clothes_Store.Controllers
 
             return Json(new { success = true, product });
         }
-        public IActionResult ShopByBrand(string brand)
-        {
-            if (string.IsNullOrEmpty(brand))
-            {
-                return NotFound();
-            }
-
-            // Map URL-friendly brand name to database brand name
-            var brandName = brand switch
-            {
-                "nike" => "Nike",
-                "adidas" => "Adidas",
-                "puma" => "Puma",
-                "zara" => "Zara",
-                "lacoste" => "Lacoste",
-                "hm" => "H&M",
-                "levis" => "Levi's",
-                "local" => "Local Brands",
-                _ => null
-            };
-
-            // Get products for the specified brand
-            var products = _db.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .Include(p => p.Stocks)
-                .Where(p => brand == "local"
-                    ? !new[] { "Nike", "Adidas", "Puma", "Zara", "Lacoste", "H&M", "Levi's" }.Contains(p.Brand.Brand_Name)
-                    : p.Brand.Brand_Name == brandName)
-                .ToList();
-
-            if (brandName == null && brand != "local")
-            {
-                return NotFound();
-            }
-
-            if (products == null || !products.Any())
-            {
-                return View(products);
-            }
-
-            ViewBag.Brand = brand == "local" ? "Local Brands" : brandName;
-            return View(products);
-        }
         public IActionResult ShopByCategory(string category)
         {
             if (string.IsNullOrEmpty(category))
@@ -152,40 +108,167 @@ namespace Clothes_Store.Controllers
 
             if (products == null || !products.Any())
             {
-                return View(products); // Return the view even if no products, to show "No Products Found"
+                return View(products);
             }
 
             ViewBag.Category = categoryName;
             return View(products);
         }
-        public IActionResult Home()
+        public IActionResult ShopByChildCategory(string category)
         {
-            var productsQuery = _db.Products
-                                  .Include(p => p.Brand)
-                                  .Include(p => p.Category)
-                                  .OrderByDescending(p => p.Product_Id);
-            var products = productsQuery
-                .Take(8)
-                .Select(p => new
-                {
-                    p.Product_Id,
-                    p.Product_Name,
-                    p.imgUrl,
-                    BrandName = p.Brand.Brand_Name,
-                    p.IsFeatured,
-                    p.Product_Rating,
-                    p.Product_Price,
-                    AvailableSizes = p.Stocks
-                    .Where(s => s.Quantity > 0)
-                    .Select(s => s.Size)
-                    .Distinct()
-                    .OrderBy(s => s)
-                    .ToList()
-                })
-                .ToList();
-            if (products == null)
+            if (string.IsNullOrEmpty(category))
             {
                 return NotFound();
+            }
+
+            var childCategory = _db.Categories
+                .FirstOrDefault(c => c.Category_Name.ToLower() == category.ToLower() && c.ParentCategoryId != null);
+
+            if (childCategory == null)
+            {
+                return NotFound();
+            }
+
+            var products = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => p.Category_Id == childCategory.Category_Id)
+                .ToList();
+
+            ViewBag.Category = childCategory.Category_Name;
+            return View("ShopByCategory", products ?? new List<Product>());
+        }
+
+        public IActionResult ShopByBrand(string brand)
+        {
+            if (string.IsNullOrEmpty(brand))
+            {
+                Console.WriteLine("ShopByBrand: Brand parameter is null or empty.");
+                return NotFound();
+            }
+
+            var brandLower = brand.ToLower();
+            bool isLocalBrands = brandLower == "local";
+
+            // Map URL-friendly brand to database brand name
+            var brandName = isLocalBrands ? null : brandLower switch
+            {
+                "nike" => "Nike",
+                "adidas" => "Adidas",
+                "puma" => "Puma",
+                "zara" => "Zara",
+                "hm" => "H&M",
+                "levis" => "Levi's",
+                "nightbird" => "NightBird",
+                _ => null
+            };
+
+            // Query Brands table for the brand
+            var brandEntity = isLocalBrands ? null : _db.Brands
+                .FirstOrDefault(b => b.Brand_Name == brandName);
+
+            if (!isLocalBrands && brandEntity == null)
+            {
+                Console.WriteLine($"ShopByBrand: Brand '{brand}' not found in database.");
+                return NotFound();
+            }
+
+            // Get products
+            var products = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => isLocalBrands
+                    ? p.Brand != null && !new[] { "Nike", "Adidas", "Puma", "Zara", "H&M", "Levi's", "NightBird" }.Contains(p.Brand.Brand_Name)
+                    : p.brand_Id == brandEntity.Brand_Id)
+                .ToList();
+
+            // Debug: Log results
+
+            ViewBag.Brand = isLocalBrands ? "Local Brands" : brandEntity.Brand_Name;
+            return View("ShopByBrand", products ?? new List<Product>());
+        }
+
+        public IActionResult Home()
+        {
+            var products = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .OrderByDescending(p => p.Product_Id)
+                .Take(8)
+                .Select(p => new HomeViewModel
+                {
+                    Product_Id = p.Product_Id,
+                    Product_Name = p.Product_Name,
+                    imgUrl = p.imgUrl,
+                    BrandName = p.Brand != null ? p.Brand.Brand_Name : "Unknown",
+                    IsFeatured = p.IsFeatured,
+                    Product_Rating = p.Product_Rating,
+                    Product_Price = p.Product_Price,
+                    AvailableSizes = p.Stocks
+                        .Where(s => s.Quantity > 0)
+                        .Select(s => s.Size)
+                        .Distinct()
+                        .OrderBy(s => s)
+                        .ToList()
+                })
+                .ToList();
+
+            var specificCategories = new[]
+            {
+        "Bags",
+        "Jackets",
+        "Hats",
+        "Shoes",
+        "Pantalons",
+        "Dresses",
+        "Shorts",
+        "T-Shirts"
+    };
+
+            var categories = _db.Categories
+                .Where(c => specificCategories.Contains(c.Category_Name) && c.ParentCategoryId != null)
+                .Select(c => new
+                {
+                    Name = c.Category_Name,
+                    ImgUrl = $"/img/categories/{c.Category_Name.ToLower()}.jpg",
+                    Link = Url.Action("ShopByChildCategory", "Home", new { area = "Customer", category = c.Category_Name.ToLower() })
+                })
+                .ToList();
+
+            var specificBrands = new[]
+            {
+        "Nike",
+        "Adidas",
+        "Zara",
+        "H&M",
+        "Puma",
+        "Levi's",
+        "Lacoste",
+        "Local Brands"
+    };
+
+            var brands = specificBrands
+                .Select(b => new
+                {
+                    Name = b,
+                    ImgUrl = $"/img/brands/{b.ToLower().Replace("'", "").Replace("&", "")}.jpg",
+                    Link = Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = b.ToLower().Replace("'", "").Replace("&", "") })
+                })
+                .ToList();
+
+            // Debug: Log brands and JSON
+            Console.WriteLine($"Brands Count: {brands.Count}");
+            Console.WriteLine($"Brands: {string.Join(", ", brands.Select(b => b.Name))}");
+            Console.WriteLine($"Brands JSON: {Newtonsoft.Json.JsonConvert.SerializeObject(brands)}");
+
+            ViewBag.Categories = categories;
+            ViewBag.Brands = brands;
+
+            if (!products.Any())
+            {
+                return View(new List<HomeViewModel>());
             }
 
             return View(products);

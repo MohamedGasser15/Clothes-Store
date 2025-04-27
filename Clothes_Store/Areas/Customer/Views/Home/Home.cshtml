@@ -1,14 +1,479 @@
-﻿@model IEnumerable<dynamic>
+﻿@using Clothes_Models.ViewModels
+@model IEnumerable<HomeViewModel>
 
 @{
     ViewData["Title"] = "Home Page";
     var showSuccessMessage = TempData["AddToCartSuccess"] != null && (bool)TempData["AddToCartSuccess"];
     var showErrorMessage = TempData["AddToCartError"] != null && (bool)TempData["AddToCartError"];
     var errorMessage = TempData["ErrorMessage"]?.ToString() ?? "An error occurred while adding to cart";
+    var featuredProducts = Model.Where(p => p.IsFeatured).ToList();
 }
 <link rel="stylesheet" href="~/css/style.css">
-
 <style>
+    /*Category Slider*/
+    #categoriesWrapper {
+        overflow-x: hidden;
+    }
+
+    #categoriesContainer {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        will-change: transform;
+        backface-visibility: hidden;
+        perspective: 1000;
+        scroll-snap-type: x mandatory;
+    }
+
+    .category-card {
+        flex: 0 0 auto;
+        width: 200px;
+        height: 240px;
+        padding: 0.75rem;
+        border: 1px solid #cce7d0;
+        border-radius: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        scroll-snap-align: start;
+    }
+
+        .category-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06);
+            transform: translateY(-4px);
+        }
+
+        .category-card img {
+            width: 100%;
+            height: auto;
+            max-height: 160px;
+            object-fit: cover;
+            border-radius: 1.25rem;
+        }
+
+        .category-card h4.category-name {
+            font-size: 1rem;
+            line-height: 1.5rem;
+            font-weight: 600;
+            color: #222;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .category-card:hover h4.category-name {
+            color: #088178;
+            transform: scale(1.05);
+        }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 1280px) {
+        .category-card {
+            width: 180px;
+            height: 220px;
+        }
+
+            .category-card img {
+                max-height: 140px;
+            }
+
+            .category-card h4.category-name {
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+    }
+
+    @@media (max-width: 768px) {
+        /* Hide navigation buttons */
+        #popular-categories .navigation-buttons {
+            display: none;
+        }
+        /* Switch to grid layout */
+        #categoriesContainer {
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            scroll-snap-type: none;
+        }
+
+        .category-card {
+            flex: 0 0 calc(50% - 0.5rem); /* 2 columns with gap */
+            width: auto;
+            height: 180px;
+            margin-bottom: 1rem;
+        }
+
+            .category-card img {
+                max-height: 110px;
+            }
+
+            .category-card h4.category-name {
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+
+        #popular-categories .flex.items-center.mb-12 {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .category-card {
+            flex: 0 0 calc(50% - 0.5rem);
+            max-width: 160px;
+            height: 160px;
+            margin-bottom: 0.5rem;
+        }
+
+            .category-card img {
+                max-height: 100px;
+            }
+
+            .category-card h4.category-name {
+                font-size: 0.75rem;
+                line-height: 1.1rem;
+            }
+
+        #popular-categories {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        #categoriesContainer {
+            gap: 0.5rem;
+            justify-content: center;
+        }
+    }
+    /*New Arrivals*/
+    #brandsWrapper {
+        overflow-x: hidden;
+    }
+
+    #brandsContainer {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        will-change: transform;
+        backface-visibility: hidden;
+        perspective: 1000;
+        scroll-snap-type: x mandatory;
+    }
+
+    .category-card {
+        flex: 0 0 auto;
+        width: 200px;
+        height: 240px;
+        padding: 0.75rem;
+        border: 1px solid #cce7d0;
+        border-radius: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+        transition: box-shadow 0.2s ease, transform 0.2s ease;
+        background-color: #fff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        scroll-snap-align: start;
+    }
+
+        .category-card:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06);
+            transform: translateY(-4px);
+        }
+
+        .category-card img {
+            width: 100%;
+            height: auto;
+            max-height: 160px;
+            object-fit: cover;
+            border-radius: 1.25rem;
+        }
+
+        .category-card h4.category-name {
+            font-size: 1rem;
+            line-height: 1.5rem;
+            font-weight: 600;
+            color: #222;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+
+        .category-card:hover h4.category-name {
+            color: #088178;
+            transform: scale(1.05);
+        }
+
+    /* Responsive Adjustments */
+    @@media (max-width: 1280px) {
+        .category-card {
+            width: 180px;
+            height: 220px;
+        }
+
+            .category-card img {
+                max-height: 140px;
+            }
+
+            .category-card h4.category-name {
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+    }
+
+    @@media (max-width: 768px) {
+        /* Hide navigation buttons */
+        #popular-Brands .navigation-buttons {
+            display: none;
+        }
+        /* Switch to grid layout */
+        #brandsContainer {
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            scroll-snap-type: none;
+        }
+
+        .category-card {
+            flex: 0 0 calc(50% - 0.5rem); /* 2 columns with gap */
+            width: auto;
+            height: 180px;
+            margin-bottom: 1rem;
+        }
+
+            .category-card img {
+                max-height: 110px;
+            }
+
+            .category-card h4.category-name {
+                font-size: 0.875rem;
+                line-height: 1.25rem;
+            }
+
+        #popular-Brands .flex.items-center.mb-12 {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .category-card {
+            flex: 0 0 calc(50% - 0.5rem);
+            max-width: 160px;
+            height: 160px;
+            margin-bottom: 0.5rem;
+        }
+
+            .category-card img {
+                max-height: 100px;
+            }
+
+            .category-card h4.category-name {
+                font-size: 0.75rem;
+                line-height: 1.1rem;
+            }
+
+        #popular-Brands {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        #brandsContainer {
+            gap: 0.5rem;
+            justify-content: center;
+        }
+    }
+    /*ThreeBanners*/
+
+    .banners {
+        background-color: #fff;
+        padding: 1rem 1rem 5rem 1rem; /* Reduced padding for wider images */
+    }
+
+    .banner-img {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .banner-text {
+        position: absolute;
+        top: 50%;
+        right: 10%;
+        transform: translateY(-50%);
+        text-align: left;
+        color: #fff;
+        transition: transform 0.3s ease;
+    }
+
+    .banner-img:hover .banner-text {
+        transform: translateY(-50%) translateX(-10px);
+    }
+
+    .banner-text span {
+        font-size: 14px;
+        font-weight: 400;
+        display: block;
+        color: silver;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .banner-text h4 {
+        font-size: 24px;
+        font-weight: 600;
+        margin: 10px 0;
+        font-family: 'Roboto', sans-serif;
+    }
+
+    .banner-text a {
+        color: #088178;
+        text-decoration: none;
+        font-weight: 300;
+        font-family: 'Arial', sans-serif;
+    }
+
+        .banner-text a:hover {
+            color: #046963;
+        }
+
+    .wow {
+        visibility: hidden;
+    }
+
+        .wow.fadeIn {
+            animation-name: fadeIn;
+            animation-duration: 1s;
+            animation-fill-mode: both;
+        }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .banner-img img {
+        width: 100%;
+        height: auto;
+        display: block;
+        aspect-ratio: 16/9; /* Consistent aspect ratio for wider appearance */
+    }
+
+    .container {
+        width: 100%;
+        padding-right: 8px;
+        padding-left: 8px;
+        margin-right: auto;
+        margin-left: auto;
+        max-width: 80rem;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -8px;
+        margin-left: -8px;
+        gap: 0.5rem; /* Reduced gap for wider images */
+    }
+
+    .col-lg-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+        padding: 0 8px; /* Reduced padding */
+    }
+
+    .d-md-none {
+        display: block !important;
+    }
+
+    .d-lg-flex {
+        display: block !important;
+    }
+
+    .mb-sm-0 {
+        margin-bottom: 0;
+    }
+
+    @@media (max-width: 639px) {
+        .banner-img {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .banner-text span {
+            font-size: 12px;
+        }
+
+        .banner-text h4 {
+            font-size: 18px;
+        }
+
+        .banner-text a {
+            font-size: 12px;
+        }
+
+        .col-lg-4 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+    }
+
+    @@media (min-width: 640px) {
+        .banners {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+    }
+
+    @@media (min-width: 768px) {
+        .col-lg-4 {
+            flex: 0 0 33.333333%;
+            max-width: 33.333333%;
+        }
+
+        .d-md-none {
+            display: flex !important;
+        }
+
+        .d-lg-flex {
+            display: flex !important;
+        }
+    }
+
+    @@media (min-width: 1024px) {
+        .banners {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .row {
+            flex-wrap: nowrap;
+        }
+    }
+    #brands {
+        background-color: #ffffff !important;
+    }
+
+    body {
+        background-color: #ffffff !important; /* !important عشان تتأكد إنها تتطبّق */
+        margin: 0; /* عشان لو فيه هوامش افتراضية */
+    }
+
+    section, div {
+        background-color: transparent; /* خلّي الكل شفّاف عشان الـ body يبان */
+    }
     /*Back to top button*/
     .back-to-top {
         position: fixed;
@@ -50,1052 +515,947 @@
             right: 20px;
         }
     }
+
     #hero button a {
-    text-decoration: none;
-    color: #088178;
+        text-decoration: none;
+        color: #088178;
     }
 
     #hero {
-    background-image: url("../img/hero6.png");
+        background-image: url("../img/hero6.png");
     }
 
     @@media (max-width: 477px) {
-    #hero {
-    padding-bottom: 9 0px; /* Space from bottom */
-    background-position: 50% 30%;
-    height: 70vh;
-    }
-    }
-    /* Existing product styles */
-      .pro:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        #hero {
+            padding-bottom: 9 0px; /* Space from bottom */
+            background-position: 50% 30%;
+            height: 70vh;
         }
-    .pro-cart-button {
-    width: 40px;
-    height: 40px;
-    line-height: 40px;
-    border-radius: 50px;
-    background-color: #e8f6ea;
-    font-weight: 500;
-    color: #088178;
-    border: 1px solid #cce7d0;
-    position: absolute;
-    bottom: 20px;
-    right: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    }
-
-    .pro-cart-button:hover {
-    background-color: #cce7d0;
-    color: #066156;
-    transform: scale(1.05);
     }
 
     /* Notification styles */
     .notification-container {
-    position: fixed;
-    top: 1.5rem;
-    right: 1.5rem;
-    z-index: 1000;
+        position: fixed;
+        top: 1.5rem;
+        right: 1.5rem;
+        z-index: 1000;
     }
 
     .notification {
-    padding: 1rem 1.5rem;
-    color: white;
-    border-radius: 0.75rem;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    display: flex;
-    align-items: center;
-    transform: translateX(150%);
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    margin-bottom: 1rem;
-    position: relative;
-    overflow: hidden;
+        padding: 1rem 1.5rem;
+        color: white;
+        border-radius: 0.75rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        transform: translateX(150%);
+        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        margin-bottom: 1rem;
+        position: relative;
+        overflow: hidden;
     }
 
-    .notification.success {
-    background-color: #088178;
-    }
+        .notification.success {
+            background-color: #088178;
+        }
 
-    .notification.error {
-    background-color: #ef4444;
-    }
+        .notification.error {
+            background-color: #ef4444;
+        }
 
-    .notification.show {
-    transform: translateX(0);
-    }
+        .notification.show {
+            transform: translateX(0);
+        }
 
-    .notification.hide {
-    transform: translateX(150%);
-    opacity: 0;
-    }
+        .notification.hide {
+            transform: translateX(150%);
+            opacity: 0;
+        }
 
     .notification-icon {
-    margin-right: 0.75rem;
-    font-size: 1.25rem;
+        margin-right: 0.75rem;
+        font-size: 1.25rem;
     }
 
     .notification-close {
-    margin-left: 1rem;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+        margin-left: 1rem;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity 0.2s;
     }
 
-    .notification-close:hover {
-    opacity: 1;
-    }
+        .notification-close:hover {
+            opacity: 1;
+        }
 
     .notification-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 4px;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.3);
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.3);
     }
 
     .notification-progress-bar {
-    height: 100%;
-    width: 100%;
-    background: white;
-    animation: progress 3s linear forwards;
-    transform-origin: left;
+        height: 100%;
+        width: 100%;
+        background: white;
+        animation: progress 3s linear forwards;
+        transform-origin: left;
     }
 
     @@keyframes progress {
-    0% {
-    transform: scaleX(0);
-    }
+        0% {
+            transform: scaleX(0);
+        }
 
-    100% {
-    transform: scaleX(1);
-    }
+        100% {
+            transform: scaleX(1);
+        }
     }
 
     /* Bounce animation for cart button */
     @@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-    }
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
 
-    40% {
-    transform: translateY(-10px);
-    }
+        40% {
+            transform: translateY(-10px);
+        }
 
-    60% {
-    transform: translateY(-5px);
-    }
+        60% {
+            transform: translateY(-5px);
+        }
     }
 
     .bounce-effect {
-    animation: bounce 1s;
+        animation: bounce 1s;
     }
 
     /* Size selection modal styles */
     .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
     }
 
-    .modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
-    }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
 
     .size-modal {
-    background-color: white;
-    border-radius: 0.5rem;
-    width: 90%;
-    max-width: 400px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: white;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 400px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
 
     .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
     }
 
     .modal-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #333;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #333;
     }
 
     .close-modal {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: #666;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
     }
 
     .size-options {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
     }
 
     .size-option {
-    border: 1px solid #cce7d0;
-    background-color: #e8f6ea;
-    color: #088178;
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
+        border: 1px solid #cce7d0;
+        background-color: #e8f6ea;
+        color: #088178;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
     }
 
-    .size-option:hover {
-    background-color: #088178;
-    color: white;
-    border-color: #088178;
-    }
+        .size-option:hover {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
 
-    .size-option.active {
-    background-color: #088178;
-    color: white;
-    border-color: #088178;
-    }
+        .size-option.active {
+            background-color: #088178;
+            color: white;
+            border-color: #088178;
+        }
 
-    .size-option.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    text-decoration: line-through;
-    position: relative;
-    }
+        .size-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            text-decoration: line-through;
+            position: relative;
+        }
 
-    .size-option.disabled::after {
-    content: "×";
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background: #ef4444;
-    color: white;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    }
+            .size-option.disabled::after {
+                content: "×";
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #ef4444;
+                color: white;
+                border-radius: 50%;
+                width: 18px;
+                height: 18px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+            }
 
     .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
     }
 
     .modal-button {
-    padding: 0.5rem 1rem;
-    border-radius: 0.25rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
     }
 
     .cancel-button {
-    background-color: #f5f5f5;
-    border: 1px solid #ddd;
-    color: #333;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        color: #333;
     }
 
     .confirm-button {
-    background-color: #088178;
-    border: 1px solid #088178;
-    color: white;
+        background-color: #088178;
+        border: 1px solid #088178;
+        color: white;
     }
 
-    .confirm-button:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    }
+        .confirm-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
 
     /* Quantity Selector Styles */
     .quantity-selector {
-    display: flex;
-    align-items: center;
-    margin: 1.5rem 0;
-    justify-content: center;
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        justify-content: center;
     }
 
     .quantity-label {
-    margin-right: 1rem;
-    font-weight: 500;
-    color: #333;
-    font-size: 0.95rem;
+        margin-right: 1rem;
+        font-weight: 500;
+        color: #333;
+        font-size: 0.95rem;
     }
 
     .quantity-controls {
-    display: flex;
-    align-items: center;
-    border: 1px solid #cce7d0;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    background-color: #f8f9fa;
+        display: flex;
+        align-items: center;
+        border: 1px solid #cce7d0;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        background-color: #f8f9fa;
     }
 
     .quantity-btn {
-    width: 2.5rem;
-    height: 2.5rem;
-    background-color: #e8f6ea;
-    border: none;
-    font-size: 1.2rem;
-    color: #088178;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    padding: 0;
+        width: 2.5rem;
+        height: 2.5rem;
+        background-color: #e8f6ea;
+        border: none;
+        font-size: 1.2rem;
+        color: #088178;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        padding: 0;
     }
 
-    .quantity-btn:hover {
-    background-color: #cce7d0;
-    }
+        .quantity-btn:hover {
+            background-color: #cce7d0;
+        }
 
     .quantity-input {
-    width: 3.5rem;
-    height: 2.5rem;
-    text-align: center;
-    border: none;
-    border-left: 1px solid #cce7d0;
-    border-right: 1px solid #cce7d0;
-    font-size: 1rem;
-    font-weight: 500;
-    padding: 0 0.5rem;
-    -moz-appearance: textfield;
-    background-color: white;
+        width: 3.5rem;
+        height: 2.5rem;
+        text-align: center;
+        border: none;
+        border-left: 1px solid #cce7d0;
+        border-right: 1px solid #cce7d0;
+        font-size: 1rem;
+        font-weight: 500;
+        padding: 0 0.5rem;
+        -moz-appearance: textfield;
+        background-color: white;
     }
 
-    .quantity-input::-webkit-outer-spin-button,
-    .quantity-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-    }
+        .quantity-input::-webkit-outer-spin-button,
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-    .quantity-input:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.2);
-    }
+        .quantity-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.2);
+        }
 
     /* Stock info styles */
     .stock-info {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 0.5rem;
-    text-align: center;
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.5rem;
+        text-align: center;
     }
 
     /* Banner styles */
     .banner-slide {
-    background-size: cover;
-    background-position: center;
-    opacity: 0;
-    z-index: 0;
-    transition: opacity 1s ease-in-out;
+        background-size: cover;
+        background-position: center;
+        opacity: 0;
+        z-index: 0;
+        transition: opacity 1s ease-in-out;
     }
 
-    .banner-slide:first-child {
-    opacity: 1;
-    z-index: 1;
-    }
+        .banner-slide:first-child {
+            opacity: 1;
+            z-index: 1;
+        }
 
     @@media (max-width: 768px) {
-    #page-header {
-    height: 30vh;
-    }
+        #page-header {
+            height: 30vh;
+        }
     }
     /*View All Button*/
     .view-all-btn {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5rem 1.25rem;
-    background-color: #088178;
-    color: white;
-    border-radius: 4px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1.25rem;
+        background-color: #088178;
+        color: white;
+        border-radius: 4px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
     }
 
-    .view-all-btn:hover {
-    background-color: #066156;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+        .view-all-btn:hover {
+            background-color: #066156;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
 
-    .view-all-btn i {
-    transition: transform 0.3s ease;
-    }
+        .view-all-btn i {
+            transition: transform 0.3s ease;
+        }
 
-    .view-all-btn:hover i {
-    transform: translateX(4px);
-    }
+        .view-all-btn:hover i {
+            transform: translateX(4px);
+        }
 
     @@media (max-width: 768px) {
-    .view-all-btn {
-    padding: 0.4rem 1rem;
-    font-size: 0.9rem;
-    }
+        .view-all-btn {
+            padding: 0.4rem 1rem;
+            font-size: 0.9rem;
+        }
     }
 </style>
 
-<!-- Notification Container -->
-<div class="notification-container">
-    <!-- Notifications will be added here dynamically -->
-</div>
-
-<!-- Size and Quantity Selection Modal -->
-<div class="modal-overlay" id="sizeModal">
-    <div class="size-modal">
-        <div class="modal-header">
-            <h3 class="modal-title">Select Size & Quantity</h3>
-            <button class="close-modal" onclick="hideSizeModal()">×</button>
-        </div>
-        <div class="size-options" id="sizeOptionsContainer">
-            <!-- Size options populated dynamically -->
-        </div>
-        <div class="quantity-selector">
-            <span class="quantity-label">Quantity:</span>
-            <div class="quantity-controls">
-                <button class="quantity-btn" id="decrementQty">-</button>
-                <input type="number" id="quantityInput" class="quantity-input" value="1" min="1" max="10">
-                <button class="quantity-btn" id="incrementQty">+</button>
-            </div>
-        </div>
-        <div class="stock-info" id="stockInfo"></div>
-        <div class="modal-actions">
-            <button class="modal-button cancel-button" onclick="hideSizeModal()">Cancel</button>
-            <button class="modal-button confirm-button" id="confirmAddToCart" disabled>Add to Cart</button>
-        </div>
-    </div>
-</div>
-
 <!-- Hero Section -->
-<section id="hero">
+<section id="hero" class="px-8 sm:px-12 lg:px-16 max-w-7xl mx-auto">
     <h4>Limited-Time Offer</h4>
     <h2>Exclusive Discounts</h2>
     <h1>Across All Categories</h1>
     <p>Grab extra coupons & save up to 70% today!</p>
     <button><a asp-controller="Home" asp-action="Shop">Shop now</a></button>
 </section>
+<div class="container mx-auto px-1 sm:px-2 lg:px-4">
+    <!-- Notification Container -->
+    <div class="notification-container">
+        <!-- Notifications will be added here dynamically -->
+    </div>
 
-<section id="categories" class="px-8 sm:px-12 lg:px-16 py-20 bg-gray-50">
-    <div class="max-w-7xl mx-auto">
-        <!-- Centered Header -->
-        <div class="text-center mb-20">
-            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Browse Collections</h2>
-            <p class="text-xl text-gray-600 mx-auto max-w-2xl">Discover your perfect style across our categories</p>
-        </div>
-
-        <!-- Category Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            <!-- 1. Men's Fashion -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Men's Fashion"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Men's Fashion</h3>
-                    <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "mens-fashion" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
+    <!-- Size and Quantity Selection Modal -->
+    <div class="modal-overlay" id="sizeModal">
+        <div class="size-modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Select Size & Quantity</h3>
+                <button class="close-modal" onclick="hideSizeModal()">×</button>
+            </div>
+            <div class="size-options" id="sizeOptionsContainer">
+                <!-- Size options populated dynamically -->
+            </div>
+            <div class="quantity-selector">
+                <span class="quantity-label">Quantity:</span>
+                <div class="quantity-controls">
+                    <button class="quantity-btn" id="decrementQty">-</button>
+                    <input type="number" id="quantityInput" class="quantity-input" value="1" min="1" max="10">
+                    <button class="quantity-btn" id="incrementQty">+</button>
                 </div>
             </div>
-
-            <!-- 2. Women's Fashion -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Women's Fashion"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Women's Fashion</h3>
-                    <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "womens-fashion" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 3. Kids Fashion -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.pexels.com/photos/50692/brothers-family-siblings-boys-50692.jpeg"
-                     alt="Kids Fashion"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Kids Fashion</h3>
-                    <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "kids-fashion" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 4. Footwear -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Footwear"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Footwear</h3>
-                    <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "footwear" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 5. Accessories -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Accessories"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Accessories</h3>
-                    <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "accessories" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 6. Sportswear -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Sportswear"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Sportswear</h3>
-                    <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "sportswear" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 7. Luxury Collection -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Luxury Collection"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Luxury Collection</h3>
-                    <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "luxury-collection" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 8. Summer Essentials -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Summer Essentials"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Seasonal Collections</h3>
-                    <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "summer-essentials" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
+            <div class="stock-info" id="stockInfo"></div>
+            <div class="modal-actions">
+                <button class="modal-button cancel-button" onclick="hideSizeModal()">Cancel</button>
+                <button class="modal-button confirm-button" id="confirmAddToCart" disabled>Add to Cart</button>
             </div>
         </div>
     </div>
-</section>
-
-<!-- Featured Products Section -->
-<section id="product1" class="section-p1">
-    <div class="text-center mb-8">
-        <h2 class="text-3xl font-bold text-gray-800 mb-2">Featured Products</h2>
-        <p class="text-lg text-gray-600 max-w-2xl mx-auto">Discover our handpicked selection of premium fashion items</p>
-    </div>
-
-    <div id="productContainer" class="pro-container mb-12">
-        @{
-            var featuredProducts = Model.Where(p => p.IsFeatured).ToList();
-        }
-
-        @if (featuredProducts.Any())
-        {
-            @foreach (var product in featuredProducts)
-            {
-                <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
-                    <div class="relative">
-                        <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
-                        @if (product.IsFeatured)
-                        {
-                <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                    FEATURED
-                </span>
-                        }
-                    </div>
-                    <div class="des">
-                        <span class="product-brand">@product.BrandName</span>
-                        <h5 class="product-description">@product.Product_Name</h5>
-                        <div class="star">
-                            @for (int i = 0; i < product.Product_Rating; i++)
-                            {
-                                <i class="fas fa-star"></i>
-                            }
-                            @for (int i = product.Product_Rating; i < 5; i++)
-                            {
-                                <i class="far fa-star"></i>
-                            }
-                        </div>
-                        <h4 class="product-price">$@product.Product_Price</h4>
-                    </div>
-                    <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="productId" value="@product.Product_Id" />
-                        <input type="hidden" name="quantity" id="quantity-@product.Product_Id" value="1" />
-                        <input type="hidden" name="size" id="size-@product.Product_Id" value="" />
-                    </form>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="w-full flex flex-col items-center justify-center py-12 px-4">
-                <div class="text-center max-w-md mx-auto">
-                    <div class="mb-6">
-                        <i class="fas fa-star text-gray-300 text-5xl animate-pulse"></i>
-                    </div>
-                    <h3 class="text-2xl font-semibold text-gray-800 mb-3">No Featured Products Right Now</h3>
-                    <p class="text-gray-600 mb-6 leading-relaxed">
-                        We're currently refreshing our featured collection with exciting new arrivals.
-                        Check back soon to discover our premium selections!
+    <!-- Featured Products Section -->
+    <section id="product1" class="px-8 sm:px-12 lg:px-16 pt-20 pb-4 bg-white max-w-7xl mx-auto">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-4">
+                <div class="text-left">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-1">
+                        Featured <span class="text-[#088178]">Products</span>
+                    </h2>
+                    <p class="text-lg text-gray-600 max-w-2xl">
+                        Discover our handpicked selection of <span class="text-[#088178]">premium fashion</span> items
                     </p>
-                    <div class="mt-6">
-                        <a href="@Url.Action("Shop", "Home", new { area = "Customer" })"
-                           class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all duration-300 transform hover:scale-105 shadow-md">
-                            <i class="fas fa-store mr-3"></i>
-                            <span class="font-medium">Explore All Products</span>
+                </div>
+
+                @if (featuredProducts.Any())
+                {
+                    <a href="@Url.Action("Shop", "Home", new { area = "Customer" })"
+                       class="group text-[#088178] text-sm sm:text-base font-medium transition-all duration-300 hover:text-[#065f5b] hover:underline flex items-center">
+                        View All
+                        <i class="fas fa-arrow-right ml-2 transform transition-transform duration-300 group-hover:translate-x-1"></i>
+                    </a>
+
+                }
+            </div>
+
+            <div id="productContainer" class="pro-container mb-12">
+                @if (featuredProducts.Any())
+                {
+                    @foreach (var product in featuredProducts)
+                    {
+                        <div class="pro group cursor-pointer" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
+                            <div class="relative overflow-hidden rounded-2xl">
+                                <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
+                                @if (product.IsFeatured)
+                                {
+                                    <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                                        FEATURED
+                                    </span>
+                                }
+                            </div>
+                            <div class="des p-4">
+                                <span class="product-brand">@product.BrandName</span>
+                                <h5 class="product-description">@product.Product_Name</h5>
+                                <div class="star">
+                                    @for (int i = 0; i < product.Product_Rating; i++)
+                                    {
+                                        <i class="fas fa-star"></i>
+                                    }
+                                    @for (int i = product.Product_Rating; i < 5; i++)
+                                    {
+                                        <i class="far fa-star"></i>
+                                    }
+                                </div>
+                                <h4 class="product-price">$@product.Product_Price</h4>
+                            </div>
+                            <div class="pro-cart-button absolute bottom-4 right-4" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="productId" value="@product.Product_Id" />
+                                <input type="hidden" name="quantity" id="quantity-@product.Product_Id" value="1" />
+                                <input type="hidden" name="size" id="size-@product.Product_Id" value="" />
+                            </form>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="w-full flex flex-col items-center justify-center py-12 px-4">
+                        <div class="text-center max-w-md mx-auto">
+                            <div class="mb-6">
+                                <i class="fas fa-star text-gray-300 text-5xl animate-pulse"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold text-gray-800 mb-3">No Featured Products Right Now</h3>
+                            <p class="text-gray-600 mb-6 leading-relaxed">
+                                We're currently refreshing our featured collection with exciting new arrivals.
+                                Check back soon to discover our premium selections!
+                            </p>
+                            <div class="mt-6">
+                                <a href="@Url.Action("Shop", "Home", new { area = "Customer" })"
+                                   class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all duration-300 transform hover:scale-105 shadow-md">
+                                    <i class="fas fa-store mr-3"></i>
+                                    <span class="font-medium">Explore All Products</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        </div>
+    </section>
+    <!-- Home Banner Section -->
+    <section id="home-banner" class="px-4 sm:px-6 lg:px-16 py-6 bg-white max-w-7xl mx-auto">
+        <div class="max-w-7xl mx-auto">
+            <div class="relative overflow-hidden rounded-2xl h-[500px] sm:h-[400px] lg:h-[400px] group">
+                <!-- Background Image -->
+                <div class="absolute inset-0 bg-[url('/img/banner/HomeBanner.png')] bg-cover sm:bg-contain bg-center sm:bg-no-repeat bg-[length:30%_25%]"></div>
+                <!-- Subtle Hover Overlay -->
+                <div class="absolute inset-0 bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <!-- Content Container -->
+                <div class="relative z-10 p-4 sm:p-6 lg:p-8 h-full flex flex-col justify-center items-end text-right font-['Montserrat',sans-serif]">
+                    <div class="w-full sm:w-auto">
+                        <h2 class="text-sm sm:text-base font-medium mb-2 text-[#088178] tracking-wider">
+                            Shop With Style
+                        </h2>
+                        <p class="text-lg sm:text-2xl lg:text-3xl font-bold mb-4 text-black tracking-tight leading-tight">
+                            Discover the Latest<br>Fashion Trends Today
+                        </p>
+                    </div>
+                    <a asp-action="shop" class="inline-flex items-center bg-[#088178] text-white font-medium py-2 px-4 sm:px-6 rounded-md w-max transition-all duration-300 group/button hover:bg-[#066156] shadow-md hover:shadow-lg">
+                        <span class="text-sm sm:text-base">Discover</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 ml-2 opacity-0 group-hover/button:opacity-100 transform translate-x-0 group-hover/button:translate-x-1 transition-all duration-300" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- popular categories Section -->
+    <section id="popular-categories" class="px-4 sm:px-6 lg:px-8 pt-4 pb-20 bg-white max-w-7xl mx-auto">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">
+                    Popular <span class="text-[#088178]">Categories</span>
+                </h2>
+                <div class="flex space-x-4 navigation-buttons">
+                    <button id="prevCategory" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#088178] hover:bg-[#066156] text-white hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Previous Category">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="nextCategory" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#088178] hover:bg-[#066156] text-white hover:text-white transition-all duration-300" aria-label="Next Category">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="relative overflow-hidden">
+                <div id="categoriesWrapper" class="w-full overflow-hidden mx-auto">
+                    <div id="categoriesContainer" class="flex items-start flex-nowrap gap-6" data-categories='@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(ViewBag.Categories ?? new List<object>()))'>
+                        <!-- Cards generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Three Banners Section -->
+    <section class="banners bg-white px-4 sm:px-6 lg:px-8 pt-4 pb-20 max-w-7xl mx-auto">
+        <div class="container max-w-7xl mx-auto">
+            <div class="row flex flex-wrap -mx-2 gap-2">
+                <div class="col-lg-4 d-md-none d-lg-flex px-2">
+                    <div class="banner-img relative overflow-hidden wow fadeIn animated mb-0" style="visibility: visible;">
+                        <div class="relative group">
+                            <img src="~/img/banner/banner3.png" alt="" class="w-full h-auto block" style="aspect-ratio: 16/9;">
+                            <div class="absolute inset-0 bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </div>
+                        <div class="banner-text absolute top-1/2 right-[10%] -translate-y-1/2 text-left text-white group-hover:-translate-x-2.5 transition-transform duration-300">
+                            <span class="block text-xs font-normal text-gray-400 font-['Roboto',sans-serif]">New Arrival</span>
+                            <h4 class="text-xl font-semibold my-2.5 font-['Roboto',sans-serif]">Buy Today <br>Deals & Offers</h4>
+                            <a href="shop-grid-right.html" class="text-[#088178] no-underline font-light text-sm font-['Arial',sans-serif] hover:text-[#046963] transition-colors">
+                                Buy
+                                <svg class="inline-block w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg> Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 d-md-none d-lg-flex px-2">
+                    <div class="banner-img relative overflow-hidden wow fadeIn animated" style="visibility: visible;">
+                        <div class="relative group">
+                            <img src="~/img/banner/banner2.png" alt="" class="w-full h-auto block" style="aspect-ratio: 16/9;">
+                            <div class="absolute inset-0 bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </div>
+                        <div class="banner-text absolute top-1/2 right-[10%] -translate-y-1/2 text-left text-white group-hover:-translate-x-2.5 transition-transform duration-300">
+                            <span class="block text-xs font-normal text-gray-400 font-['Roboto',sans-serif]">Summer Sale</span>
+                            <h4 class="text-xl font-semibold my-2.5 font-['Roboto',sans-serif]">Grab Cool <br>Styles</h4>
+                            <a href="shop-grid-right.html" class="text-[#088178] no-underline font-light text-sm font-['Arial',sans-serif] hover:text-[#046963] transition-colors">
+                                Buy
+                                <svg class="inline-block w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg> Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 d-md-none d-lg-flex px-2">
+                    <div class="banner-img relative overflow-hidden wow fadeIn animated" style="visibility: visible;">
+                        <div class="relative group">
+                            <img src="~/img/banner/banner1.png" alt="" class="w-full h-auto block" style="aspect-ratio: 16/9;">
+                            <div class="absolute inset-0 bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        </div>
+                        <div class="banner-text absolute top-1/2 right-[10%] -translate-y-1/2 text-left text-white group-hover:-translate-x-2.5 transition-transform duration-300">
+                            <span class="block text-xs font-normal text-gray-400 font-['Roboto',sans-serif]">Hot Deal</span>
+                            <h4 class="text-xl font-semibold my-2.5 font-['Roboto',sans-serif]">20% Off <br>Bags Now</h4>
+                            <a href="shop-grid-right.html" class="text-[#088178] no-underline font-light text-sm font-['Arial',sans-serif] hover:text-[#046963] transition-colors">
+                                Buy
+                                <svg class="inline-block w-4 h-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg> Now
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- New Arrivals Section -->
+    <section id="product1" class="px-4 sm:px-6 lg:px-8 pt-4 pb-20 bg-white max-w-7xl mx-auto">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold text-[#088178]">
+                    New <span class="text-[#088178]">Arrivals</span>
+                </h2>
+                <div class="flex space-x-4">
+                    <button id="prevProduct" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#088178] hover:bg-[#066156] text-white hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Previous Product">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="nextProduct" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#088178] hover:bg-[#066156] text-white hover:text-white transition-all duration-300" aria-label="Next Product">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="relative overflow-hidden">
+                <div id="productsWrapper" class="w-full overflow-hidden mx-auto">
+                    <div id="productsContainer"
+                         class="flex items-start flex-nowrap gap-6"
+                         data-products='@Html.Raw(Json.Serialize(Model))'>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- popular Brands Section -->
+    <section id="popular-Brands" class="px-4 sm:px-6 lg:px-8 pt-4 pb-20 bg-white max-w-7xl mx-auto">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex items-center justify-between mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold">
+                    Popular <span class="text-[#088178]">Brands</span>
+                </h2>
+                <div class="flex space-x-4 navigation-buttons">
+                    <button id="prevBrand" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#088178] hover:bg-[#066156] text-white hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Previous Brand">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="nextBrand" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#088178] hover:bg-[#066156] text-white hover:text-white transition-all duration-300" aria-label="Next Brand">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="relative overflow-hidden">
+                <div id="brandsWrapper" class="w-full overflow-hidden mx-auto">
+                    <div id="brandsContainer" class="flex items-start flex-nowrap gap-6" data-brands="@Json.Serialize(ViewBag.Brands ?? new List<object>())">
+                        <!-- Cards generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ShopByCategory -->
+    <section id="categories" class="px-8 sm:px-12 lg:px-16 py-20 bg-white max-w-7xl mx-auto" style="background-color: #ffffff !important;">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Browse Collections</h2>
+                <p class="text-xl text-gray-600 mx-auto max-w-2xl">Discover your perfect style across our categories</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                <!-- 1. Men's Fashion -->
+                <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                         alt="Men's Fashion"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Men's Fashion</h3>
+                        <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "mens-fashion" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                            Shop Now
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 2. Women's Fashion -->
+                <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                         alt="Women's Fashion"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Women's Fashion</h3>
+                        <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "womens-fashion" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                            Shop Now
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3. Kids Fashion -->
+                <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                    <img src="https://images.pexels.com/photos/50692/brothers-family-siblings-boys-50692.jpeg"
+                         alt="Kids Fashion"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Kids Fashion</h3>
+                        <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "kids-fashion" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                            Shop Now
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 4. Footwear -->
+                <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1460353581641-37baddab0fa2?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                         alt="Footwear"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Footwear</h3>
+                        <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "footwear" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                            Shop Now
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 5. Accessories -->
+                <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1590874103328-eac38a683ce7?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                         alt="Accessories"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Accessories</h3>
+                        <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "accessories" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                            Shop Now
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 6. Sportswear -->
+                <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                         alt="Sportswear"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Sportswear</h3>
+                        <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "sportswear" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                            Shop Now
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 7. Luxury Collection -->
+                <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                         alt="Luxury Collection"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Luxury Collection</h3>
+                        <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "luxury-collection" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                            Shop Now
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 8. Summer Essentials -->
+                <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
+                    <img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
+                         alt="Summer Essentials"
+                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
+                    <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Seasonal Collections</h3>
+                        <a href="@Url.Action("ShopByCategory", "Home", new { area = "Customer", category = "summer-essentials" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
+                            Shop Now
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
                         </a>
                     </div>
                 </div>
             </div>
-        }
-    </div>
-
-    @if (featuredProducts.Any())
-    {
-        <div class="flex justify-between items-center mb-6">
-            <div class="ml-auto">
-                <a href="@Url.Action("Shop", "Home", new { area = "Customer" })" class="view-all-btn">
-                    View All <i class="fas fa-arrow-right ml-2"></i>
-                </a>
-            </div>
         </div>
-    }
-</section>
-<!-- Brands Section -->
-<section id="brands" class="px-8 sm:px-12 lg:px-16 py-20 bg-gray-50">
-    <div class="max-w-7xl mx-auto">
-        <!-- Centered Header -->
-        <div class="text-center mb-20">
-            <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Shop By Brand</h2>
-            <p class="text-xl text-gray-600 mx-auto max-w-2xl">Discover products from your favorite brands</p>
-        </div>
-
-        <!-- Brands Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-            <!-- 1. Nike (Kept original as it was good) -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Nike"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Nike</h3>
-                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "nike" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 2. Adidas (Kept original as it was good) -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="~/img/brands/adidas.jpg"
-                     alt="Adidas"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Adidas</h3>
-                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "adidas" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 3. Zara (Kept original as it was good) -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="~/img/brands/zara.jpg"
-                     alt="Zara"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Zara</h3>
-                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "zara" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 4. H&M - Updated Image -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="~/img/brands/h&m.jpg"
-                     alt="H&M"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">H&M</h3>
-                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "hm" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 5. Puma - Updated Image -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="https://images.unsplash.com/photo-1604671801908-6f0c6a092c05?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=600&q=80"
-                     alt="Puma"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Puma</h3>
-                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "puma" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 6. Levi's - Updated Image -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="~/img/brands/levis.jpg"
-                     alt="Levi's"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Levi's</h3>
-                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "levis" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 7. Gucci - Updated Image -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="~/img/brands/lacoste.jpg"
-                     alt="Gucci"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Lacoste</h3>
-                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "lacoste" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-
-            <!-- 8. Local Brand - Updated Image -->
-            <div class="group relative overflow-hidden rounded-xl shadow-md hover:shadow-xl transition-all duration-300 h-72 mx-2 my-2">
-                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent z-10"></div>
-                <img src="~/img/brands/local.jpg"
-                     alt="Local Brand"
-                     class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500">
-                <div class="absolute bottom-0 left-0 z-20 p-6 w-full">
-                    <h3 class="text-xl font-bold text-white mb-2">Local Brands</h3>
-                    <a href="@Url.Action("ShopByBrand", "Home", new { area = "Customer", brand = "local" })" class="inline-flex items-center text-white text-sm font-medium group-hover:text-[#088170] transition-colors duration-300">
-                        Shop Now
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-                        </svg>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+    </section>
 
 <!-- Rotating Banner Container -->
-<div class="relative h-[500px] overflow-hidden my-16 rounded-xl shadow-lg">
-    <!-- Banner 1 (Summer Sale) -->
-    <div class="banner-slide absolute inset-0 bg-gradient-to-r from-[#088170] to-[#0a9a85] flex items-center px-12 transition-opacity duration-1000">
-        <div class="text-white max-w-2xl">
-            <span class="inline-block bg-white/20 text-sm font-bold uppercase tracking-widest px-4 py-1 rounded-full mb-4">Summer Special</span>
-            <h2 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-                <span class="text-[#ffbd27]">70% OFF</span> Summer Essentials
-            </h2>
-            <p class="text-xl opacity-90 mb-8">Refresh your wardrobe with our seasonal collection</p>
-            <a asp-action="shop" class="bg-white text-[#088170] hover:bg-gray-100 font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
-                Shop Now
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </a>
-        </div>
-        <div class="hidden md:block absolute right-0 bottom-0 w-1/2 h-full bg-[url('https://images.unsplash.com/photo-1558769132-cb1aea458c5e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80')] bg-cover bg-center"></div>
-    </div>
+<section id="sm-banner" class="px-8 sm:px-12 lg:px-16 py-12 max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-    <!-- Banner 2 (New Arrivals) -->
-    <div class="banner-slide absolute inset-0 bg-gradient-to-r from-[#1e3a8a] to-[#3b82f6] flex items-center px-12 transition-opacity duration-1000">
-        <div class="text-white max-w-2xl">
-            <span class="inline-block bg-white/20 text-sm font-bold uppercase tracking-widest px-4 py-1 rounded-full mb-4">New Collection</span>
-            <h2 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-                <span class="text-[#ffbd27]">2024</span> <span class="text-[#ffff]">Fashion Trends</span>
-            </h2>
-            <p class="text-xl opacity-90 mb-8 text-[#ffff]">Discover the latest designer arrivals</p>
-            <a asp-action="shop" class="bg-[#ffbd27] text-gray-900 hover:bg-[#e6a922] font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
-                Explore
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </a>
-        </div>
-        <div class="hidden md:block absolute right-0 bottom-0 w-1/2 h-full bg-[url('https://images.unsplash.com/photo-1469334031218-e382a71b716b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80')] bg-cover bg-center"></div>
-    </div>
-
-    <!-- Banner 3 (Luxury Edit) -->
-    <div class="banner-slide absolute inset-0 bg-gradient-to-r from-gray-900 to-gray-700 flex items-center px-12 transition-opacity duration-1000">
-        <div class="text-white max-w-2xl">
-            <span class="inline-block bg-[#088170] text-sm font-bold uppercase tracking-widest px-4 py-1 rounded-full mb-4">Luxury Edit</span>
-            <h2 class="text-4xl md:text-5xl font-bold mb-4 leading-tight">
-                <span class="text-[#088170]">Premium</span> <span class="text-[#ffff]">Styles</span>
-            </h2>
-            <p class="text-xl opacity-90 mb-8">Elevate your look with exclusive pieces</p>
-            <a asp-action="shop" class="bg-[#088170] hover:bg-[#0a9a85] text-white font-bold py-3 px-8 rounded-full inline-flex items-center transition-all duration-300">
-                Discover
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-            </a>
-        </div>
-        <div class="hidden md:block absolute right-0 bottom-0 w-1/2 h-full bg-[url('https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1567&q=80')] bg-cover bg-center opacity-90"></div>
-    </div>
-
-    <!-- Navigation Dots -->
-    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-        <button class="banner-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all" data-index="0"></button>
-        <button class="banner-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all" data-index="1"></button>
-        <button class="banner-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white transition-all" data-index="2"></button>
-    </div>
-</div>
-
-
-<!-- New Arrivals Section -->
-<section id="product1" class="section-p1 bg-white">
-    <h2>New Arrivals</h2>
-    <p>Summer Collection New Modern Design</p>
-    <!-- Product List Container -->
-    <div id="productContainer" class="pro-container mb-12">
-        <!-- Increased mb-6 to mb-12 -->
-        @foreach (var product in Model)
-        {
-            <div class="pro" onclick="window.location.href='@Url.Action("Details", "Home", new { area = "Customer", id = product.Product_Id })';">
-                <div class="relative">
-                <img src="@product.imgUrl" alt="@product.Product_Name" class="product-img">
-                    <span class="absolute top-2 left-2 bg-[#FF6B6B] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
-                    NEW
-                </span>
+            <!-- Banner 1: Buy 1 Get 1 Free -->
+            <div class="relative overflow-hidden rounded-2xl h-[400px] group">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1539109136881-3be0616acf4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
+                <div class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-500"></div>
+                <div class="relative z-10 p-8 h-full flex flex-col justify-center text-white">
+                    <span class="text-base font-bold uppercase tracking-widest mb-3">Crazy Deals</span>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Buy 1 Get 1 Free</h2>
+                    <p class="text-base mb-6 text-[#f0f0f0]">Classic dresses at unbeatable prices</p>
+                    <a asp-action="shop" class="bg-white text-gray-900 hover:bg-gray-100 font-medium py-2.5 px-6 rounded-full w-max transition-all shadow-md hover:shadow-lg">
+                        Shop Now
+                    </a>
                 </div>
-                <div class="des">
-                    <span class="product-brand">@product.BrandName</span>
-                    <h5 class="product-description">@product.Product_Name</h5>
-                    <div class="star">
-                        @for (int i = 0; i < product.Product_Rating; i++)
-                        {
-                            <i class="fas fa-star"></i>
-                        }
-                        @for (int i = product.Product_Rating; i < 5; i++)
-                        {
-                            <i class="far fa-star"></i>
-                        }
-                    </div>
-                    <h4 class="product-price">$@product.Product_Price</h4>
+            </div>
+
+            <!-- Banner 2: Spring Collection (Matching Style) -->
+            <div class="relative overflow-hidden rounded-2xl h-[400px] group">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526047932273-341f2a7631f9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
+                <div class="absolute inset-0 bg-[#088170]/70 group-hover:bg-[#088170]/80 transition-all duration-500"></div>
+                <div class="relative z-10 p-8 h-full flex flex-col justify-center text-white">
+                    <span class="text-base font-bold uppercase tracking-widest mb-3">Seasonal</span>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Spring Florals</h2>
+                    <p class="text-base mb-6 text-[#f0f0f0]">Fresh patterns for sunny days</p>
+                    <a asp-action="shop" class="bg-white text-[#088170] hover:bg-gray-100 font-medium py-2.5 px-6 rounded-full w-max transition-all shadow-md hover:shadow-lg">
+                        View Collection
+                    </a>
                 </div>
-                <div class="pro-cart-button" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
-                    <i class="fas fa-shopping-cart"></i>
+            </div>
+
+            <!-- Banner 3: New Arrivals -->
+            <div class="relative overflow-hidden rounded-2xl h-[400px] group">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
+                <div class="absolute inset-0 bg-gray-900/60 group-hover:bg-gray-900/70 transition-all duration-500"></div>
+                <div class="relative z-10 p-8 h-full flex flex-col justify-center text-white text-right">
+                    <span class="text-base font-bold uppercase tracking-widest mb-3">Just In</span>
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">New Arrivals</h2>
+                    <p class="text-base mb-6 text-[#f0f0f0]">Trending styles this season</p>
+                    <a asp-action="shop" class="bg-[#088170] hover:bg-[#0a9a85] text-white font-medium py-2.5 px-6 rounded-full w-max ml-auto transition-all shadow-md hover:shadow-lg">
+                        Explore
+                    </a>
                 </div>
-                <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="productId" value="@product.Product_Id" />
-                    <input type="hidden" name="quantity" id="quantity-@product.Product_Id" value="1" />
-                    <input type="hidden" name="size" id="size-@product.Product_Id" value="" />
-                </form>
-            </div>
-        }
-    </div>
-</section>
-
-<section id="sm-banner" class="px-6 sm:px-8 lg:px-12 py-12">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-
-        <!-- Banner 1: Buy 1 Get 1 Free -->
-        <div class="relative overflow-hidden rounded-2xl h-[400px] group">
-            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1539109136881-3be0616acf4b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
-            <div class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-all duration-500"></div>
-            <div class="relative z-10 p-8 h-full flex flex-col justify-center text-white">
-                <span class="text-base font-bold uppercase tracking-widest mb-3">Crazy Deals</span>
-                <h2 class="text-3xl md:text-4xl font-bold mb-4">Buy 1 Get 1 Free</h2>
-                <p class="text-base mb-6 text-[#f0f0f0]">Classic dresses at unbeatable prices</p>
-                <a asp-action="shop" class="bg-white text-gray-900 hover:bg-gray-100 font-medium py-2.5 px-6 rounded-full w-max transition-all shadow-md hover:shadow-lg">
-                    Shop Now
-                </a>
             </div>
         </div>
-
-        <!-- Banner 2: Spring Collection (Matching Style) -->
-        <div class="relative overflow-hidden rounded-2xl h-[400px] group">
-            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526047932273-341f2a7631f9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
-            <div class="absolute inset-0 bg-[#088170]/70 group-hover:bg-[#088170]/80 transition-all duration-500"></div>
-            <div class="relative z-10 p-8 h-full flex flex-col justify-center text-white">
-                <span class="text-base font-bold uppercase tracking-widest mb-3">Seasonal</span>
-                <h2 class="text-3xl md:text-4xl font-bold mb-4">Spring Florals</h2>
-                <p class="text-base mb-6 text-[#f0f0f0]">Fresh patterns for sunny days</p>
-                <a asp-action="shop" class="bg-white text-[#088170] hover:bg-gray-100 font-medium py-2.5 px-6 rounded-full w-max transition-all shadow-md hover:shadow-lg">
-                    View Collection
-                </a>
-            </div>
-        </div>
-
-        <!-- Banner 3: New Arrivals -->
-        <div class="relative overflow-hidden rounded-2xl h-[400px] group">
-            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1551232864-3f0890e580d9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
-            <div class="absolute inset-0 bg-gray-900/60 group-hover:bg-gray-900/70 transition-all duration-500"></div>
-            <div class="relative z-10 p-8 h-full flex flex-col justify-center text-white text-right">
-                <span class="text-base font-bold uppercase tracking-widest mb-3">Just In</span>
-                <h2 class="text-3xl md:text-4xl font-bold mb-4">New Arrivals</h2>
-                <p class="text-base mb-6 text-[#f0f0f0]">Trending styles this season</p>
-                <a asp-action="shop" class="bg-[#088170] hover:bg-[#0a9a85] text-white font-medium py-2.5 px-6 rounded-full w-max ml-auto transition-all shadow-md hover:shadow-lg">
-                    Explore
-                </a>
-            </div>
-        </div>
-
     </div>
 </section>
 
 <!-- Big Triple Banners with Space -->
-<section id="banner3" class="px-6 sm:px-8 lg:px-12 py-12">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+<section id="banner3" class="px-8 sm:px-12 lg:px-16 py-12 max-w-7xl mx-auto">
+    <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-        <!-- Seasonal Sale -->
-        <div class="relative overflow-hidden rounded-2xl h-80 group">
-            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent"></div>
-            <div class="relative z-10 p-8 h-full flex flex-col justify-end text-white">
-                <h2 class="text-2xl font-bold uppercase tracking-widest mb-2">Seasonal Sale</h2>
-                <h3 class="text-3xl font-bold">Winter Collection -50% OFF</h3>
+            <!-- Seasonal Sale -->
+            <div class="relative overflow-hidden rounded-2xl h-80 group">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent"></div>
+                <div class="relative z-10 p-8 h-full flex flex-col justify-end text-white">
+                    <h2 class="text-2xl font-bold uppercase tracking-widest mb-2">Seasonal Sale</h2>
+                    <h3 class="text-3xl font-bold">Winter Collection -50% OFF</h3>
+                </div>
             </div>
-        </div>
 
-        <!-- Footwear Collection -->
-        <div class="relative overflow-hidden rounded-2xl h-80 group">
-            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460353581641-37baddab0fa2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-[#088170]/70 to-transparent"></div>
-            <div class="relative z-10 p-8 h-full flex flex-col justify-end text-white">
-                <h2 class="text-2xl font-bold uppercase tracking-widest mb-2">New Collection</h2>
-                <h3 class="text-3xl font-bold">Spring/Summer Footwear</h3>
+            <!-- Footwear Collection -->
+            <div class="relative overflow-hidden rounded-2xl h-80 group">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1460353581641-37baddab0fa2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-[#088170]/70 to-transparent"></div>
+                <div class="relative z-10 p-8 h-full flex flex-col justify-end text-white">
+                    <h2 class="text-2xl font-bold uppercase tracking-widest mb-2">New Collection</h2>
+                    <h3 class="text-3xl font-bold">Spring/Summer Footwear</h3>
+                </div>
             </div>
-        </div>
 
-        <!-- T-Shirts -->
-        <div class="relative overflow-hidden rounded-2xl h-80 group">
-            <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1576566588028-4147f3842f27?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent"></div>
-            <div class="relative z-10 p-8 h-full flex flex-col justify-end text-white">
-                <h2 class="text-2xl font-bold uppercase tracking-widest mb-2">Trending Now</h2>
-                <h3 class="text-3xl font-bold">New Printed T-Shirts</h3>
+            <!-- T-Shirts -->
+            <div class="relative overflow-hidden rounded-2xl h-80 group">
+                <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1576566588028-4147f3842f27?ixlib=rb-4.0.3&auto=format&fit=crop&w=1740&q=80')] bg-cover bg-center"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent"></div>
+                <div class="relative z-10 p-8 h-full flex flex-col justify-end text-white">
+                    <h2 class="text-2xl font-bold uppercase tracking-widest mb-2">Trending Now</h2>
+                    <h3 class="text-3xl font-bold">New Printed T-Shirts</h3>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Newsletter Section -->
-<section id="newsletter" class="section-p1 section-m1 bg-[#aeccc5] flex flex-wrap justify-between items-center px-4 sm:px-6 lg:px-8 py-12">
-    <div class="newstext flex items-center space-x-12">
-        <div class="flex items-center space-x-2">
-            <i class="fas fa-envelope text-[#1B201E] text-[22px]"></i>
-            <h4 class="text-[22px] font-bold text-[#1B201E]">Sign Up for Newsletter</h4>
+<section id="newsletter" class="px-8 sm:px-12 lg:px-16 py-12 bg-[#aeccc5] flex flex-wrap justify-between items-center max-w-7xl mx-auto mt-6 mb-6">
+    <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center w-full">
+        <div class="newstext flex items-center space-x-12">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-envelope text-[#1B201E] text-[22px]"></i>
+                <h4 class="text-[22px] font-bold text-[#1B201E]">Sign Up for Newsletter</h4>
+            </div>
+            <p class="text-sm text-[#1B201E] font-semibold">Get <span class="text-[#ffbd27]">20% Off</span> Your First Order!</p>
         </div>
-        <p class="text-sm text-[#1B201E] font-semibold">Get <span class="text-[#ffbd27]">20% Off</span> Your First Order!</p>
-    </div>
-    <div class="form flex items-center w-full sm:w-auto">
-        <div class="relative w-full sm:w-64">
-            <input type="text" placeholder="Your Email Address" class="w-full h-12 px-4 pr-10 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#212529] focus:border-transparent">
-            <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
-                <i class="fas fa-envelope"></i>
-            </span>
+        <div class="form flex items-center w-full sm:w-auto">
+            <div class="relative w-full sm:w-64">
+                <input type="text" placeholder="Your Email Address" class="w-full h-12 px-4 pr-10 text-sm border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#212529] focus:border-transparent">
+                <span class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500">
+                    <i class="fas fa-envelope"></i>
+                </span>
+            </div>
+            <button class="normal bg-[#212529] text-white px-6 py-3 rounded-full ml-2 hover:bg-[#333] transition-all duration-300">Sign Up</button>
         </div>
-        <button class="normal bg-[#212529] text-white px-6 py-3 rounded-full ml-2 hover:bg-[#333] transition-all duration-300">Sign Up</button>
     </div>
 </section>
 
@@ -1103,6 +1463,456 @@
 <button class="back-to-top" title="Go to top">
     <i class="fas fa-arrow-up"></i>
 </button>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const brandsContainer = document.getElementById('brandsContainer');
+        const prevButton = document.getElementById('prevBrand');
+        const nextButton = document.getElementById('nextBrand');
+        let brands;
+
+        console.log('Raw data-brands:', brandsContainer.dataset.brands);
+        try {
+            brands = JSON.parse(brandsContainer.dataset.brands || '[]');
+            console.log('Parsed brands:', brands);
+            console.log('Unique brands:', [...new Set(brands.map(b => b.Name))]);
+        } catch (e) {
+            console.error('JSON Parse Error:', e, 'Raw Data:', brandsContainer.dataset.brands);
+            brands = [
+                { Name: "Nike", ImgUrl: "/img/brands/nike.webp", Link: "/Customer/Home/ShopByBrand?brand=nike" },
+                { Name: "Adidas", ImgUrl: "/img/brands/adidas.jpeg", Link: "/Customer/Home/ShopByBrand?brand=adidas" },
+                { Name: "Puma", ImgUrl: "/img/brands/puma.jpg", Link: "/Customer/Home/ShopByBrand?brand=puma" },
+                { Name: "Zara", ImgUrl: "/img/brands/zara.jpeg", Link: "/Customer/Home/ShopByBrand?brand=zara" },
+                { Name: "H&M", ImgUrl: "/img/brands/hm.jpg", Link: "/Customer/Home/ShopByBrand?brand=hm" },
+                { Name: "Levi's", ImgUrl: "/img/brands/levis.jpg", Link: "/Customer/Home/ShopByBrand?brand=levis" },
+                { Name: "NightBird", ImgUrl: "/img/brands/nightbird.jpg", Link: "/Customer/Home/ShopByBrand?brand=nightbird" },
+                { Name: "Local Brands", ImgUrl: "/img/brands/local.webp", Link: "/Customer/Home/ShopByBrand?brand=local" }
+            ];
+            console.log('Using hardcoded brands:', brands);
+        }
+
+        if (!brands.length) {
+            console.warn('No brands data available.');
+            brandsContainer.innerHTML = '<p class="text-center text-gray-500">No brands available.</p>';
+            return;
+        }
+
+        let currentStartIndex = 0;
+        let interval;
+        let isTransitioning = false;
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+
+        function isMobileView() {
+            return window.innerWidth <= 768;
+        }
+
+        function getCardWidth() {
+            const screenWidth = window.innerWidth;
+            if (screenWidth <= 480) return isMobileView() ? 'calc(50% - 0.5rem)' : Math.min(document.querySelector('#brandsWrapper').offsetWidth - 16, 300 + 8);
+            if (screenWidth <= 768) return isMobileView() ? 'calc(50% - 0.5rem)' : 140 + 16;
+            if (screenWidth <= 1280) return 180 + 16;
+            return 200 + 16;
+        }
+
+        function getVisibleCards() {
+            const screenWidth = window.innerWidth;
+            if (screenWidth <= 480) return isMobileView() ? brands.length : 1;
+            if (screenWidth <= 768) return isMobileView() ? brands.length : 3.5;
+            if (screenWidth <= 1280) return 5;
+            return 6;
+        }
+
+        function createBrandCard(brand, isMobile = false) {
+            console.log('Creating card for brand:', brand.Name, 'with link:', brand.Link);
+            const card = document.createElement('div');
+            card.className = 'category-card group cursor-pointer';
+            card.style.willChange = isMobile ? 'auto' : 'transform';
+            card.style.backfaceVisibility = isMobile ? 'visible' : 'hidden';
+            if (!isMobile) {
+                card.style.width = (getCardWidth() - 16) + 'px';
+            }
+            card.innerHTML = `
+                <a href="${brand.Link || '#'}" class="absolute inset-0 z-10"></a>
+                <div class="relative overflow-hidden rounded-2xl">
+                    <img src="${brand.ImgUrl || '/img/brands/default.jpg'}" loading="lazy" alt="${brand.Name || 'Brand'}" class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
+                </div>
+                <h4 class="category-name">${brand.Name || 'Unknown Brand'}</h4>
+            `;
+            return card;
+        }
+
+        function initializeBrands() {
+            const isMobile = isMobileView();
+            brandsContainer.innerHTML = '';
+            brandsContainer.style.transform = 'none';
+            brandsContainer.style.transition = 'none';
+            clearInterval(interval);
+
+            if (brands.length) {
+                const uniqueBrands = [...new Map(brands.map(b => [b.Name, b])).values()];
+                if (isMobile) {
+                    // Grid layout: show all brands
+                    uniqueBrands.forEach(brand => {
+                        const card = createBrandCard(brand, true);
+                        brandsContainer.appendChild(card);
+                    });
+                } else {
+                    // Slider layout: triplicate for infinite scroll
+                    for (let i = 0; i < uniqueBrands.length * 3; i++) {
+                        const idx = i % uniqueBrands.length;
+                        const card = createBrandCard(uniqueBrands[idx]);
+                        brandsContainer.appendChild(card);
+                    }
+                    const cardWidth = getCardWidth();
+                    currentTranslate = -cardWidth * uniqueBrands.length;
+                    prevTranslate = currentTranslate;
+                    brandsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                    brandsContainer.style.transition = 'transform 0.8s ease-in-out';
+                    startAutoSlide();
+                }
+            } else {
+                brandsContainer.innerHTML = '<p class="text-center text-gray-500">No brands available.</p>';
+            }
+        }
+
+        function updateSliderPosition(direction = 'next') {
+            if (isTransitioning || !brands.length || isMobileView()) return;
+            isTransitioning = true;
+            const cardWidth = getCardWidth();
+            if (direction === 'next') {
+                currentStartIndex = (currentStartIndex + 1) % brands.length;
+                currentTranslate -= cardWidth;
+            } else {
+                currentStartIndex = (currentStartIndex - 1 + brands.length) % brands.length;
+                currentTranslate += cardWidth;
+            }
+            brandsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+            setTimeout(() => {
+                const limit = cardWidth * brands.length * 2;
+                if (Math.abs(currentTranslate) >= limit || currentTranslate >= 0) {
+                    currentTranslate = -cardWidth * brands.length;
+                    brandsContainer.style.transition = 'none';
+                    brandsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                    setTimeout(() => {
+                        brandsContainer.style.transition = 'transform 0.8s ease-in-out';
+                    }, 50);
+                }
+                isTransitioning = false;
+            }, 800);
+        }
+
+        function cycleCards(direction = 'next') {
+            updateSliderPosition(direction);
+        }
+
+        function startAutoSlide() {
+            if (brands.length && !isMobileView()) {
+                clearInterval(interval);
+                interval = setInterval(() => cycleCards('next'), 3500);
+            }
+        }
+
+        // Initialize brands based on initial viewport
+        initializeBrands();
+
+        if (!isMobileView()) {
+            nextButton.addEventListener('click', () => {
+                if (isTransitioning || !brands.length) return;
+                clearInterval(interval);
+                cycleCards('next');
+                startAutoSlide();
+            });
+
+            prevButton.addEventListener('click', () => {
+                if (isTransitioning || !brands.length) return;
+                clearInterval(interval);
+                cycleCards('prev');
+                startAutoSlide();
+            });
+
+            brandsContainer.addEventListener('mouseenter', () => clearInterval(interval));
+            brandsContainer.addEventListener('mouseleave', () => {
+                if (!isDragging && brands.length) {
+                    startAutoSlide();
+                }
+            });
+
+            let animationFrameId;
+            function startDrag(e) {
+                if (!brands.length || isMobileView()) return;
+                isDragging = true;
+                startX = (e.type === 'touchstart' ? e.touches[0].pageX : e.pageX) - currentTranslate;
+                brandsContainer.style.cursor = 'grabbing';
+                clearInterval(interval);
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            function moveDrag(e) {
+                if (!isDragging || isMobileView()) return;
+                e.preventDefault();
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(() => {
+                    const x = (e.type === 'touchmove' ? e.touches[0].pageX : e.pageX) - startX;
+                    currentTranslate = x;
+                    brandsContainer.style.transition = 'none';
+                    brandsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                });
+            }
+
+            function endDrag() {
+                if (!isDragging || isMobileView()) return;
+                isDragging = false;
+                brandsContainer.style.cursor = 'pointer';
+                brandsContainer.style.transition = 'transform 0.5s ease-in-out';
+                const cardWidth = getCardWidth();
+                const threshold = cardWidth / 2;
+                const draggedDistance = currentTranslate - prevTranslate;
+                if (Math.abs(draggedDistance) > threshold) {
+                    cycleCards(draggedDistance < 0 ? 'next' : 'prev');
+                } else {
+                    brandsContainer.style.transform = `translate3d(${prevTranslate}px, 0, 0)`;
+                    isTransitioning = false;
+                }
+                prevTranslate = currentTranslate;
+                startAutoSlide();
+            }
+
+            brandsContainer.addEventListener('mousedown', startDrag);
+            brandsContainer.addEventListener('mousemove', moveDrag);
+            brandsContainer.addEventListener('mouseup', endDrag);
+            brandsContainer.addEventListener('mouseleave', endDrag);
+            brandsContainer.addEventListener('touchstart', startDrag);
+            brandsContainer.addEventListener('touchmove', moveDrag);
+            brandsContainer.addEventListener('touchend', endDrag);
+            brandsContainer.addEventListener('selectstart', (e) => e.preventDefault());
+        }
+
+        window.addEventListener('resize', () => {
+            if (!brands.length) return;
+            initializeBrands();
+        });
+    });
+</script>
+<!-- JavaScript for New Arrivals Slider -->
+
+<!-- Popular Categories-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const categoriesContainer = document.getElementById('categoriesContainer');
+        const prevButton = document.getElementById('prevCategory');
+        const nextButton = document.getElementById('nextCategory');
+        let categories;
+
+        console.log('Raw data-categories:', categoriesContainer.dataset.categories);
+        try {
+            categories = JSON.parse(categoriesContainer.dataset.categories || '[]');
+            console.log('Unique categories:', [...new Set(categories.map(c => c.Name))]);
+        } catch (e) {
+            console.error('JSON Parse Error:', e, 'Raw Data:', categoriesContainer.dataset.categories);
+            categories = [];
+        }
+
+        let currentStartIndex = 0;
+        let interval;
+        let isTransitioning = false;
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+
+        function isMobileView() {
+            return window.innerWidth <= 768;
+        }
+
+        function getCardWidth() {
+            const screenWidth = window.innerWidth;
+            if (screenWidth <= 480) return isMobileView() ? 'calc(50% - 0.5rem)' : Math.min(document.querySelector('#categoriesWrapper').offsetWidth - 16, 300 + 8);
+            if (screenWidth <= 768) return isMobileView() ? 'calc(50% - 0.5rem)' : 140 + 16;
+            if (screenWidth <= 1280) return 180 + 16;
+            return 200 + 16;
+        }
+
+        function getVisibleCards() {
+            const screenWidth = window.innerWidth;
+            if (screenWidth <= 480) return isMobileView() ? categories.length : 1;
+            if (screenWidth <= 768) return isMobileView() ? categories.length : 3.5;
+            if (screenWidth <= 1280) return 5;
+            return 6;
+        }
+
+        function createCategoryCard(category, isMobile = false) {
+            const card = document.createElement('div');
+            card.className = 'category-card group cursor-pointer';
+            card.style.willChange = isMobile ? 'auto' : 'transform';
+            card.style.backfaceVisibility = isMobile ? 'visible' : 'hidden';
+            if (!isMobile) {
+                card.style.width = (getCardWidth() - 16) + 'px';
+            }
+            card.innerHTML = `
+                <a href="${category.Link || '#'}" class="absolute inset-0 z-10"></a>
+                <div class="relative overflow-hidden rounded-2xl">
+                    <img src="${category.ImgUrl || '/img/categories/default.jpg'}" loading="lazy" alt="${category.Name || 'Category'}" class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
+                </div>
+                <h4 class="category-name">${category.Name || 'Unknown Category'}</h4>
+            `;
+            return card;
+        }
+
+        function initializeCategories() {
+            const isMobile = isMobileView();
+            categoriesContainer.innerHTML = '';
+            categoriesContainer.style.transform = 'none';
+            categoriesContainer.style.transition = 'none';
+            clearInterval(interval);
+
+            if (categories.length) {
+                const uniqueCategories = [...new Map(categories.map(c => [c.Name, c])).values()];
+                if (isMobile) {
+                    // Grid layout: show all categories
+                    uniqueCategories.forEach(category => {
+                        const card = createCategoryCard(category, true);
+                        categoriesContainer.appendChild(card);
+                    });
+                } else {
+                    // Slider layout: triplicate for infinite scroll
+                    for (let i = 0; i < uniqueCategories.length * 3; i++) {
+                        const idx = i % uniqueCategories.length;
+                        const card = createCategoryCard(uniqueCategories[idx]);
+                        categoriesContainer.appendChild(card);
+                    }
+                    const cardWidth = getCardWidth();
+                    currentTranslate = -cardWidth * uniqueCategories.length;
+                    prevTranslate = currentTranslate;
+                    categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                    categoriesContainer.style.transition = 'transform 0.8s ease-in-out';
+                    startAutoSlide();
+                }
+            } else {
+                categoriesContainer.innerHTML = '<p class="text-center text-gray-500">No categories available.</p>';
+            }
+        }
+
+        function updateSliderPosition(direction = 'next') {
+            if (isTransitioning || !categories.length || isMobileView()) return;
+            isTransitioning = true;
+            const cardWidth = getCardWidth();
+            if (direction === 'next') {
+                currentStartIndex = (currentStartIndex + 1) % categories.length;
+                currentTranslate -= cardWidth;
+            } else {
+                currentStartIndex = (currentStartIndex - 1 + categories.length) % categories.length;
+                currentTranslate += cardWidth;
+            }
+            categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+            setTimeout(() => {
+                const limit = cardWidth * categories.length * 2;
+                if (Math.abs(currentTranslate) >= limit || currentTranslate >= 0) {
+                    currentTranslate = -cardWidth * categories.length;
+                    categoriesContainer.style.transition = 'none';
+                    categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                    setTimeout(() => {
+                        categoriesContainer.style.transition = 'transform 0.8s ease-in-out';
+                    }, 50);
+                }
+                isTransitioning = false;
+            }, 800);
+        }
+
+        function cycleCards(direction = 'next') {
+            updateSliderPosition(direction);
+        }
+
+        function startAutoSlide() {
+            if (categories.length && !isMobileView()) {
+                clearInterval(interval);
+                interval = setInterval(() => cycleCards('next'), 3500);
+            }
+        }
+
+        // Initialize categories based on initial viewport
+        initializeCategories();
+
+        if (!isMobileView()) {
+            nextButton.addEventListener('click', () => {
+                if (isTransitioning || !categories.length) return;
+                clearInterval(interval);
+                cycleCards('next');
+                startAutoSlide();
+            });
+
+            prevButton.addEventListener('click', () => {
+                if (isTransitioning || !categories.length) return;
+                clearInterval(interval);
+                cycleCards('prev');
+                startAutoSlide();
+            });
+
+            categoriesContainer.addEventListener('mouseenter', () => clearInterval(interval));
+            categoriesContainer.addEventListener('mouseleave', () => {
+                if (!isDragging && categories.length) {
+                    startAutoSlide();
+                }
+            });
+
+            let animationFrameId;
+            function startDrag(e) {
+                if (!categories.length || isMobileView()) return;
+                isDragging = true;
+                startX = (e.type === 'touchstart' ? e.touches[0].pageX : e.pageX) - currentTranslate;
+                categoriesContainer.style.cursor = 'grabbing';
+                clearInterval(interval);
+                cancelAnimationFrame(animationFrameId);
+            }
+
+            function moveDrag(e) {
+                if (!isDragging || isMobileView()) return;
+                e.preventDefault();
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = requestAnimationFrame(() => {
+                    const x = (e.type === 'touchmove' ? e.touches[0].pageX : e.pageX) - startX;
+                    currentTranslate = x;
+                    categoriesContainer.style.transition = 'none';
+                    categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                });
+            }
+
+            function endDrag() {
+                if (!isDragging || isMobileView()) return;
+                isDragging = false;
+                categoriesContainer.style.cursor = 'pointer';
+                categoriesContainer.style.transition = 'transform 0.5s ease-in-out';
+                const cardWidth = getCardWidth();
+                const threshold = cardWidth / 2;
+                const draggedDistance = currentTranslate - prevTranslate;
+                if (Math.abs(draggedDistance) > threshold) {
+                    cycleCards(draggedDistance < 0 ? 'next' : 'prev');
+                } else {
+                    categoriesContainer.style.transform = `translate3d(${prevTranslate}px, 0, 0)`;
+                    isTransitioning = false;
+                }
+                prevTranslate = currentTranslate;
+                startAutoSlide();
+            }
+
+            categoriesContainer.addEventListener('mousedown', startDrag);
+            categoriesContainer.addEventListener('mousemove', moveDrag);
+            categoriesContainer.addEventListener('mouseup', endDrag);
+            categoriesContainer.addEventListener('mouseleave', endDrag);
+            categoriesContainer.addEventListener('touchstart', startDrag);
+            categoriesContainer.addEventListener('touchmove', moveDrag);
+            categoriesContainer.addEventListener('touchend', endDrag);
+            categoriesContainer.addEventListener('selectstart', (e) => e.preventDefault());
+        }
+
+        window.addEventListener('resize', () => {
+            if (!categories.length) return;
+            initializeCategories();
+        });
+    });
+</script>
 
 <script>
     // Notification System
@@ -1348,67 +2158,673 @@
     }
     });
 
-    // Banner Slider
-    document.addEventListener('DOMContentLoaded', function() {
-        const banners = document.querySelectorAll('.banner-slide');
-        const dots = document.querySelectorAll('.banner-dot');
-        let currentIndex = 0;
+//New Arrivals Slider
+    document.addEventListener('DOMContentLoaded', function () {
+        const productsContainer = document.getElementById('productsContainer');
+        const prevButton = document.getElementById('prevProduct');
+        const nextButton = document.getElementById('nextProduct');
+        let products;
+
+        // Log raw data for debugging
+        console.log('Raw data-products:', productsContainer.dataset.products);
+        try {
+            products = JSON.parse(productsContainer.dataset.products || '[]');
+            console.log('Parsed products:', products);
+        } catch (e) {
+            console.error('JSON Parse Error:', e, 'Raw Data:', productsContainer.dataset.products);
+            productsContainer.innerHTML = '<p class="text-center text-gray-500">Error loading products.</p>';
+            products = [];
+            return;
+        }
+
+        let currentStartIndex = 0;
         let interval;
+        let isTransitioning = false;
+        let isDragging = false;
+        let startX = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
 
-        function showBanner(index) {
-            banners.forEach((banner, i) => {
-                banner.style.opacity = i === index ? '1' : '0';
-                banner.style.zIndex = i === index ? '1' : '0';
-            });
-            dots.forEach((dot, i) => {
-                dot.classList.toggle('bg-white', i === index);
-                dot.classList.toggle('bg-white/50', i !== index);
-            });
+        productsContainer.style.willChange = 'transform';
+        productsContainer.style.backfaceVisibility = 'hidden';
+        productsContainer.style.transition = 'transform 0.8s ease-in-out';
+
+        function getCardWidth() {
+            const screenWidth = window.innerWidth;
+            if (screenWidth <= 480) return Math.min(document.querySelector('#productsWrapper').offsetWidth - 16, 250 + 8);
+            if (screenWidth <= 768) return 180 + 16;
+            if (screenWidth <= 1280) return 220 + 16;
+            return 250 + 16;
         }
 
-        function nextBanner() {
-            currentIndex = (currentIndex + 1) % banners.length;
-            showBanner(currentIndex);
-        }
+        function createProductCard(product) {
+            console.log('Creating card for product:', product);
 
-        function startInterval() {
-            interval = setInterval(nextBanner, 5000);
-        }
+            const card = document.createElement('div');
+            card.className = 'pro group cursor-pointer';
+            const cardWidth = getCardWidth() - 16; // Adjust for gap
+            card.style.width = `${cardWidth}px`; // Dynamic width
 
-        // Initialize
-        showBanner(0);
-        startInterval();
+            const productId = product.product_Id || 0;
+            const productName = product.product_Name || 'Unnamed Product';
+            const brandName = product.brandName || 'Unknown Brand';
+            const price = product.product_Price ? Number(product.product_Price).toFixed(2) : '0.00';
+            const rating = product.product_Rating || 0;
+            const imgUrl = product.imgUrl || '/img/placeholder.jpg';
 
-        // Dot navigation
-        dots.forEach(dot => {
-            dot.addEventListener('click', function() {
-                currentIndex = parseInt(this.getAttribute('data-index'));
-                showBanner(currentIndex);
-                clearInterval(interval);
-                startInterval();
+            card.innerHTML = `
+                <div class="relative overflow-hidden rounded-2xl">
+                    <img src="${imgUrl}" alt="${productName}" class="product-img w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
+                    <span class="absolute top-2 left-2 bg-[#FF6B6B] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">NEW</span>
+                </div>
+                <div class="des p-3">
+                    <span class="product-brand text-sm">${brandName}</span>
+                    <h5 class="product-description text-base font-medium">${productName}</h5>
+                    <div class="star flex items-center">
+                        ${'<i class="fas fa-star text-yellow-400 text-xs"></i>'.repeat(rating)}
+                        ${'<i class="far fa-star text-yellow-400 text-xs"></i>'.repeat(5 - rating)}
+                    </div>
+                    <h4 class="product-price text-lg font-semibold">$${price}</h4>
+                </div>
+                <div class="pro-cart-button absolute bottom-3 right-3" onclick="event.stopPropagation(); showSizeModal(${productId})">
+                    <i class="fas fa-shopping-cart text-[#088178]"></i>
+                </div>
+                <form class="add-to-cart-form" data-product-id="${productId}" style="display: none;">
+                    <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]').value || ''}" />
+                    <input type="hidden" name="productId" value="${productId}" />
+                    <input type="hidden" name="quantity" id="quantity-${productId}" value="1" />
+                    <input type="hidden" name="size" id="size-${productId}" value="" />
+                </form>
+            `;
+            card.addEventListener('click', (e) => {
+                if (!e.target.closest('.pro-cart-button')) {
+                    window.location.href = `/Customer/Home/Details/${productId}`;
+                }
             });
-        });
+            return card;
+        }
 
-        // Pause on hover
-        const container = document.querySelector('.relative');
-        container.addEventListener('mouseenter', () => clearInterval(interval));
-        container.addEventListener('mouseleave', startInterval);
-    });
-    // Back to Top Button
-      const backToTopButton = document.querySelector('.back-to-top');
-
-    window.addEventListener('scroll', () => {
-        if (window.pageYOffset > 300) {
-            backToTopButton.classList.add('visible');
+        productsContainer.innerHTML = '';
+        if (products.length) {
+            for (let i = 0; i < products.length * 3; i++) {
+                const idx = i % products.length;
+                const card = createProductCard(products[idx]);
+                productsContainer.appendChild(card);
+            }
         } else {
-            backToTopButton.classList.remove('visible');
+            productsContainer.innerHTML = '<p class="text-center text-gray-500">No new arrivals available.</p>';
         }
-    });
 
-    backToTopButton.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
+        const cardWidth = getCardWidth();
+        currentTranslate = -cardWidth * products.length;
+        prevTranslate = currentTranslate;
+        if (products.length) {
+            productsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+        }
+
+        function updateSliderPosition(direction = 'next') {
+            if (isTransitioning || !products.length) return;
+            isTransitioning = true;
+            const cardWidth = getCardWidth();
+            if (direction === 'next') {
+                currentStartIndex = (currentStartIndex + 1) % products.length;
+                currentTranslate -= cardWidth;
+            } else {
+                currentStartIndex = (currentStartIndex - 1 + products.length) % products.length;
+                currentTranslate += cardWidth;
+            }
+            productsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+            setTimeout(() => {
+                const limit = cardWidth * products.length * 2;
+                if (Math.abs(currentTranslate) >= limit || currentTranslate >= 0) {
+                    currentTranslate = -cardWidth * products.length;
+                    productsContainer.style.transition = 'none';
+                    productsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                    setTimeout(() => {
+                        productsContainer.style.transition = 'transform 0.8s ease-in-out';
+                    }, 50);
+                }
+                isTransitioning = false;
+            }, 800);
+        }
+
+        function cycleCards(direction = 'next') {
+            updateSliderPosition(direction);
+        }
+
+        if (products.length) {
+            interval = setInterval(() => cycleCards('next'), 3500);
+        }
+
+        nextButton.addEventListener('click', () => {
+            if (isTransitioning || !products.length) return;
+            clearInterval(interval);
+            cycleCards('next');
+            interval = setInterval(() => cycleCards('next'), 3500);
+        });
+
+        prevButton.addEventListener('click', () => {
+            if (isTransitioning || !products.length) return;
+            clearInterval(interval);
+            cycleCards('prev');
+            interval = setInterval(() => cycleCards('next'), 3500);
+        });
+
+        productsContainer.addEventListener('mouseenter', () => clearInterval(interval));
+        productsContainer.addEventListener('mouseleave', () => {
+            if (!isDragging && products.length) {
+                interval = setInterval(() => cycleCards('next'), 3500);
+            }
+        });
+
+        let animationFrameId;
+        function startDrag(e) {
+            if (!products.length) return;
+            isDragging = true;
+            startX = (e.type === 'touchstart' ? e.touches[0].pageX : e.pageX) - currentTranslate;
+            productsContainer.style.cursor = 'grabbing';
+            clearInterval(interval);
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        function moveDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(() => {
+                const x = (e.type === 'touchmove' ? e.touches[0].pageX : e.pageX) - startX;
+                currentTranslate = x;
+                productsContainer.style.transition = 'none';
+                productsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+            });
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            productsContainer.style.cursor = 'pointer';
+            productsContainer.style.transition = 'transform 0.5s ease-in-out';
+            const cardWidth = getCardWidth();
+            const threshold = cardWidth / 2;
+            const draggedDistance = currentTranslate - prevTranslate;
+            if (Math.abs(draggedDistance) > threshold) {
+                cycleCards(draggedDistance < 0 ? 'next' : 'prev');
+            } else {
+                productsContainer.style.transform = `translate3d(${prevTranslate}px, 0, 0)`;
+                isTransitioning = false;
+            }
+            prevTranslate = currentTranslate;
+            if (products.length) {
+                interval = setInterval(() => cycleCards('next'), 3500);
+            }
+        }
+
+        productsContainer.addEventListener('mousedown', startDrag);
+        productsContainer.addEventListener('mousemove', moveDrag);
+        productsContainer.addEventListener('mouseup', endDrag);
+        productsContainer.addEventListener('mouseleave', endDrag);
+        productsContainer.addEventListener('touchstart', startDrag);
+        productsContainer.addEventListener('touchmove', moveDrag);
+        productsContainer.addEventListener('touchend', endDrag);
+        productsContainer.addEventListener('selectstart', (e) => e.preventDefault());
+
+        window.addEventListener('resize', () => {
+            if (!products.length) return;
+            const cardWidth = getCardWidth();
+            currentTranslate = -cardWidth * products.length;
+            prevTranslate = currentTranslate;
+            productsContainer.style.transition = 'none';
+            productsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+            Array.from(productsContainer.children).forEach(card => {
+                card.style.width = `${cardWidth - 16}px`;
+            });
+            setTimeout(() => {
+                productsContainer.style.transition = 'transform 0.8s ease-in-out';
+            }, 50);
         });
     });
+ // Popular Brands Slider
+        document.addEventListener('DOMContentLoaded', function () {
+            const brandsContainer = document.getElementById('brandsContainer');
+            const prevButton = document.getElementById('prevBrand');
+            const nextButton = document.getElementById('nextBrand');
+            let brands;
+
+            console.log('Raw data-brands:', brandsContainer.dataset.brands);
+            try {
+                brands = JSON.parse(brandsContainer.dataset.brands || '[]');
+                console.log('Parsed brands:', brands);
+                console.log('Unique brands:', [...new Set(brands.map(b => b.Name))]);
+            } catch (e) {
+                console.error('JSON Parse Error:', e, 'Raw Data:', brandsContainer.dataset.brands);
+                brands = [
+                    { Name: "Nike", ImgUrl: "/img/brands/nike.webp", Link: "/Customer/Home/ShopByBrand?brand=nike" },
+                    { Name: "Adidas", ImgUrl: "/img/brands/adidas.jpeg", Link: "/Customer/Home/ShopByBrand?brand=adidas" },
+                    { Name: "Puma", ImgUrl: "/img/brands/puma.jpg", Link: "/Customer/Home/ShopByBrand?brand=puma" },
+                    { Name: "Zara", ImgUrl: "/img/brands/zara.jpeg", Link: "/Customer/Home/ShopByBrand?brand=zara" },
+                    { Name: "H&M", ImgUrl: "/img/brands/hm.jpg", Link: "/Customer/Home/ShopByBrand?brand=hm" },
+                    { Name: "Levi's", ImgUrl: "/img/brands/levis.jpg", Link: "/Customer/Home/ShopByBrand?brand=levis" },
+                    { Name: "NightBird", ImgUrl: "/img/brands/nightbird.jpg", Link: "/Customer/Home/ShopByBrand?brand=nightbird" },
+                    { Name: "Local Brands", ImgUrl: "/img/brands/local.webp", Link: "/Customer/Home/ShopByBrand?brand=local" }
+                ];
+                console.log('Using hardcoded brands:', brands);
+            }
+
+            if (!brands.length) {
+                console.warn('No brands data available.');
+                brandsContainer.innerHTML = '<p class="text-center text-gray-500">No brands available.</p>';
+                return;
+            }
+
+            let currentStartIndex = 0;
+            let interval;
+            let isTransitioning = false;
+            let isDragging = false;
+            let startX = 0;
+            let currentTranslate = 0;
+            let prevTranslate = 0;
+
+            function isMobileView() {
+                return window.innerWidth <= 768;
+            }
+
+            function getCardWidth() {
+                const screenWidth = window.innerWidth;
+                if (screenWidth <= 480) return isMobileView() ? 'calc(50% - 0.5rem)' : Math.min(document.querySelector('#brandsWrapper').offsetWidth - 16, 300 + 8);
+                if (screenWidth <= 768) return isMobileView() ? 'calc(50% - 0.5rem)' : 140 + 16;
+                if (screenWidth <= 1280) return 180 + 16;
+                return 200 + 16;
+            }
+
+            function getVisibleCards() {
+                const screenWidth = window.innerWidth;
+                if (screenWidth <= 480) return isMobileView() ? brands.length : 1;
+                if (screenWidth <= 768) return isMobileView() ? brands.length : 3.5;
+                if (screenWidth <= 1280) return 5;
+                return 6;
+            }
+
+            function createBrandCard(brand, isMobile = false) {
+                console.log('Creating card for brand:', brand.Name, 'with link:', brand.Link);
+                const card = document.createElement('div');
+                card.className = 'category-card group cursor-pointer';
+                card.style.willChange = isMobile ? 'auto' : 'transform';
+                card.style.backfaceVisibility = isMobile ? 'visible' : 'hidden';
+                if (!isMobile) {
+                    card.style.width = (getCardWidth() - 16) + 'px';
+                }
+                card.innerHTML = `
+                    <a href="${brand.Link || '#'}" class="absolute inset-0 z-10"></a>
+                    <div class="relative overflow-hidden rounded-2xl">
+                        <img src="${brand.ImgUrl || '/img/brands/default.jpg'}" loading="lazy" alt="${brand.Name || 'Brand'}" class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <h4 class="category-name">${brand.Name || 'Unknown Brand'}</h4>
+                `;
+                return card;
+            }
+
+            function initializeBrands() {
+                const isMobile = isMobileView();
+                brandsContainer.innerHTML = '';
+                brandsContainer.style.transform = 'none';
+                brandsContainer.style.transition = 'none';
+                clearInterval(interval);
+
+                if (brands.length) {
+                    const uniqueBrands = [...new Map(brands.map(b => [b.Name, b])).values()];
+                    if (isMobile) {
+                        // Grid layout: show all brands
+                        uniqueBrands.forEach(brand => {
+                            const card = createBrandCard(brand, true);
+                            brandsContainer.appendChild(card);
+                        });
+                    } else {
+                        // Slider layout: triplicate for infinite scroll
+                        for (let i = 0; i < uniqueBrands.length * 3; i++) {
+                            const idx = i % uniqueBrands.length;
+                            const card = createBrandCard(uniqueBrands[idx]);
+                            brandsContainer.appendChild(card);
+                        }
+                        const cardWidth = getCardWidth();
+                        currentTranslate = -cardWidth * uniqueBrands.length;
+                        prevTranslate = currentTranslate;
+                        brandsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                        brandsContainer.style.transition = 'transform 0.8s ease-in-out';
+                        startAutoSlide();
+                    }
+                } else {
+                    brandsContainer.innerHTML = '<p class="text-center text-gray-500">No brands available.</p>';
+                }
+            }
+
+            function updateSliderPosition(direction = 'next') {
+                if (isTransitioning || !brands.length || isMobileView()) return;
+                isTransitioning = true;
+                const cardWidth = getCardWidth();
+                if (direction === 'next') {
+                    currentStartIndex = (currentStartIndex + 1) % brands.length;
+                    currentTranslate -= cardWidth;
+                } else {
+                    currentStartIndex = (currentStartIndex - 1 + brands.length) % brands.length;
+                    currentTranslate += cardWidth;
+                }
+                brandsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                setTimeout(() => {
+                    const limit = cardWidth * brands.length * 2;
+                    if (Math.abs(currentTranslate) >= limit || currentTranslate >= 0) {
+                        currentTranslate = -cardWidth * brands.length;
+                        brandsContainer.style.transition = 'none';
+                        brandsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                        setTimeout(() => {
+                            brandsContainer.style.transition = 'transform 0.8s ease-in-out';
+                        }, 50);
+                    }
+                    isTransitioning = false;
+                }, 800);
+            }
+
+            function cycleCards(direction = 'next') {
+                updateSliderPosition(direction);
+            }
+
+            function startAutoSlide() {
+                if (brands.length && !isMobileView()) {
+                    clearInterval(interval);
+                    interval = setInterval(() => cycleCards('next'), 3500);
+                }
+            }
+
+            // Initialize brands based on initial viewport
+            initializeBrands();
+
+            if (!isMobileView()) {
+                nextButton.addEventListener('click', () => {
+                    if (isTransitioning || !brands.length) return;
+                    clearInterval(interval);
+                    cycleCards('next');
+                    startAutoSlide();
+                });
+
+                prevButton.addEventListener('click', () => {
+                    if (isTransitioning || !brands.length) return;
+                    clearInterval(interval);
+                    cycleCards('prev');
+                    startAutoSlide();
+                });
+
+                brandsContainer.addEventListener('mouseenter', () => clearInterval(interval));
+                brandsContainer.addEventListener('mouseleave', () => {
+                    if (!isDragging && brands.length) {
+                        startAutoSlide();
+                    }
+                });
+
+                let animationFrameId;
+                function startDrag(e) {
+                    if (!brands.length || isMobileView()) return;
+                    isDragging = true;
+                    startX = (e.type === 'touchstart' ? e.touches[0].pageX : e.pageX) - currentTranslate;
+                    brandsContainer.style.cursor = 'grabbing';
+                    clearInterval(interval);
+                    cancelAnimationFrame(animationFrameId);
+                }
+
+                function moveDrag(e) {
+                    if (!isDragging || isMobileView()) return;
+                    e.preventDefault();
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = requestAnimationFrame(() => {
+                        const x = (e.type === 'touchmove' ? e.touches[0].pageX : e.pageX) - startX;
+                        currentTranslate = x;
+                        brandsContainer.style.transition = 'none';
+                        brandsContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                    });
+                }
+
+                function endDrag() {
+                    if (!isDragging || isMobileView()) return;
+                    isDragging = false;
+                    brandsContainer.style.cursor = 'pointer';
+                    brandsContainer.style.transition = 'transform 0.5s ease-in-out';
+                    const cardWidth = getCardWidth();
+                    const threshold = cardWidth / 2;
+                    const draggedDistance = currentTranslate - prevTranslate;
+                    if (Math.abs(draggedDistance) > threshold) {
+                        cycleCards(draggedDistance < 0 ? 'next' : 'prev');
+                    } else {
+                        brandsContainer.style.transform = `translate3d(${prevTranslate}px, 0, 0)`;
+                        isTransitioning = false;
+                    }
+                    prevTranslate = currentTranslate;
+                    startAutoSlide();
+                }
+
+                brandsContainer.addEventListener('mousedown', startDrag);
+                brandsContainer.addEventListener('mousemove', moveDrag);
+                brandsContainer.addEventListener('mouseup', endDrag);
+                brandsContainer.addEventListener('mouseleave', endDrag);
+                brandsContainer.addEventListener('touchstart', startDrag);
+                brandsContainer.addEventListener('touchmove', moveDrag);
+                brandsContainer.addEventListener('touchend', endDrag);
+                brandsContainer.addEventListener('selectstart', (e) => e.preventDefault());
+            }
+
+            window.addEventListener('resize', () => {
+                if (!brands.length) return;
+                initializeBrands();
+            });
+        });
+// Popular Categories Slider
+        document.addEventListener('DOMContentLoaded', function () {
+            const categoriesContainer = document.getElementById('categoriesContainer');
+            const prevButton = document.getElementById('prevCategory');
+            const nextButton = document.getElementById('nextCategory');
+            let categories;
+
+            console.log('Raw data-categories:', categoriesContainer.dataset.categories);
+            try {
+                categories = JSON.parse(categoriesContainer.dataset.categories || '[]');
+                console.log('Unique categories:', [...new Set(categories.map(c => c.Name))]);
+            } catch (e) {
+                console.error('JSON Parse Error:', e, 'Raw Data:', categoriesContainer.dataset.categories);
+                categories = [];
+            }
+
+            let currentStartIndex = 0;
+            let interval;
+            let isTransitioning = false;
+            let isDragging = false;
+            let startX = 0;
+            let currentTranslate = 0;
+            let prevTranslate = 0;
+
+            function isMobileView() {
+                return window.innerWidth <= 768;
+            }
+
+            function getCardWidth() {
+                const screenWidth = window.innerWidth;
+                if (screenWidth <= 480) return isMobileView() ? 'calc(50% - 0.5rem)' : Math.min(document.querySelector('#categoriesWrapper').offsetWidth - 16, 300 + 8);
+                if (screenWidth <= 768) return isMobileView() ? 'calc(50% - 0.5rem)' : 140 + 16;
+                if (screenWidth <= 1280) return 180 + 16;
+                return 200 + 16;
+            }
+
+            function getVisibleCards() {
+                const screenWidth = window.innerWidth;
+                if (screenWidth <= 480) return isMobileView() ? categories.length : 1;
+                if (screenWidth <= 768) return isMobileView() ? categories.length : 3.5;
+                if (screenWidth <= 1280) return 5;
+                return 6;
+            }
+
+            function createCategoryCard(category, isMobile = false) {
+                const card = document.createElement('div');
+                card.className = 'category-card group cursor-pointer';
+                card.style.willChange = isMobile ? 'auto' : 'transform';
+                card.style.backfaceVisibility = isMobile ? 'visible' : 'hidden';
+                if (!isMobile) {
+                    card.style.width = (getCardWidth() - 16) + 'px';
+                }
+                card.innerHTML = `
+                    <a href="${category.Link || '#'}" class="absolute inset-0 z-10"></a>
+                    <div class="relative overflow-hidden rounded-2xl">
+                        <img src="${category.ImgUrl || '/img/categories/default.jpg'}" loading="lazy" alt="${category.Name || 'Category'}" class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
+                    </div>
+                    <h4 class="category-name">${category.Name || 'Unknown Category'}</h4>
+                `;
+                return card;
+            }
+
+            function initializeCategories() {
+                const isMobile = isMobileView();
+                categoriesContainer.innerHTML = '';
+                categoriesContainer.style.transform = 'none';
+                categoriesContainer.style.transition = 'none';
+                clearInterval(interval);
+
+                if (categories.length) {
+                    const uniqueCategories = [...new Map(categories.map(c => [c.Name, c])).values()];
+                    if (isMobile) {
+                        // Grid layout: show all categories
+                        uniqueCategories.forEach(category => {
+                            const card = createCategoryCard(category, true);
+                            categoriesContainer.appendChild(card);
+                        });
+                    } else {
+                        // Slider layout: triplicate for infinite scroll
+                        for (let i = 0; i < uniqueCategories.length * 3; i++) {
+                            const idx = i % uniqueCategories.length;
+                            const card = createCategoryCard(uniqueCategories[idx]);
+                            categoriesContainer.appendChild(card);
+                        }
+                        const cardWidth = getCardWidth();
+                        currentTranslate = -cardWidth * uniqueCategories.length;
+                        prevTranslate = currentTranslate;
+                        categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                        categoriesContainer.style.transition = 'transform 0.8s ease-in-out';
+                        startAutoSlide();
+                    }
+                } else {
+                    categoriesContainer.innerHTML = '<p class="text-center text-gray-500">No categories available.</p>';
+                }
+            }
+
+            function updateSliderPosition(direction = 'next') {
+                if (isTransitioning || !categories.length || isMobileView()) return;
+                isTransitioning = true;
+                const cardWidth = getCardWidth();
+                if (direction === 'next') {
+                    currentStartIndex = (currentStartIndex + 1) % categories.length;
+                    currentTranslate -= cardWidth;
+                } else {
+                    currentStartIndex = (currentStartIndex - 1 + categories.length) % categories.length;
+                    currentTranslate += cardWidth;
+                }
+                categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                setTimeout(() => {
+                    const limit = cardWidth * categories.length * 2;
+                    if (Math.abs(currentTranslate) >= limit || currentTranslate >= 0) {
+                        currentTranslate = -cardWidth * categories.length;
+                        categoriesContainer.style.transition = 'none';
+                        categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                        setTimeout(() => {
+                            categoriesContainer.style.transition = 'transform 0.8s ease-in-out';
+                        }, 50);
+                    }
+                    isTransitioning = false;
+                }, 800);
+            }
+
+            function cycleCards(direction = 'next') {
+                updateSliderPosition(direction);
+            }
+
+            function startAutoSlide() {
+                if (categories.length && !isMobileView()) {
+                    clearInterval(interval);
+                    interval = setInterval(() => cycleCards('next'), 3500);
+                }
+            }
+
+            // Initialize categories based on initial viewport
+            initializeCategories();
+
+            if (!isMobileView()) {
+                nextButton.addEventListener('click', () => {
+                    if (isTransitioning || !categories.length) return;
+                    clearInterval(interval);
+                    cycleCards('next');
+                    startAutoSlide();
+                });
+
+                prevButton.addEventListener('click', () => {
+                    if (isTransitioning || !categories.length) return;
+                    clearInterval(interval);
+                    cycleCards('prev');
+                    startAutoSlide();
+                });
+
+                categoriesContainer.addEventListener('mouseenter', () => clearInterval(interval));
+                categoriesContainer.addEventListener('mouseleave', () => {
+                    if (!isDragging && categories.length) {
+                        startAutoSlide();
+                    }
+                });
+
+                let animationFrameId;
+                function startDrag(e) {
+                    if (!categories.length || isMobileView()) return;
+                    isDragging = true;
+                    startX = (e.type === 'touchstart' ? e.touches[0].pageX : e.pageX) - currentTranslate;
+                    categoriesContainer.style.cursor = 'grabbing';
+                    clearInterval(interval);
+                    cancelAnimationFrame(animationFrameId);
+                }
+
+                function moveDrag(e) {
+                    if (!isDragging || isMobileView()) return;
+                    e.preventDefault();
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = requestAnimationFrame(() => {
+                        const x = (e.type === 'touchmove' ? e.touches[0].pageX : e.pageX) - startX;
+                        currentTranslate = x;
+                        categoriesContainer.style.transition = 'none';
+                        categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                    });
+                }
+
+                function endDrag() {
+                    if (!isDragging || isMobileView()) return;
+                    isDragging = false;
+                    categoriesContainer.style.cursor = 'pointer';
+                    categoriesContainer.style.transition = 'transform 0.5s ease-in-out';
+                    const cardWidth = getCardWidth();
+                    const threshold = cardWidth / 2;
+                    const draggedDistance = currentTranslate - prevTranslate;
+                    if (Math.abs(draggedDistance) > threshold) {
+                        cycleCards(draggedDistance < 0 ? 'next' : 'prev');
+                    } else {
+                        categoriesContainer.style.transform = `translate3d(${prevTranslate}px, 0, 0)`;
+                        isTransitioning = false;
+                    }
+                    prevTranslate = currentTranslate;
+                    startAutoSlide();
+                }
+
+                categoriesContainer.addEventListener('mousedown', startDrag);
+                categoriesContainer.addEventListener('mousemove', moveDrag);
+                categoriesContainer.addEventListener('mouseup', endDrag);
+                categoriesContainer.addEventListener('mouseleave', endDrag);
+                categoriesContainer.addEventListener('touchstart', startDrag);
+                categoriesContainer.addEventListener('touchmove', moveDrag);
+                categoriesContainer.addEventListener('touchend', endDrag);
+                categoriesContainer.addEventListener('selectstart', (e) => e.preventDefault());
+            }
+
+            window.addEventListener('resize', () => {
+                if (!categories.length) return;
+                initializeCategories();
+            });
+        });
 </script>
