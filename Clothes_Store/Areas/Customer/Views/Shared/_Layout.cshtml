@@ -431,11 +431,9 @@
                         }
                         else
                         {
-                            <a asp-controller="Account" asp-action="Login" class="tw-login-btn text-white px-4 py-2 rounded-full text-sm font-medium">Login</a>
-                            <button id="mobile-menu-btn" class="p-2 rounded-md focus:outline-none">
-                                <img src="https://api.dicebear.com/7.x/initials/svg?seed=Guest&backgroundColor=088170&textColor=ffffff"
-                                     class="rounded-full w-9 h-9 transition-transform duration-300 hover:rotate-[15deg]" alt="Guest">
-                            </button>
+                            <button id="mobile-menu-btn" class="p-2 rounded-md focus:outline-none"> 
+                                <i class="fas fa-bars text-[#088170] text-3xl transition-transform duration-300 hover:rotate-[15deg]"></i>
+                                </button>
                         }
                     </div>
 
@@ -556,6 +554,11 @@
                         <a asp-controller="Account" asp-action="Login" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base">
                             <i class="fas fa-sign-in-alt mr-3 text-[#088170]"></i>
                             Login
+                        </a>
+                        <a asp-controller="Account" asp-action="Register"
+                           class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base">
+                            <i class="fas fa-user-plus mr-3 text-[#088170]"></i>
+                            Register
                         </a>
                     }
                 </div>
