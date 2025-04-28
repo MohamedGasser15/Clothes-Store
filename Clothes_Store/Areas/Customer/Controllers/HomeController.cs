@@ -121,23 +121,61 @@ namespace Clothes_Store.Controllers
                 return NotFound();
             }
 
-            var childCategory = _db.Categories
-                .FirstOrDefault(c => c.Category_Name.ToLower() == category.ToLower() && c.ParentCategoryId != null);
+            // Normalize category name
+            var categoryName = category.ToLower();
 
-            if (childCategory == null)
+            // If the category is "shorts" or "hoodie", fetch all child categories under Men's, Women's, and Unisex
+            if (categoryName == "shorts" || categoryName == "hoodie")
             {
-                return NotFound();
+                // Get parent category IDs for Men's Fashion, Women's Fashion, and Unisex
+                var parentCategoryIds = _db.Categories
+                    .Where(c => c.Category_Name == "Men's Fashion" || c.Category_Name == "Women's Fashion" || c.Category_Name == "Unisex")
+                    .Select(c => c.Category_Id)
+                    .ToList();
+
+                // Get all child categories with the specified name under these parent categories
+                var childCategoryIds = _db.Categories
+                    .Where(c => c.Category_Name.ToLower() == categoryName && c.ParentCategoryId.HasValue && parentCategoryIds.Contains(c.ParentCategoryId.Value))
+                    .Select(c => c.Category_Id)
+                    .ToList();
+
+                if (!childCategoryIds.Any())
+                {
+                    return NotFound();
+                }
+
+                // Fetch products from all matching child categories
+                var products = _db.Products
+                    .Include(p => p.Brand)
+                    .Include(p => p.Category)
+                    .Include(p => p.Stocks)
+                    .Where(p => childCategoryIds.Contains(p.Category_Id))
+                    .ToList();
+
+                ViewBag.Category = categoryName == "shorts" ? "Shorts" : "Hoodie";
+                return View("ShopByCategory", products ?? new List<Product>());
             }
+            else
+            {
+                // Handle other child categories
+                var childCategory = _db.Categories
+                    .FirstOrDefault(c => c.Category_Name.ToLower() == categoryName && c.ParentCategoryId != null);
 
-            var products = _db.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .Include(p => p.Stocks)
-                .Where(p => p.Category_Id == childCategory.Category_Id)
-                .ToList();
+                if (childCategory == null)
+                {
+                    return NotFound();
+                }
 
-            ViewBag.Category = childCategory.Category_Name;
-            return View("ShopByCategory", products ?? new List<Product>());
+                var products = _db.Products
+                    .Include(p => p.Brand)
+                    .Include(p => p.Category)
+                    .Include(p => p.Stocks)
+                    .Where(p => p.Category_Id == childCategory.Category_Id)
+                    .ToList();
+
+                ViewBag.Category = childCategory.Category_Name;
+                return View("ShopByCategory", products ?? new List<Product>());
+            }
         }
 
         public IActionResult ShopByBrand(string brand)
@@ -190,9 +228,62 @@ namespace Clothes_Store.Controllers
             return View("ShopByBrand", products ?? new List<Product>());
         }
 
-        public IActionResult Home()
+        public async Task<IActionResult> Home(int? categoryId = null)
         {
-            var products = _db.Products
+            // Product query with category filter
+            var productsQuery = _db.Products
+                                  .Include(p => p.Brand)
+                                  .Include(p => p.Category)
+                                  .OrderBy(p => p.Product_Id);
+
+            // Filter by category ID if specified
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                var subCategoryIds = await _db.Categories
+                                            .Where(c => c.ParentCategoryId == categoryId.Value)
+                                            .Select(c => c.Category_Id)
+                                            .ToListAsync();
+
+                if (subCategoryIds.Any())
+                {
+                    productsQuery = (IOrderedQueryable<Product>)productsQuery
+                        .Where(p => subCategoryIds.Contains(p.Category_Id));
+                }
+                else
+                {
+                    productsQuery = (IOrderedQueryable<Product>)productsQuery
+                        .Where(p => p.Category_Id == categoryId.Value);
+                }
+            }
+            else
+            {
+                // If no category is selected, show featured products
+                productsQuery = (IOrderedQueryable<Product>)productsQuery
+                    .Where(p => p.IsFeatured);
+            }
+
+            var products = await productsQuery
+                .Take(8) // Limit to 8 products
+                .Select(p => new HomeViewModel
+                {
+                    Product_Id = p.Product_Id,
+                    Product_Name = p.Product_Name,
+                    imgUrl = p.imgUrl,
+                    BrandName = p.Brand != null ? p.Brand.Brand_Name : "Unknown",
+                    IsFeatured = p.IsFeatured,
+                    DateAdded = p.DateAdded,
+                    Product_Rating = p.Product_Rating,
+                    Product_Price = p.Product_Price,
+                    AvailableSizes = p.Stocks
+                        .Where(s => s.Quantity > 0)
+                        .Select(s => s.Size)
+                        .Distinct()
+                        .OrderBy(s => s)
+                        .ToList()
+                })
+                .ToListAsync();
+
+            var newArrivals = await _db.Products
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .OrderByDescending(p => p.Product_Id)
@@ -204,6 +295,7 @@ namespace Clothes_Store.Controllers
                     imgUrl = p.imgUrl,
                     BrandName = p.Brand != null ? p.Brand.Brand_Name : "Unknown",
                     IsFeatured = p.IsFeatured,
+                    DateAdded = p.DateAdded,
                     Product_Rating = p.Product_Rating,
                     Product_Price = p.Product_Price,
                     AvailableSizes = p.Stocks
@@ -213,21 +305,14 @@ namespace Clothes_Store.Controllers
                         .OrderBy(s => s)
                         .ToList()
                 })
-                .ToList();
+                .ToListAsync();
 
             var specificCategories = new[]
             {
-        "Bags",
-        "Jackets",
-        "Hats",
-        "Shoes",
-        "Pantalons",
-        "Dresses",
-        "Shorts",
-        "T-Shirts"
+        "Bags", "Jackets", "Hats", "Shoes", "Pantalons", "Dresses", "Shorts", "Hoodie" // Added Hoodie as 8th category
     };
 
-            var categories = _db.Categories
+            var categories = await _db.Categories
                 .Where(c => specificCategories.Contains(c.Category_Name) && c.ParentCategoryId != null)
                 .Select(c => new
                 {
@@ -235,18 +320,11 @@ namespace Clothes_Store.Controllers
                     ImgUrl = $"/img/categories/{c.Category_Name.ToLower()}.jpg",
                     Link = Url.Action("ShopByChildCategory", "Home", new { area = "Customer", category = c.Category_Name.ToLower() })
                 })
-                .ToList();
+                .ToListAsync();
 
             var specificBrands = new[]
             {
-        "Nike",
-        "Adidas",
-        "Zara",
-        "H&M",
-        "Puma",
-        "Levi's",
-        "Lacoste",
-        "Local Brands"
+        "Nike", "Adidas", "Zara", "H&M", "Puma", "Levi's", "Lacoste", "Local Brands"
     };
 
             var brands = specificBrands
@@ -258,20 +336,26 @@ namespace Clothes_Store.Controllers
                 })
                 .ToList();
 
-            // Debug: Log brands and JSON
-            Console.WriteLine($"Brands Count: {brands.Count}");
-            Console.WriteLine($"Brands: {string.Join(", ", brands.Select(b => b.Name))}");
-            Console.WriteLine($"Brands JSON: {Newtonsoft.Json.JsonConvert.SerializeObject(brands)}");
-
+            ViewBag.CurrentCategoryId = categoryId;
             ViewBag.Categories = categories;
             ViewBag.Brands = brands;
 
-            if (!products.Any())
+            var viewModel = new HomeViewModel
             {
-                return View(new List<HomeViewModel>());
+                FeaturedProducts = products, // Limited to 8 filtered or featured products
+                NewArrivals = newArrivals
+            };
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new
+                {
+                    products,
+                    currentCategoryId = categoryId
+                });
             }
 
-            return View(products);
+            return View(viewModel);
         }
 
         public async Task<IActionResult> Shop(int? categoryId = null, int page = 1, int pageSize = 8)

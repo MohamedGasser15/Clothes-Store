@@ -1,15 +1,114 @@
 ﻿@using Clothes_Models.ViewModels
-@model IEnumerable<HomeViewModel>
+@model HomeViewModel
 
 @{
     ViewData["Title"] = "Home Page";
     var showSuccessMessage = TempData["AddToCartSuccess"] != null && (bool)TempData["AddToCartSuccess"];
     var showErrorMessage = TempData["AddToCartError"] != null && (bool)TempData["AddToCartError"];
     var errorMessage = TempData["ErrorMessage"]?.ToString() ?? "An error occurred while adding to cart";
-    var featuredProducts = Model.Where(p => p.IsFeatured).ToList();
+    var currentCategory = ViewBag.CurrentCategory?.ToString() ?? string.Empty;
+    var currentCategoryId = ViewBag.CurrentCategoryId?.ToString() ?? string.Empty;
 }
 <link rel="stylesheet" href="~/css/style.css">
 <style>
+    /* Category Filter */
+    .filter-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-options {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .filter-btn {
+        padding: 0.5rem 1rem;
+        border: 1px solid #eeeeee;
+        border-radius: 0.25rem;
+        background-color: #eeeeee;
+        color: #454545;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+        .filter-btn:hover {
+            background-color: #fde1bd;
+            border-color: #fde1bd;
+            transform: translateY(-4px);
+            color: #088178;
+        }
+
+        .filter-btn.active {
+            background-color: #fde1bd;
+            border-color: #fde1bd;
+            color: #088178;
+            font-weight: 600;
+            transform: translateY(-2px);
+        }
+    @@media (min-width: 1024px) {
+        .pro
+
+    {
+        width: 100%;
+        max-width: 160px; /* Adjust as needed to fit 8 items */
+    }
+
+    .pro img {
+        height: 160px; /* Maintain aspect ratio */
+        object-fit: cover;
+    }
+
+    .pro .des {
+        padding: 0.5rem;
+    }
+
+    .pro .product-brand,
+    .pro .product-description,
+    .pro .product-price {
+        font-size: 0.85rem;
+    }
+
+    .pro .star i {
+        font-size: 0.75rem;
+    }
+
+    }
+</style>
+<style>
+    .pro-cart-button {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 50px;
+        background-color: #e8f6ea;
+        font-weight: 500;
+        color: #088178;
+        border: 1px solid #cce7d0;
+        position: absolute;
+        bottom: 20px;
+        right: 10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+        .pro-cart-button:hover {
+            background-color: #cce7d0;
+            color: #066156;
+            transform: scale(1.05);
+        }
     /* Category Slider */
     #categoriesWrapper {
         overflow-x: hidden;
@@ -903,6 +1002,11 @@
         gap: 0.5rem;
     }
 
+    .size-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
     .size-label {
         font-weight: 500;
         color: #333;
@@ -911,7 +1015,9 @@
 
     .size-options {
         display: flex;
+        flex-direction: column;
         gap: 0.5rem;
+        margin-bottom: 1.5rem;
     }
 
     .size-option {
@@ -1073,19 +1179,19 @@
             </div>
         </div>
     </div>
-    <!-- Featured Products Section -->
+    <!-- Explore Products Section -->
     <section id="product1" class="px-8 sm:px-12 lg:px-16 pt-20 pb-4 bg-white max-w-7xl mx-auto">
         <div class="max-w-7xl mx-auto">
             <div class="flex justify-between items-center mb-4">
                 <div class="text-left">
                     <h2 class="text-3xl font-bold text-gray-800 mb-1">
-                        Featured <span class="text-[#088178]">Products</span>
+                        Explore <span class="text-[#088178]">Products</span>
                     </h2>
                     <p class="text-lg text-gray-600 max-w-2xl">
-                        Discover our handpicked selection of <span class="text-[#088178]">premium fashion</span> items
+                        Browse our curated collection of <span class="text-[#088178]">premium fashion</span> items
                     </p>
                 </div>
-                @if (featuredProducts.Any())
+                @if (Model.FeaturedProducts.Any())
                 {
                     <a href="@Url.Action("Shop", "Home", new { area = "Customer" })"
                        class="group text-[#088178] text-sm sm:text-base font-medium transition-all duration-300 hover:text-[#065f5b] hover:underline flex items-center">
@@ -1094,10 +1200,40 @@
                     </a>
                 }
             </div>
-            <div id="productContainer" class="pro-container mb-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                @if (featuredProducts.Any())
+            <div class="filter-container">
+                <div class="filter-options">
+                    <button class="filter-btn @(string.IsNullOrEmpty(currentCategoryId) ? "active" : "")"
+                            data-category-id=""
+                            data-category="">
+                        All Products
+                    </button>
+                    <button class="filter-btn @(currentCategoryId == "17" ? "active" : "")"
+                            data-category-id="17"
+                            data-category="Men's Fashion">
+                        Men's Fashion
+                    </button>
+                    <button class="filter-btn @(currentCategoryId == "18" ? "active" : "")"
+                            data-category-id="18"
+                            data-category="Women's Fashion">
+                        Women's Fashion
+                    </button>
+                    <button class="filter-btn @(currentCategoryId == "19" ? "active" : "")"
+                            data-category-id="19"
+                            data-category="Kids Fashion">
+                        Kids Fashion
+                    </button>
+                    <button class="filter-btn @(currentCategoryId == "55" ? "active" : "")"
+                            data-category-id="55"
+                            data-category="Unisex">
+                        Unisex
+                    </button>
+                </div>
+            </div>
+
+            <div id="productContainer" class="pro-container mb-12 grid grid-cols-1 sm:grid-cols-4 lg:grid-cols-8 gap-6">
+                @if (Model.FeaturedProducts.Any())
                 {
-                    @foreach (var product in featuredProducts)
+                    @foreach (var product in Model.FeaturedProducts)
                     {
                         <div class="pro group cursor-pointer relative">
                             <div class="relative overflow-hidden rounded-2xl">
@@ -1130,7 +1266,7 @@
                                 <h4 class="product-price">$@product.Product_Price</h4>
                             </div>
                             <div class="pro-cart-button absolute bottom-4 right-4" onclick="event.stopPropagation(); showSizeModal(@product.Product_Id)">
-                                <i class="fas fa-shopping-cart"></i>
+                                <i class="fas fa-shopping-cart text-[#088178]"></i>
                             </div>
                             <form class="add-to-cart-form" data-product-id="@product.Product_Id" style="display: none;">
                                 @Html.AntiForgeryToken()
@@ -1148,10 +1284,9 @@
                             <div class="mb-6">
                                 <i class="fas fa-star text-gray-300 text-5xl animate-pulse"></i>
                             </div>
-                            <h3 class="text-2xl font-semibold text-gray-800 mb-3">No Featured Products Right Now</h3>
+                            <h3 class="text-2xl font-semibold text-gray-800 mb-3">No Products Found</h3>
                             <p class="text-gray-600 mb-6 leading-relaxed">
-                                We're currently refreshing our featured collection with exciting new arrivals.
-                                Check back soon to discover our premium selections!
+                                No products match your selection. Explore our full collection to find your style!
                             </p>
                             <div class="mt-6">
                                 <a href="@Url.Action("Shop", "Home", new { area = "Customer" })"
@@ -1292,7 +1427,7 @@
                 <h2 class="text-3xl md:text-4xl font-bold text-[#088178]">
                     New <span class="text-[#088178]">Arrivals</span>
                 </h2>
-                <div class="flex space-x-4">
+                <div class="flex space-x-4 navigation-buttons">
                     <button id="prevProduct" class="w-10 h-10 flex items-center justify-center rounded-full bg-[#088178] hover:bg-[#066156] text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Previous Product">
                         <i class="fas fa-chevron-left"></i>
                     </button>
@@ -1303,7 +1438,7 @@
             </div>
             <div class="relative overflow-hidden">
                 <div id="productsWrapper" class="w-full overflow-hidden mx-auto">
-                    <div id="productsContainer" class="flex items-start flex-nowrap gap-6" data-products='@Html.Raw(Json.Serialize(Model))'></div>
+                    <div id="productsContainer" class="flex items-start flex-nowrap gap-6" data-products='@Html.Raw(Json.Serialize(Model.NewArrivals))'></div>
                 </div>
             </div>
         </div>
@@ -1691,7 +1826,7 @@
                 });
         }
 
-        function updateSizeOptions(availableSizes) {
+     function updateSizeOptions(availableSizes) {
             const sizeOptionsContainer = document.getElementById('sizeOptionsContainer');
             sizeOptionsContainer.innerHTML = '';
 
@@ -1701,8 +1836,10 @@
             }
 
             const allSizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
-            allSizes.forEach(size => {
-                const isAvailable = availableSizes.includes(size);
+            const topRow = allSizes.slice(0, 3);
+            const bottomRow = allSizes.slice(3, 6);
+
+            const createSizeOption = (size, isAvailable) => {
                 const sizeOption = document.createElement('div');
                 sizeOption.className = `size-option ${isAvailable ? '' : 'disabled'}`;
                 sizeOption.textContent = size;
@@ -1720,8 +1857,25 @@
                     });
                 }
 
-                sizeOptionsContainer.appendChild(sizeOption);
+                return sizeOption;
+            };
+
+            const topRowDiv = document.createElement('div');
+            topRowDiv.className = 'size-row';
+            topRow.forEach(size => {
+                const isAvailable = availableSizes.includes(size);
+                topRowDiv.appendChild(createSizeOption(size, isAvailable));
             });
+
+            const bottomRowDiv = document.createElement('div');
+            bottomRowDiv.className = 'size-row';
+            bottomRow.forEach(size => {
+                const isAvailable = availableSizes.includes(size);
+                bottomRowDiv.appendChild(createSizeOption(size, isAvailable));
+            });
+
+            sizeOptionsContainer.appendChild(topRowDiv);
+            sizeOptionsContainer.appendChild(bottomRowDiv);
         }
 
         function hideSizeModal() {
@@ -1924,7 +2078,129 @@
                 console.error('Error adding to cart:', error);
             });
         }
+        // filter function
+    // Filter function
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.filter-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const categoryId = this.dataset.categoryId || '';
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                loadProducts(categoryId);
+            });
+        });
 
+        function loadProducts(categoryId) {
+            fetch(`/Customer/Home?categoryId=${categoryId}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                updateProductContainer(data.products);
+            })
+            .catch(error => {
+                console.error('Error fetching products:', error);
+                showNotification(false, 'Failed to load products');
+            });
+        }
+
+        function updateProductContainer(products) {
+            const productContainer = document.getElementById('productContainer');
+            productContainer.innerHTML = '';
+
+            if (products && products.length > 0) {
+                products.forEach(product => {
+                    const productId = product.product_Id || 0;
+                    const productName = product.product_Name || 'Unnamed Product';
+                    const brandName = product.brandName || 'Unknown';
+                    const price = product.product_Price ? Number(product.product_Price).toFixed(2) : '0.00';
+                    const rating = product.product_Rating || 0;
+                    const imgUrl = product.imgUrl || '/img/placeholder.jpg';
+                    const isFeatured = product.isFeatured || false;
+
+                    const productHtml = `
+                        <div class="pro group cursor-pointer relative">
+                            <div class="relative overflow-hidden rounded-2xl">
+                                <img src="${imgUrl}" alt="${productName}" class="product-img w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
+                                ${isFeatured ? `
+                                    <span class="absolute top-2 left-2 bg-[#088178] text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                                        FEATURED
+                                    </span>
+                                ` : ''}
+                                <div class="icon-overlay">
+                                    <button onclick="event.stopPropagation(); showQuickViewModal(${productId});">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="des p-4">
+                                <span class="product-brand">${brandName}</span>
+                                <h5 class="product-description">${productName}</h5>
+                                <div class="star">
+                                    ${Array(rating).fill('<i class="fas fa-star"></i>').join('')}
+                                    ${Array(5 - rating).fill('<i class="far fa-star"></i>').join('')}
+                                </div>
+                                <h4 class="product-price">$${price}</h4>
+                            </div>
+                            <div class="pro-cart-button absolute bottom-4 right-4" onclick="event.stopPropagation(); showSizeModal(${productId})">
+                                <i class="fas fa-shopping-cart text-[#088178]"></i>
+                            </div>
+                            <form class="add-to-cart-form" data-product-id="${productId}" style="display: none;">
+                                <input type="hidden" name="__RequestVerificationToken" value="${document.querySelector('input[name="__RequestVerificationToken"]').value || ''}" />
+                                <input type="hidden" name="productId" value="${productId}" />
+                                <input type="hidden" name="quantity" id="quantity-${productId}" value="1" />
+                                <input type="hidden" name="size" id="size-${productId}" value="" />
+                            </form>
+                        </div>
+                    `;
+                    productContainer.insertAdjacentHTML('beforeend', productHtml);
+                });
+            } else {
+                productContainer.innerHTML = `
+                    <div class="w-full flex flex-col items-center justify-center py-12 px-4">
+                        <div class="text-center max-w-md mx-auto">
+                            <div class="mb-6">
+                                <i class="fas fa-star text-gray-300 text-5xl animate-pulse"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold text-gray-800 mb-3">No Products Found</h3>
+                            <p class="text-gray-600 mb-6 leading-relaxed">
+                                No products match your selection. Explore our full collection to find your style!
+                            </p>
+                            <div class="mt-6">
+                                <a href="/Customer/Home/Shop"
+                                   class="inline-flex items-center px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all duration-300 transform hover:scale-105 shadow-md">
+                                    <i class="fas fa-store mr-3"></i>
+                                    <span class="font-medium">Explore All Products</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Re-attach cart button event listeners
+            document.querySelectorAll('.pro-cart-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const productId = this.getAttribute('onclick').match(/\d+/)[0];
+                    showSizeModal(productId);
+                });
+            });
+
+            // Re-attach product click event listeners
+            document.querySelectorAll('.pro').forEach(pro => {
+                pro.addEventListener('click', (e) => {
+                    if (!e.target.closest('.pro-cart-button') && !e.target.closest('.icon-overlay')) {
+                        const productId = pro.querySelector('.add-to-cart-form').dataset.productId;
+                        window.location.href = `/Customer/Home/Details/${productId}`;
+                    }
+                });
+            });
+        }
+    });
         // New Arrivals Slider
         document.addEventListener('DOMContentLoaded', function() {
             const productsContainer = document.getElementById('productsContainer');
@@ -2401,216 +2677,239 @@
             });
         });
 // Popular Categories Slider
-        document.addEventListener('DOMContentLoaded', function () {
-            const categoriesContainer = document.getElementById('categoriesContainer');
-            const prevButton = document.getElementById('prevCategory');
-            const nextButton = document.getElementById('nextCategory');
-            let categories;
+document.addEventListener('DOMContentLoaded', function () {
+    const categoriesContainer = document.getElementById('categoriesContainer');
+    const prevButton = document.getElementById('prevCategory');
+    const nextButton = document.getElementById('nextCategory');
+    let categories;
 
-            console.log('Raw data-categories:', categoriesContainer.dataset.categories);
-            try {
-                categories = JSON.parse(categoriesContainer.dataset.categories || '[]');
-                console.log('Unique categories:', [...new Set(categories.map(c => c.Name))]);
-            } catch (e) {
-                console.error('JSON Parse Error:', e, 'Raw Data:', categoriesContainer.dataset.categories);
-                categories = [];
-            }
+    console.log('Raw data-categories:', categoriesContainer.dataset.categories);
+    try {
+        categories = JSON.parse(categoriesContainer.dataset.categories || '[]');
+        console.log('Parsed categories:', categories);
+        console.log('Unique categories:', [...new Set(categories.map(c => c.Name))]);
+    } catch (e) {
+        console.error('JSON Parse Error:', e, 'Raw Data:', categoriesContainer.dataset.categories);
+        categories = [
+            { Name: "Bags", ImgUrl: "/img/categories/bags.jpg", Link: "/Customer/Home/ShopByChildCategory?category=bags" },
+            { Name: "Jackets", ImgUrl: "/img/categories/jackets.jpg", Link: "/Customer/Home/ShopByChildCategory?category=jackets" },
+            { Name: "Hats", ImgUrl: "/img/categories/hats.jpg", Link: "/Customer/Home/ShopByChildCategory?category=hats" },
+            { Name: "Shoes", ImgUrl: "/img/categories/shoes.jpg", Link: "/Customer/Home/ShopByChildCategory?category=shoes" },
+            { Name: "Pantalons", ImgUrl: "/img/categories/pantalons.jpg", Link: "/Customer/Home/ShopByChildCategory?category=pantalons" },
+            { Name: "Dresses", ImgUrl: "/img/categories/dresses.jpg", Link: "/Customer/Home/ShopByChildCategory?category=dresses" },
+            { Name: "Shorts", ImgUrl: "/img/categories/shorts.jpg", Link: "/Customer/Home/ShopByChildCategory?category=shorts" },
+            { Name: "Hoodie", ImgUrl: "/img/categories/hoodie.jpg", Link: "/Customer/Home/ShopByChildCategory?category=hoodie" }
+        ];
+        console.log('Using hardcoded categories:', categories);
+    }
 
-            let currentStartIndex = 0;
-            let interval;
-            let isTransitioning = false;
-            let isDragging = false;
-            let startX = 0;
-            let currentTranslate = 0;
-            let prevTranslate = 0;
+    if (!categories.length) {
+        console.warn('No categories data available.');
+        categoriesContainer.innerHTML = '<p class="text-center text-gray-500">No categories available.</p>';
+        return;
+    }
 
-            function isMobileView() {
-                return window.innerWidth <= 768;
-            }
+    let currentStartIndex = 0;
+    let interval;
+    let isTransitioning = false;
+    let isDragging = false;
+    let startX = 0;
+    let currentTranslate = 0;
+    let prevTranslate = 0;
+    let uniqueCategoriesLength = 0;
 
-            function getCardWidth() {
-                const screenWidth = window.innerWidth;
-                if (screenWidth <= 480) return isMobileView() ? 'calc(50% - 0.5rem)' : Math.min(document.querySelector('#categoriesWrapper').offsetWidth - 16, 300 + 8);
-                if (screenWidth <= 768) return isMobileView() ? 'calc(50% - 0.5rem)' : 140 + 16;
-                if (screenWidth <= 1280) return 180 + 16;
-                return 200 + 16;
-            }
+    function isMobileView() {
+        return window.innerWidth <= 768;
+    }
 
-            function getVisibleCards() {
-                const screenWidth = window.innerWidth;
-                if (screenWidth <= 480) return isMobileView() ? categories.length : 1;
-                if (screenWidth <= 768) return isMobileView() ? categories.length : 3.5;
-                if (screenWidth <= 1280) return 5;
-                return 6;
-            }
+    function getCardWidth() {
+        const screenWidth = window.innerWidth;
+        if (screenWidth <= 480) return isMobileView() ? (categoriesContainer.offsetWidth / 2 - 8) : Math.min(document.querySelector('#categoriesWrapper').offsetWidth - 16, 300 + 8);
+        if (screenWidth <= 768) return isMobileView() ? (categoriesContainer.offsetWidth / 2 - 8) : 140 + 16;
+        if (screenWidth <= 1280) return 180 + 16;
+        return 200 + 16;
+    }
 
-            function createCategoryCard(category, isMobile = false) {
-                const card = document.createElement('div');
-                card.className = 'category-card group cursor-pointer';
-                card.style.willChange = isMobile ? 'auto' : 'transform';
-                card.style.backfaceVisibility = isMobile ? 'visible' : 'hidden';
-                if (!isMobile) {
-                    card.style.width = (getCardWidth() - 16) + 'px';
+    function getVisibleCards() {
+        const screenWidth = window.innerWidth;
+        if (screenWidth <= 480) return isMobileView() ? categories.length : 1;
+        if (screenWidth <= 768) return isMobileView() ? categories.length : 3.5;
+        if (screenWidth <= 1280) return 5;
+        return 6;
+    }
+
+    function createCategoryCard(category, isMobile = false) {
+        console.log('Creating card for category:', category.Name, 'with link:', category.Link);
+        const card = document.createElement('div');
+        card.className = 'category-card group cursor-pointer';
+        card.style.willChange = isMobile ? 'auto' : 'transform';
+        card.style.backfaceVisibility = isMobile ? 'visible' : 'hidden';
+        if (!isMobile) {
+            card.style.width = (getCardWidth() - 16) + 'px';
+            card.style.flexShrink = '0';
+        }
+        card.innerHTML = `
+            <a href="${category.Link || '#'}" class="absolute inset-0 z-10"></a>
+            <div class="relative overflow-hidden rounded-2xl">
+                <img src="${category.ImgUrl || '/img/categories/default.jpg'}" loading="lazy" alt="${category.Name || 'Category'}" class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
+            </div>
+            <h4 class="category-name">${category.Name || 'Unknown Category'}</h4>
+        `;
+        return card;
+    }
+
+    function initializeCategories() {
+        const isMobile = isMobileView();
+        categoriesContainer.innerHTML = '';
+        categoriesContainer.style.transform = 'none';
+        categoriesContainer.style.transition = 'none';
+        clearInterval(interval);
+
+        if (categories.length) {
+            const uniqueCategories = [...new Map(categories.map(c => [c.Name, c])).values()];
+            uniqueCategoriesLength = uniqueCategories.length;
+            if (isMobile) {
+                uniqueCategories.forEach(category => {
+                    const card = createCategoryCard(category, true);
+                    categoriesContainer.appendChild(card);
+                });
+            } else {
+                for (let i = 0; i < uniqueCategories.length * 3; i++) {
+                    const idx = i % uniqueCategories.length;
+                    const card = createCategoryCard(uniqueCategories[idx]);
+                    categoriesContainer.appendChild(card);
                 }
-                card.innerHTML = `
-                    <a href="${category.Link || '#'}" class="absolute inset-0 z-10"></a>
-                    <div class="relative overflow-hidden rounded-2xl">
-                        <img src="${category.ImgUrl || '/img/categories/default.jpg'}" loading="lazy" alt="${category.Name || 'Category'}" class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110">
-                    </div>
-                    <h4 class="category-name">${category.Name || 'Unknown Category'}</h4>
-                `;
-                return card;
-            }
-
-            function initializeCategories() {
-                const isMobile = isMobileView();
-                categoriesContainer.innerHTML = '';
-                categoriesContainer.style.transform = 'none';
-                categoriesContainer.style.transition = 'none';
-                clearInterval(interval);
-
-                if (categories.length) {
-                    const uniqueCategories = [...new Map(categories.map(c => [c.Name, c])).values()];
-                    if (isMobile) {
-                        // Grid layout: show all categories
-                        uniqueCategories.forEach(category => {
-                            const card = createCategoryCard(category, true);
-                            categoriesContainer.appendChild(card);
-                        });
-                    } else {
-                        // Slider layout: triplicate for infinite scroll
-                        for (let i = 0; i < uniqueCategories.length * 3; i++) {
-                            const idx = i % uniqueCategories.length;
-                            const card = createCategoryCard(uniqueCategories[idx]);
-                            categoriesContainer.appendChild(card);
-                        }
-                        const cardWidth = getCardWidth();
-                        currentTranslate = -cardWidth * uniqueCategories.length;
-                        prevTranslate = currentTranslate;
-                        categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
-                        categoriesContainer.style.transition = 'transform 0.8s ease-in-out';
-                        startAutoSlide();
-                    }
-                } else {
-                    categoriesContainer.innerHTML = '<p class="text-center text-gray-500">No categories available.</p>';
-                }
-            }
-
-            function updateSliderPosition(direction = 'next') {
-                if (isTransitioning || !categories.length || isMobileView()) return;
-                isTransitioning = true;
                 const cardWidth = getCardWidth();
-                if (direction === 'next') {
-                    currentStartIndex = (currentStartIndex + 1) % categories.length;
-                    currentTranslate -= cardWidth;
-                } else {
-                    currentStartIndex = (currentStartIndex - 1 + categories.length) % categories.length;
-                    currentTranslate += cardWidth;
-                }
+                currentTranslate = -cardWidth * uniqueCategories.length;
+                prevTranslate = currentTranslate;
+                categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+                categoriesContainer.style.transition = 'transform 0.8s ease-in-out';
+                startAutoSlide();
+            }
+        } else {
+            categoriesContainer.innerHTML = '<p class="text-center text-gray-500">No categories available.</p>';
+        }
+    }
+
+    function updateSliderPosition(direction = 'next') {
+        if (isTransitioning || !uniqueCategoriesLength || isMobileView()) return;
+        isTransitioning = true;
+        const cardWidth = getCardWidth();
+        const totalWidth = cardWidth * uniqueCategoriesLength;
+
+        if (direction === 'next') {
+            currentStartIndex = (currentStartIndex + 1) % uniqueCategoriesLength;
+            currentTranslate -= cardWidth;
+        } else {
+            currentStartIndex = (currentStartIndex - 1 + uniqueCategoriesLength) % uniqueCategoriesLength;
+            currentTranslate += cardWidth;
+        }
+
+        categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+
+        setTimeout(() => {
+            // Reset translation to maintain infinite scroll
+            if (currentTranslate <= -totalWidth * 2 || currentTranslate >= 0) {
+                currentTranslate = -totalWidth;
+                categoriesContainer.style.transition = 'none';
                 categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
                 setTimeout(() => {
-                    const limit = cardWidth * categories.length * 2;
-                    if (Math.abs(currentTranslate) >= limit || currentTranslate >= 0) {
-                        currentTranslate = -cardWidth * categories.length;
-                        categoriesContainer.style.transition = 'none';
-                        categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
-                        setTimeout(() => {
-                            categoriesContainer.style.transition = 'transform 0.8s ease-in-out';
-                        }, 50);
-                    }
-                    isTransitioning = false;
-                }, 800);
+                    categoriesContainer.style.transition = 'transform 0.8s ease-in-out';
+                }, 50);
             }
+            prevTranslate = currentTranslate;
+            isTransitioning = false;
+        }, 800);
+    }
 
-            function cycleCards(direction = 'next') {
-                updateSliderPosition(direction);
-            }
+    function cycleCards(direction = 'next') {
+        updateSliderPosition(direction);
+    }
 
-            function startAutoSlide() {
-                if (categories.length && !isMobileView()) {
-                    clearInterval(interval);
-                    interval = setInterval(() => cycleCards('next'), 3500);
-                }
-            }
+    function startAutoSlide() {
+        if (uniqueCategoriesLength && !isMobileView()) {
+            clearInterval(interval);
+            interval = setInterval(() => cycleCards('next'), 3500);
+        }
+    }
 
-            // Initialize categories based on initial viewport
-            initializeCategories();
+    initializeCategories();
 
-            if (!isMobileView()) {
-                nextButton.addEventListener('click', () => {
-                    if (isTransitioning || !categories.length) return;
-                    clearInterval(interval);
-                    cycleCards('next');
-                    startAutoSlide();
-                });
-
-                prevButton.addEventListener('click', () => {
-                    if (isTransitioning || !categories.length) return;
-                    clearInterval(interval);
-                    cycleCards('prev');
-                    startAutoSlide();
-                });
-
-                categoriesContainer.addEventListener('mouseenter', () => clearInterval(interval));
-                categoriesContainer.addEventListener('mouseleave', () => {
-                    if (!isDragging && categories.length) {
-                        startAutoSlide();
-                    }
-                });
-
-                let animationFrameId;
-                function startDrag(e) {
-                    if (!categories.length || isMobileView()) return;
-                    isDragging = true;
-                    startX = (e.type === 'touchstart' ? e.touches[0].pageX : e.pageX) - currentTranslate;
-                    categoriesContainer.style.cursor = 'grabbing';
-                    clearInterval(interval);
-                    cancelAnimationFrame(animationFrameId);
-                }
-
-                function moveDrag(e) {
-                    if (!isDragging || isMobileView()) return;
-                    e.preventDefault();
-                    cancelAnimationFrame(animationFrameId);
-                    animationFrameId = requestAnimationFrame(() => {
-                        const x = (e.type === 'touchmove' ? e.touches[0].pageX : e.pageX) - startX;
-                        currentTranslate = x;
-                        categoriesContainer.style.transition = 'none';
-                        categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
-                    });
-                }
-
-                function endDrag() {
-                    if (!isDragging || isMobileView()) return;
-                    isDragging = false;
-                    categoriesContainer.style.cursor = 'pointer';
-                    categoriesContainer.style.transition = 'transform 0.5s ease-in-out';
-                    const cardWidth = getCardWidth();
-                    const threshold = cardWidth / 2;
-                    const draggedDistance = currentTranslate - prevTranslate;
-                    if (Math.abs(draggedDistance) > threshold) {
-                        cycleCards(draggedDistance < 0 ? 'next' : 'prev');
-                    } else {
-                        categoriesContainer.style.transform = `translate3d(${prevTranslate}px, 0, 0)`;
-                        isTransitioning = false;
-                    }
-                    prevTranslate = currentTranslate;
-                    startAutoSlide();
-                }
-
-                categoriesContainer.addEventListener('mousedown', startDrag);
-                categoriesContainer.addEventListener('mousemove', moveDrag);
-                categoriesContainer.addEventListener('mouseup', endDrag);
-                categoriesContainer.addEventListener('mouseleave', endDrag);
-                categoriesContainer.addEventListener('touchstart', startDrag);
-                categoriesContainer.addEventListener('touchmove', moveDrag);
-                categoriesContainer.addEventListener('touchend', endDrag);
-                categoriesContainer.addEventListener('selectstart', (e) => e.preventDefault());
-            }
-
-            window.addEventListener('resize', () => {
-                if (!categories.length) return;
-                initializeCategories();
-            });
+    if (!isMobileView()) {
+        nextButton.addEventListener('click', () => {
+            if (isTransitioning || !uniqueCategoriesLength) return;
+            clearInterval(interval);
+            cycleCards('next');
+            startAutoSlide();
         });
+
+        prevButton.addEventListener('click', () => {
+            if (isTransitioning || !uniqueCategoriesLength) return;
+            clearInterval(interval);
+            cycleCards('prev');
+            startAutoSlide();
+        });
+
+        categoriesContainer.addEventListener('mouseenter', () => clearInterval(interval));
+        categoriesContainer.addEventListener('mouseleave', () => {
+            if (!isDragging && uniqueCategoriesLength) {
+                startAutoSlide();
+            }
+        });
+
+        let animationFrameId;
+        function startDrag(e) {
+            if (!uniqueCategoriesLength || isMobileView()) return;
+            isDragging = true;
+            startX = (e.type === 'touchstart' ? e.touches[0].pageX : e.pageX) - currentTranslate;
+            categoriesContainer.style.cursor = 'grabbing';
+            clearInterval(interval);
+            cancelAnimationFrame(animationFrameId);
+        }
+
+        function moveDrag(e) {
+            if (!isDragging || isMobileView()) return;
+            e.preventDefault();
+            cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(() => {
+                const x = (e.type === 'touchmove' ? e.touches[0].pageX : e.pageX) - startX;
+                currentTranslate = x;
+                categoriesContainer.style.transition = 'none';
+                categoriesContainer.style.transform = `translate3d(${currentTranslate}px, 0, 0)`;
+            });
+        }
+
+        function endDrag() {
+            if (!isDragging || isMobileView()) return;
+            isDragging = false;
+            categoriesContainer.style.cursor = 'pointer';
+            categoriesContainer.style.transition = 'transform 0.5s ease-in-out';
+            const cardWidth = getCardWidth();
+            const threshold = cardWidth / 2;
+            const draggedDistance = currentTranslate - prevTranslate;
+            if (Math.abs(draggedDistance) > threshold) {
+                cycleCards(draggedDistance < 0 ? 'next' : 'prev');
+            } else {
+                categoriesContainer.style.transform = `translate3d(${prevTranslate}px, 0, 0)`;
+                isTransitioning = false;
+            }
+            prevTranslate = currentTranslate;
+            startAutoSlide();
+        }
+
+        categoriesContainer.addEventListener('mousedown', startDrag);
+        categoriesContainer.addEventListener('mousemove', moveDrag);
+        categoriesContainer.addEventListener('mouseup', endDrag);
+        categoriesContainer.addEventListener('mouseleave', endDrag);
+        categoriesContainer.addEventListener('touchstart', startDrag);
+        categoriesContainer.addEventListener('touchmove', moveDrag);
+        categoriesContainer.addEventListener('touchend', endDrag);
+        categoriesContainer.addEventListener('selectstart', (e) => e.preventDefault());
+    }
+
+    window.addEventListener('resize', () => {
+        if (!categories.length) return;
+        initializeCategories();
+    });
+});
 </script>

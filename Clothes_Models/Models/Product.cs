@@ -31,6 +31,25 @@ namespace Clothes_Models.Models
 
         public bool IsFeatured { get; set; }
 
+        [Display(Name = "Date Added")]
+        public DateTime DateAdded { get; set; } = DateTime.Now;
+
+        [Display(Name = "New Arrival Duration (Days)")]
+        public int? NewArrivalDurationDays { get; set; }
+
+        [NotMapped]
+        public bool IsNewArrival
+        {
+            get
+            {
+                if (NewArrivalDurationDays.HasValue)
+                {
+                    return DateAdded.AddDays(NewArrivalDurationDays.Value) >= DateTime.Now;
+                }
+                return DateAdded.AddDays(30) >= DateTime.Now;
+            }
+        }
+
         [ForeignKey("Category")]
         [Required(ErrorMessage = "Category is required")]
         public int Category_Id { get; set; }

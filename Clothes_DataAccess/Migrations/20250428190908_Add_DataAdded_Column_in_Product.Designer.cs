@@ -4,6 +4,7 @@ using Clothes_DataAccess.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Clothes_DataAccess.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250428190908_Add_DataAdded_Column_in_Product")]
+    partial class Add_DataAdded_Column_in_Product
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -366,7 +369,7 @@ namespace Clothes_DataAccess.Migrations
                         {
                             Product_Id = 1,
                             Category_Id = 1,
-                            DateAdded = new DateTime(2025, 4, 28, 22, 41, 24, 761, DateTimeKind.Local).AddTicks(8428),
+                            DateAdded = new DateTime(2025, 4, 28, 22, 9, 8, 320, DateTimeKind.Local).AddTicks(8998),
                             IsFeatured = false,
                             Product_Color = "Black",
                             Product_Description = "Black T-Shirt Nike",
@@ -380,7 +383,7 @@ namespace Clothes_DataAccess.Migrations
                         {
                             Product_Id = 2,
                             Category_Id = 2,
-                            DateAdded = new DateTime(2025, 4, 28, 22, 41, 24, 761, DateTimeKind.Local).AddTicks(8497),
+                            DateAdded = new DateTime(2025, 4, 28, 22, 9, 8, 320, DateTimeKind.Local).AddTicks(9064),
                             IsFeatured = false,
                             Product_Color = "Red",
                             Product_Description = "Red Pantalon Adidas",
@@ -394,7 +397,7 @@ namespace Clothes_DataAccess.Migrations
                         {
                             Product_Id = 3,
                             Category_Id = 3,
-                            DateAdded = new DateTime(2025, 4, 28, 22, 41, 24, 761, DateTimeKind.Local).AddTicks(8499),
+                            DateAdded = new DateTime(2025, 4, 28, 22, 9, 8, 320, DateTimeKind.Local).AddTicks(9067),
                             IsFeatured = false,
                             Product_Color = "Yellow",
                             Product_Description = "Yellow Shorts Puma",

@@ -32,6 +32,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 .Include(p => p.Stocks)
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
+                .OrderByDescending(p => p.Product_Id)
                 .ToListAsync();
             return View(objList);
         }
@@ -158,8 +159,9 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
                 if (obj.Product.Product_Id == 0) // Create
                 {
-                    await _unitOfWork.Products.Add(obj.Product);
-                    await _unitOfWork.SaveAsync(); // Save product to get Product_Id
+                obj.Product.DateAdded = DateTime.Now; // Set DateAdded to current date
+                await _unitOfWork.Products.Add(obj.Product);
+                await _unitOfWork.SaveAsync(); // Save product to get Product_Id
 
                     // Add stock entries
                     if (obj.Stocks != null && obj.Stocks.Any())
@@ -170,7 +172,8 @@ namespace Clothes_Store.Areas.Admin.Controllers
                             _db.Stocks.Add(stock);
                         }
                     }
-                    TempData["Success"] = "Product Added successfully";
+
+                TempData["Success"] = "Product Added successfully";
                 }
                 else // Update
                 {
@@ -193,10 +196,24 @@ namespace Clothes_Store.Areas.Admin.Controllers
                     }
                     TempData["Success"] = $"('{obj.Product.Product_Name}') updated successfully";
                 }
+            await _unitOfWork.SaveAsync();
 
-                await _unitOfWork.SaveAsync();
-                return RedirectToAction(nameof(Index));
+            var legacyProducts = _db.Products
+                  .Where(p => p.DateAdded == DateTime.MinValue) // Target only bad dates
+                  .ToList();
+            if (legacyProducts.Any())
+            {
+                var referenceDate = DateTime.Now.AddDays(-60); // 60 days old
+                foreach (var product in legacyProducts)
+                {
+                    product.DateAdded = referenceDate;
+                }
+                await _db.SaveChangesAsync(); // Save changes to DB
+            }
+
+            return RedirectToAction(nameof(Index));
         }
+
 
         public async Task<IActionResult> Delete(int id)
         {
