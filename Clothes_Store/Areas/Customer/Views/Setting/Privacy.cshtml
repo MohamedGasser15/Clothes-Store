@@ -1,221 +1,223 @@
 ﻿@{
     Layout = "~/Areas/Customer/Views/Shared/_SettingLayout.cshtml";
 }
-<div class="mb-6 lg:mb-8">
-    <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Privacy Settings</h2>
-    <p class="text-gray-500 text-sm lg:text-base">Manage your shopping privacy preferences</p>
-</div>
+<div class="relative h-full">
+    <!-- Coming Soon Overlay -->
+    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex items-center justify-center">
+        <div class="text-center">
+            <h2 class="text-4xl lg:text-6xl font-bold text-gray-500 mb-4 animate-pulse">
+                Coming Soon
+            </h2>
+            <p class="text-lg lg:text-xl text-gray-400 font-medium">
+                This section is under construction!
+            </p>
+        </div>
+    </div>
+    <div class="mb-6 lg:mb-8">
+        <h2 class="text-xl lg:text-2xl font-bold text-gray-800">Privacy Settings</h2>
+        <p class="text-gray-500 text-sm lg:text-base">Manage your shopping privacy preferences</p>
+    </div>
 
-<div class="space-y-4 lg:space-y-8">
-    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
-            <i class="fas fa-shopping-bag text-[#088178] mr-2"></i>
-            Purchase History
-        </h3>
+    <div class="space-y-4 lg:space-y-8">
+        <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+                <i class="fas fa-shopping-bag text-[#088178] mr-2"></i>
+                Purchase History
+            </h3>
 
-        <div class="space-y-3 lg:space-y-4">
-            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
-                <div class="flex items-center">
-                    <i class="fas fa-history text-blue-500 mr-2 lg:mr-3"></i>
-                    <div>
-                        <div class="text-sm lg:text-base font-medium">Save Purchase History</div>
-                        <div class="text-xs lg:text-sm text-gray-500">Store your order history for easy returns and reorders</div>
+            <div class="space-y-3 lg:space-y-4">
+                <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <i class="fas fa-history text-blue-500 mr-2 lg:mr-3"></i>
+                        <div>
+                            <div class="text-sm lg:text-base font-medium">Save Purchase History</div>
+                            <div class="text-xs lg:text-sm text-gray-500">Store your order history for easy returns and reorders</div>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox"
+                               id="saveHistoryToggle"
+                               class="sr-only peer"
+                               checked
+                               onchange="updatePrivacySetting('saveHistory', this.checked)">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                            <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="relative">
-                    <input type="checkbox"
-                           id="saveHistoryToggle"
-                           class="sr-only peer"
-                           checked
-                           onchange="updatePrivacySetting('saveHistory', this.checked)">
-                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
-                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
-                <div class="flex items-center">
-                    <i class="fas fa-tshirt text-purple-500 mr-2 lg:mr-3"></i>
-                    <div>
-                        <div class="text-sm lg:text-base font-medium">Personalized Recommendations</div>
-                        <div class="text-xs lg:text-sm text-gray-500">Get product suggestions based on your purchases</div>
+                <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <i class="fas fa-tshirt text-purple-500 mr-2 lg:mr-3"></i>
+                        <div>
+                            <div class="text-sm lg:text-base font-medium">Personalized Recommendations</div>
+                            <div class="text-xs lg:text-sm text-gray-500">Get product suggestions based on your purchases</div>
+                        </div>
                     </div>
-                </div>
-                <div class="relative">
-                    <input type="checkbox"
-                           id="recommendationsToggle"
-                           class="sr-only peer"
-                           checked
-                           onchange="updatePrivacySetting('recommendations', this.checked)">
-                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
-                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    <div class="relative">
+                        <input type="checkbox"
+                               id="recommendationsToggle"
+                               class="sr-only peer"
+                               checked
+                               onchange="updatePrivacySetting('recommendations', this.checked)">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                            <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
-            <i class="fas fa-envelope text-[#088178] mr-2"></i>
-            Marketing Preferences
-        </h3>
+        <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+                <i class="fas fa-envelope text-[#088178] mr-2"></i>
+                Marketing Preferences
+            </h3>
 
-        <div class="space-y-3 lg:space-y-4">
-            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
-                <div class="flex items-center">
-                    <i class="fas fa-tag text-red-500 mr-2 lg:mr-3"></i>
-                    <div>
-                        <div class="text-sm lg:text-base font-medium">Email Offers & Promotions</div>
-                        <div class="text-xs lg:text-sm text-gray-500">Receive discounts and sale notifications</div>
+            <div class="space-y-3 lg:space-y-4">
+                <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <i class="fas fa-tag text-red-500 mr-2 lg:mr-3"></i>
+                        <div>
+                            <div class="text-sm lg:text-base font-medium">Email Offers & Promotions</div>
+                            <div class="text-xs lg:text-sm text-gray-500">Receive discounts and sale notifications</div>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox"
+                               id="emailOffersToggle"
+                               class="sr-only peer"
+                               checked
+                               onchange="updatePrivacySetting('emailOffers', this.checked)">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                            <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="relative">
-                    <input type="checkbox"
-                           id="emailOffersToggle"
-                           class="sr-only peer"
-                           checked
-                           onchange="updatePrivacySetting('emailOffers', this.checked)">
-                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
-                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
-                <div class="flex items-center">
-                    <i class="fas fa-sms text-green-500 mr-2 lg:mr-3"></i>
-                    <div>
-                        <div class="text-sm lg:text-base font-medium">SMS Order Alerts</div>
-                        <div class="text-xs lg:text-sm text-gray-500">Get shipping updates via text</div>
+                <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <i class="fas fa-sms text-green-500 mr-2 lg:mr-3"></i>
+                        <div>
+                            <div class="text-sm lg:text-base font-medium">SMS Order Alerts</div>
+                            <div class="text-xs lg:text-sm text-gray-500">Get shipping updates via text</div>
+                        </div>
                     </div>
-                </div>
-                <div class="relative">
-                    <input type="checkbox"
-                           id="smsAlertsToggle"
-                           class="sr-only peer"
-                           onchange="updatePrivacySetting('smsAlerts', this.checked)">
-                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
-                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                    <div class="relative">
+                        <input type="checkbox"
+                               id="smsAlertsToggle"
+                               class="sr-only peer"
+                               onchange="updatePrivacySetting('smsAlerts', this.checked)">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                            <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
-            <i class="fas fa-lock text-[#088178] mr-2"></i>
-            Data & Security
-        </h3>
+        <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+                <i class="fas fa-lock text-[#088178] mr-2"></i>
+                Data & Security
+            </h3>
 
-        <div class="space-y-4">
-            <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
-                <div class="flex items-center">
-                    <i class="fas fa-credit-card text-yellow-500 mr-2 lg:mr-3"></i>
-                    <div>
-                        <div class="text-sm lg:text-base font-medium">Saved Payment Methods</div>
-                        <div class="text-xs lg:text-sm text-gray-500">Store your cards for faster checkout</div>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <i class="fas fa-credit-card text-yellow-500 mr-2 lg:mr-3"></i>
+                        <div>
+                            <div class="text-sm lg:text-base font-medium">Saved Payment Methods</div>
+                            <div class="text-xs lg:text-sm text-gray-500">Store your cards for faster checkout</div>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <input type="checkbox"
+                               id="savedPaymentsToggle"
+                               class="sr-only peer"
+                               checked
+                               onchange="updatePrivacySetting('savedPayments', this.checked)">
+                        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
+                            <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+                        </div>
                     </div>
                 </div>
-                <div class="relative">
-                    <input type="checkbox"
-                           id="savedPaymentsToggle"
-                           class="sr-only peer"
-                           checked
-                           onchange="updatePrivacySetting('savedPayments', this.checked)">
-                    <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-[#088178] transition-colors">
-                        <div class="absolute top-0.5 left-0.5 bg-white w-5 h-5 rounded-full transition-transform peer-checked:translate-x-5"></div>
+
+                <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
+                    <div class="flex items-center">
+                        <i class="fas fa-file-download text-blue-500 mr-2 lg:mr-3"></i>
+                        <div>
+                            <div class="text-sm lg:text-base font-medium">Download Purchase History</div>
+                            <div class="text-xs lg:text-sm text-gray-500">Get a copy of all your orders</div>
+                        </div>
                     </div>
+                    <button class="px-4 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#076b63] text-sm lg:text-base"
+                            onclick="downloadPurchaseHistory()">
+                        Download
+                    </button>
                 </div>
             </div>
+        </div>
+
+        <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
+                <i class="fas fa-user-times text-[#088178] mr-2"></i>
+                Account Management
+            </h3>
 
             <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
                 <div class="flex items-center">
-                    <i class="fas fa-file-download text-blue-500 mr-2 lg:mr-3"></i>
+                    <i class="fas fa-trash-alt text-red-500 mr-2 lg:mr-3"></i>
                     <div>
-                        <div class="text-sm lg:text-base font-medium">Download Purchase History</div>
-                        <div class="text-xs lg:text-sm text-gray-500">Get a copy of all your orders</div>
+                        <div class="text-sm lg:text-base font-medium">Delete Account</div>
+                        <div class="text-xs lg:text-sm text-gray-500">Permanently remove your account and data</div>
                     </div>
                 </div>
-                <button class="px-4 py-2 bg-[#088178] text-white rounded-lg hover:bg-[#076b63] text-sm lg:text-base"
-                        onclick="downloadPurchaseHistory()">
-                    Download
+                <button class="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 text-sm lg:text-base"
+                        onclick="showDeleteAccountModal()">
+                    Delete
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="bg-white p-4 lg:p-6 rounded-xl shadow-sm border border-gray-100">
-        <h3 class="text-lg font-semibold mb-3 lg:mb-4 flex items-center">
-            <i class="fas fa-user-times text-[#088178] mr-2"></i>
-            Account Management
-        </h3>
+    <div id="deleteAccountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-md">
+            <h3 class="text-lg font-semibold mb-4">Delete Your Account</h3>
 
-        <div class="flex items-center justify-between p-3 lg:p-4 border rounded-lg hover:bg-gray-50">
-            <div class="flex items-center">
-                <i class="fas fa-trash-alt text-red-500 mr-2 lg:mr-3"></i>
-                <div>
-                    <div class="text-sm lg:text-base font-medium">Delete Account</div>
-                    <div class="text-xs lg:text-sm text-gray-500">Permanently remove your account and data</div>
+            <div class="space-y-4">
+                <p class="text-gray-600">This will permanently delete:</p>
+                <ul class="list-disc list-inside text-gray-600 text-sm">
+                    <li>Your account information</li>
+                    <li>Saved payment methods</li>
+                    <li>Purchase history</li>
+                    <li>Wishlists and preferences</li>
+                </ul>
+
+                <div class="flex items-center p-3 border border-red-200 bg-red-50 rounded-lg">
+                    <input type="checkbox" id="confirmDelete" class="mr-3">
+                    <label for="confirmDelete" class="text-sm text-red-600">I understand this action cannot be undone</label>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-4">
+                    <button type="button"
+                            class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                            onclick="hideDeleteAccountModal()">
+                        Cancel
+                    </button>
+                    <button type="button"
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                            id="deleteAccountButton"
+                            disabled
+                            onclick="deleteAccount()">
+                        Delete Account
+                    </button>
                 </div>
             </div>
-            <button class="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50 text-sm lg:text-base"
-                    onclick="showDeleteAccountModal()">
-                Delete
-            </button>
         </div>
     </div>
 </div>
 
-<div id="deleteAccountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-xl p-6 w-full max-w-md">
-        <h3 class="text-lg font-semibold mb-4">Delete Your Account</h3>
-
-        <div class="space-y-4">
-            <p class="text-gray-600">This will permanently delete:</p>
-            <ul class="list-disc list-inside text-gray-600 text-sm">
-                <li>Your account information</li>
-                <li>Saved payment methods</li>
-                <li>Purchase history</li>
-                <li>Wishlists and preferences</li>
-            </ul>
-
-            <div class="flex items-center p-3 border border-red-200 bg-red-50 rounded-lg">
-                <input type="checkbox" id="confirmDelete" class="mr-3">
-                <label for="confirmDelete" class="text-sm text-red-600">I understand this action cannot be undone</label>
-            </div>
-
-            <div class="flex justify-end gap-3 mt-4">
-                <button type="button"
-                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                        onclick="hideDeleteAccountModal()">
-                    Cancel
-                </button>
-                <button type="button"
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
-                        id="deleteAccountButton"
-                        disabled
-                        onclick="deleteAccount()">
-                    Delete Account
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="successNotification" class="fixed top-4 right-4 z-50 animate-fade-in hidden">
-    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg flex items-center justify-between">
-        <span class="flex items-center">
-            <i class="fas fa-check-circle mr-2"></i>
-            <span id="successMessageText">Settings updated</span>
-        </span>
-        <button type="button" class="text-green-700 hover:text-green-900" onclick="hideNotification('successNotification')">
-            <i class="fas fa-times"></i>
-        </button>
-    </div>
-</div>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const settings = {
