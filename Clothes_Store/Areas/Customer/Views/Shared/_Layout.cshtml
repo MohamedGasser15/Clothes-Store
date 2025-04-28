@@ -419,10 +419,9 @@
                         {
                             <a asp-area="Customer" asp-controller="Cart" asp-action="Index" class="cart-icon relative p-2">
                                 <i class="fas fa-shopping-bag text-lg text-gray-500"></i>
-                                @if (ViewBag.CartItemCount > 0)
-                                {
-                                    <span class="cart-badge">@(ViewBag.CartItemCount)</span>
-                                }
+                               
+                                    <span class="cart-badge">@(ViewBag.CartCount)</span>
+                                
                             </a>
                             <button id="mobile-menu-btn" class="p-2 rounded-md focus:outline-none">
                                 <img src="https://api.dicebear.com/7.x/initials/svg?seed=@(user.Name?[0])&backgroundColor=088170&textColor=ffffff"
@@ -449,10 +448,9 @@
                                 <partial name="_LoginPartialView" />
                                 <a asp-area="Customer" asp-controller="Cart" asp-action="Index" class="cart-icon relative p-2">
                                     <i class="fas fa-shopping-bag text-lg text-gray-500"></i>
-                                    @if (ViewBag.CartItemCount > 0)
-                                    {
-                                        <span class="cart-badge">@(ViewBag.CartItemCount)</span>
-                                    }
+
+                                    <span class="cart-badge">@(ViewBag.CartCount)</span>
+                                    
                                 </a>
                             </div>
                         }
@@ -527,12 +525,11 @@
                         <a asp-area="Customer" asp-controller="Cart" asp-action="Index" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base relative">
                             <i class="fas fa-shopping-bag mr-3 text-[#088170]"></i>
                             My Cart
-                            @if (ViewBag.CartItemCount > 0)
-                            {
+                          
                                 <span class="absolute right-3 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5 min-w-[1.25rem]">
-                                    @(ViewBag.CartItemCount)
+                                @(ViewBag.CartCount)
                                 </span>
-                            }
+                            
                         </a>
                         <a asp-area="Customer" asp-controller="Profile" asp-action="Index" class="flex items-center text-gray-800 hover:text-[#088170] px-3 py-2 font-medium text-base">
                             <i class="fas fa-user-circle mr-3 text-[#088170]"></i>

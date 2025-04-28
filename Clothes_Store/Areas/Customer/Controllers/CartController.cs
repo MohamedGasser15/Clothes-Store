@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
+using System.Security.Claims;
 
 namespace Clothes_Store.Areas.Customer.Controllers
 {
@@ -22,6 +23,17 @@ namespace Clothes_Store.Areas.Customer.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == userId).CountAsync();
+            }
+            else
+            {
+                ViewBag.CartCount = 0;
+            }
             var user = await _userManager.GetUserAsync(User);
             var cartItems = await _db.CartItems
                 .Include(ci => ci.Product)
@@ -58,6 +70,8 @@ namespace Clothes_Store.Areas.Customer.Controllers
         {
             try
             {
+                
+
                 var user = await _userManager.GetUserAsync(User);
                 var product = await _db.Products
                     .Include(p => p.Stocks)
@@ -300,6 +314,17 @@ namespace Clothes_Store.Areas.Customer.Controllers
         [HttpGet]
         public async Task<IActionResult> Summary()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == userId).CountAsync();
+            }
+            else
+            {
+                ViewBag.CartCount = 0;
+            }
             var user = await _userManager.GetUserAsync(User);
             var cartItems = await _db.CartItems
                 .Include(ci => ci.Product)
@@ -515,6 +540,17 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
         public async Task<IActionResult> OrderConfirmation(int id, string session_id)
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == userId).CountAsync();
+            }
+            else
+            {
+                ViewBag.CartCount = 0;
+            }
             var orderHeader = await _db.OrderHeaders
                 .Include(oh => oh.ApplicationUser)
                 .FirstOrDefaultAsync(oh => oh.Id == id);
