@@ -275,9 +275,72 @@ namespace Clothes_Store.Controllers
             return View("ShopByBrand", products ?? new List<Product>());
         }
 
-        public IActionResult Home()
+        public async Task<IActionResult> Home(int? categoryId = null)
         {
-            var products = _db.Products
+            if (User.Identity.IsAuthenticated)
+            {
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+                ViewBag.CartCount = _db.CartItems.Where(c => c.UserId == userId).Count();
+            }
+            else
+            {
+                ViewBag.CartCount = 0;
+            }
+            var productsQuery = _db.Products
+                                   .Include(p => p.Brand)
+                                   .Include(p => p.Category)
+                                   .OrderBy(p => p.Product_Id);
+
+            // Filter by category ID if specified
+            if (categoryId.HasValue && categoryId > 0)
+            {
+                var subCategoryIds = await _db.Categories
+                                            .Where(c => c.ParentCategoryId == categoryId.Value)
+                                            .Select(c => c.Category_Id)
+                                            .ToListAsync();
+
+                if (subCategoryIds.Any())
+                {
+                    productsQuery = (IOrderedQueryable<Product>)productsQuery
+                        .Where(p => subCategoryIds.Contains(p.Category_Id));
+                }
+                else
+                {
+                    productsQuery = (IOrderedQueryable<Product>)productsQuery
+                        .Where(p => p.Category_Id == categoryId.Value);
+                }
+            }
+            else
+            {
+                // If no category is selected, show featured products
+                productsQuery = (IOrderedQueryable<Product>)productsQuery
+                    .Where(p => p.IsFeatured);
+            }
+
+            var products = await productsQuery
+                .Take(8) // Limit to 8 products
+                .Select(p => new HomeViewModel
+                {
+                    Product_Id = p.Product_Id,
+                    Product_Name = p.Product_Name,
+                    imgUrl = p.imgUrl,
+                    BrandName = p.Brand != null ? p.Brand.Brand_Name : "Unknown",
+                    IsFeatured = p.IsFeatured,
+                    DateAdded = p.DateAdded,
+                    Product_Rating = p.Product_Rating,
+                    Product_Price = p.Product_Price,
+                    AvailableSizes = p.Stocks
+                        .Where(s => s.Quantity > 0)
+                        .Select(s => s.Size)
+                        .Distinct()
+                        .OrderBy(s => s)
+                        .ToList()
+                })
+                .ToListAsync();
+
+            var newArrivals = await _db.Products
                 .Include(p => p.Brand)
                 .Include(p => p.Category)
                 .OrderByDescending(p => p.Product_Id)
