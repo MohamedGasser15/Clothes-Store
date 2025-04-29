@@ -101,21 +101,33 @@ namespace Clothes_Store.Areas.Admin.Controllers
             return View(user);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(string userId)
         {
-            ApplicationUser obj = new();
-            obj = _db.ApplicationUsers.FirstOrDefault(u => u.Id == userId);
-            if (obj == null)
+            try
             {
-                TempData["Error"] = "Oops! Something went wrong. Please try again.";
-                return NotFound();
+                var obj = _db.ApplicationUsers.FirstOrDefault(u => u.Id == userId);
+                if (obj == null)
+                {
+                    TempData["Error"] = "User not found.";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var userDevices = _db.UserDevices.Where(ud => ud.UserId == userId);
+                _db.UserDevices.RemoveRange(userDevices);
+                _db.ApplicationUsers.Remove(obj);
+                _db.SaveChanges();
+
+                TempData["Success"] = $"User '{obj.Name}' deleted successfully!";
+                return RedirectToAction(nameof(Index));
             }
-            var userDevices = _db.UserDevices.Where(ud => ud.UserId == userId);
-            _db.UserDevices.RemoveRange(userDevices);
-            _db.ApplicationUsers.Remove(obj);
-            TempData["Success"] = $"User ('{obj.Name}') deleted successfully!";
-            _db.SaveChanges();
-            return RedirectToAction(nameof(Index));
+            catch (Exception ex)
+            {
+                TempData["Error"] = "An error occurred while deleting the user. Please try again.";
+                // Optionally log the exception: _logger.LogError(ex, "Error deleting user {UserId}", userId);
+                return RedirectToAction(nameof(Index));
+            }
         }
 
         //[HttpPost]

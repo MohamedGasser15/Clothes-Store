@@ -172,10 +172,13 @@
                                            class="inline-flex items-center px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-500 text-xs">
                                             <i class="fas fa-edit mr-1"></i> Edit
                                         </a>
-                                        <button onclick="confirmDelete('@user.Id', '@user.Name')"
-                                                class="inline-flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 text-xs">
-                                            <i class="fas fa-trash-alt mr-1"></i> Delete
-                                        </button>
+                                        <form asp-action="Delete" method="post" onsubmit="return confirmDelete('@user.Id', '@user.Name', this)">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@user.Id" />
+                                            <button type="submit" class="inline-flex items-center px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-1 focus:ring-red-500 text-xs">
+                                                <i class="fas fa-trash-alt mr-1"></i> Delete
+                                            </button>
+                                        </form>
                                         @if (user.LockoutEnd == null || user.LockoutEnd < DateTime.Now)
                                         {
                                             <a asp-action="LockUnlock" asp-route-userId="@user.Id"
@@ -209,10 +212,13 @@
                                            class="inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
                                             <i class="fas fa-edit mr-1 sm:mr-2 text-xs"></i> Edit
                                         </a>
-                                        <button onclick="confirmDelete('@user.Id', '@user.Name')"
-                                                class="inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-red-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
-                                            <i class="fas fa-trash-alt mr-1 sm:mr-2 text-xs"></i> Delete
-                                        </button>
+                                        <form asp-action="Delete" method="post" onsubmit="return confirmDelete('@user.Id', '@user.Name', this)">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userId" value="@user.Id" />
+                                            <button type="submit" class="inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-1 sm:focus:ring-2 focus:ring-red-500 focus:ring-offset-1 sm:focus:ring-offset-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm">
+                                                <i class="fas fa-trash-alt mr-1 sm:mr-2 text-xs"></i> Delete
+                                            </button>
+                                        </form>
                                         @if (user.LockoutEnd == null || user.LockoutEnd < DateTime.Now)
                                         {
                                             <a asp-action="LockUnlock" asp-route-userId="@user.Id"
@@ -283,7 +289,7 @@
 
 <!-- Delete Confirmation Modal Script -->
 <script>
-    function confirmDelete(id, name) {
+    function confirmDelete(id, name, form) {
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 transition-opacity duration-200 opacity-0';
         modal.innerHTML = `
@@ -323,7 +329,7 @@
             modal.classList.add('opacity-0');
             modal.querySelector('div').classList.add('scale-95');
             setTimeout(() => {
-                window.location.href = `/Admin/User/Delete/${id}`;
+                form.submit();
                 document.body.removeChild(modal);
             }, 200);
         });
@@ -335,6 +341,8 @@
                 document.body.removeChild(modal);
             }, 200);
         });
+
+        return false;
     }
 </script>
 
