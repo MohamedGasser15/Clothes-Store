@@ -26,6 +26,8 @@ namespace Clothes_DataAccess.Data
         public DbSet<OrderDetail> OrderDetails { get; set; }
         public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<Stock> Stocks { get; set; }
+        public DbSet<AdminActivity> AdminActivities { get; set; }
+
 
 
 
