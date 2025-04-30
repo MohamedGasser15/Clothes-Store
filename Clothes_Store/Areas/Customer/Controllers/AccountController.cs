@@ -236,7 +236,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 var verificationCode = new Random().Next(100000, 999999).ToString();
                 await _userManager.AddClaimAsync(user, new Claim("EmailVerificationCode", verificationCode));
 
-                var emailBody = GenerateVerificationEmail(user, verificationCode, "Email Verification", "to complete your registration");
+                var emailBody = GenerateVerificationEmail(user, verificationCode);
                 try
                 {
                     await _emailSender.SendEmailAsync(model.Email, "Email Confirmation Code", emailBody);
@@ -336,7 +336,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             }
             await _userManager.AddClaimAsync(user, new Claim("LastResendTime", DateTime.UtcNow.ToString()));
 
-            var emailBody = GenerateVerificationEmail(user, newCode, "Email Verification", "to complete your registration");
+            var emailBody = GenerateVerificationEmail(user, newCode);
             await _emailSender.SendEmailAsync(user.Email, "Email Confirmation Code", emailBody);
 
             TempData["Message"] = "A new code has been sent to your email.";
@@ -373,13 +373,18 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 ModelState.AddModelError(string.Empty, "No account found with this email.");
                 return View(model);
             }
-
+            var ipAddress = GetClientIpAddress();
+            var deviceName = System.Net.Dns.GetHostName();
+            var changeTime = DateTime.UtcNow;
             // Send password reset code
             var resetCode = new Random().Next(100000, 999999).ToString();
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetLink = passwordResetLink(user, resetToken);
+
             await _userManager.RemoveClaimsAsync(user, await _userManager.GetClaimsAsync(user));
             await _userManager.AddClaimAsync(user, new Claim("ResetCode", resetCode));
 
-            var emailBody = GenerateVerificationEmail(user, resetCode, "Password Reset", "to reset your password");
+            var emailBody = GenerateForgotPasswordEmail(user, ipAddress, deviceName, changeTime, resetCode, resetLink);
             try
             {
                 await _emailSender.SendEmailAsync(user.Email, "Password Reset Code", emailBody);
@@ -460,7 +465,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             }
             await _userManager.AddClaimAsync(user, new Claim("LastResendTime", DateTime.UtcNow.ToString()));
 
-            var emailBody = GenerateVerificationEmail(user, newCode, "Password Reset", "to reset your password");
+            var emailBody = GenerateVerificationEmail(user, newCode);
             await _emailSender.SendEmailAsync(user.Email, "Password Reset Code", emailBody);
 
             TempData["Message"] = "A new code has been sent to your email.";
@@ -494,6 +499,16 @@ namespace Clothes_Store.Areas.Customer.Controllers
             var result = await _userManager.RemovePasswordAsync(user);
             if (result.Succeeded)
             {
+                var activity = new SecurityActivity
+                {
+                    UserId = user.Id,
+                    ActivityType = "PasswordChange",
+                    Description = "Password changed",
+                    IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+                };
+                _db.SecurityActivities.Add(activity);
+                await _db.SaveChangesAsync();
+
                 result = await _userManager.AddPasswordAsync(user, model.NewPassword);
                 if (result.Succeeded)
                 {
@@ -636,43 +651,120 @@ namespace Clothes_Store.Areas.Customer.Controllers
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
-        body {{ font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }}
-        .email-container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }}
-        .header {{ text-align: center; margin-bottom: 25px; border-bottom: 1px solid #eaeaea; padding-bottom: 15px; }}
-        .header h1 {{ color: #6366f1; margin: 0; font-size: 24px; }}
-        .content {{ margin-bottom: 25px; line-height: 1.6; }}
-        .content p {{ font-size: 16px; color: #333333; margin-bottom: 15px; }}
-        .verification-code {{ font-size: 28px; font-weight: bold; color: #6366f1; letter-spacing: 3px; text-align: center; margin: 25px 0; padding: 15px; background-color: #f8f9fa; border-radius: 6px; border: 1px dashed #6366f1; }}
-        .security-alert {{ background-color: #f8f9fa; border-left: 4px solid #6366f1; padding: 15px; margin: 20px 0; border-radius: 4px; }}
-        .footer {{ text-align: center; font-size: 14px; color: #777; margin-top: 25px; border-top: 1px solid #eaeaea; padding-top: 15px; }}
-        .button {{ display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 4px; margin: 20px auto; text-align: center; }}
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }}
+        .email-container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 15px;
+        }}
+        .header h1 {{
+            color: #088178;
+            margin: 0;
+            font-size: 24px;
+        }}
+        .content {{
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }}
+        .content p {{
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 15px;
+        }}
+        .verification-code {{
+            font-size: 28px;
+            font-weight: bold;
+            color: #088178;
+            letter-spacing: 3px;
+            text-align: center;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px dashed #088178;
+        }}
+        .security-alert {{
+            background-color: #f8f9fa;
+            border-left: 4px solid #088178;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .footer {{
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 25px;
+            border-top: 1px solid #eaeaea;
+            padding-top: 15px;
+        }}
+        .button {{
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #088178;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px auto;
+            text-align: center;
+        }}
+        .info-item {{
+            margin-bottom: 8px;
+        }}
     </style>
 </head>
 <body>
     <div class='email-container'>
         <div class='header'>
-            <h1>Two-Factor Authentication</h1>
+            <h1>Two-Factor Authentication Code</h1>
         </div>
+        
         <div class='content'>
             <p>Hello {user.Name},</p>
+            
             <p>Your login attempt requires verification. Use this code to complete your sign-in:</p>
-            <div class='verification-code'>{code}</div>
-            <p>This code expires in 15 minutes. If you didn't request this, please ignore this email.</p>
-            <div class='security-alert'>
-                <p><strong>Security Tip:</strong> Never share this code. Cara-Store will never ask for it.</p>
+            
+            <div class='verification-code'>
+                {code}
             </div>
-            <a href='{Generate2FALink(user, code)}' class='button'>Verify Now</a>
+            
+            <p>This code will expire in 15 minutes. If you didn't request this, please ignore this email.</p>
+            
+            <div class='security-alert'>
+                <p><strong>Security Tip:</strong> Never share this code with anyone. Trendsvalley will never ask for your verification code.</p>
+            </div>
+            
+            <p>Alternatively, you can click the button below to verify your email:</p>
+            
+            <a href=""{Generate2FALink(user, code)}"" class='button'>Verify Email Address</a>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style=""word-break: break-all;"">{Generate2FALink(user, code)}</p>
         </div>
+        
         <div class='footer'>
             <p>© {DateTime.Now.Year} LushThreads. All rights reserved.</p>
-            <p>Sent to {user.Email} for verification.</p>
+            <p>This email was sent to {user.Email} as part of our verification process.</p>
         </div>
     </div>
 </body>
 </html>";
         }
-
-        private string GenerateVerificationEmail(ApplicationUser user, string code, string title, string purpose)
+        private string GenerateVerificationEmail(ApplicationUser user, string code)
         {
             return $@"
 <!DOCTYPE html>
@@ -681,40 +773,291 @@ namespace Clothes_Store.Areas.Customer.Controllers
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <style>
-        body {{ font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }}
-        .email-container {{ max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }}
-        .header {{ text-align: center; margin-bottom: 20px; }}
-        .header h1 {{ color: #4CAF50; }}
-        .content {{ text-align: center; margin-bottom: 20px; }}
-        .content p {{ font-size: 16px; color: #333333; line-height: 1.5; }}
-        .verification-code {{ font-size: 20px; font-weight: bold; color: #4CAF50; background-color: #f2f2f2; padding: 10px; border-radius: 6px; display: inline-block; margin: 20px 0; }}
-        .footer {{ text-align: center; font-size: 14px; color: #777; margin-top: 20px; }}
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }}
+        .email-container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 15px;
+        }}
+        .header h1 {{
+            color: #088178;
+            margin: 0;
+            font-size: 24px;
+        }}
+        .content {{
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }}
+        .content p {{
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 15px;
+        }}
+        .verification-code {{
+            font-size: 28px;
+            font-weight: bold;
+            color: #088178;
+            letter-spacing: 3px;
+            text-align: center;
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px dashed #088178;
+        }}
+        .security-alert {{
+            background-color: #f8f9fa;
+            border-left: 4px solid #088178;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .footer {{
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 25px;
+            border-top: 1px solid #eaeaea;
+            padding-top: 15px;
+        }}
+        .button {{
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #088178;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 20px auto;
+            text-align: center;
+        }}
+        .info-item {{
+            margin-bottom: 8px;
+        }}
     </style>
 </head>
 <body>
     <div class='email-container'>
         <div class='header'>
-            <h1>{title}</h1>
+            <h1>Email Verification</h1>
         </div>
+        
         <div class='content'>
-            <p>Hi {user.UserName},</p>
-            <p>Please use the following code {purpose}:</p>
-            <p class='verification-code'>{code}</p>
-            <p>If you didn’t initiate this, please ignore this email.</p>
+            <p>Hello {user.Name},</p>
+            
+            <p>Thank you for registering with LushThreads! Please use the following verification code to confirm your email address:</p>
+            
+            <div class='verification-code'>
+                {code}
+            </div>
+            
+            <p>This code will expire in 15 minutes. If you didn't request this, please ignore this email.</p>
+            
+            <div class='security-alert'>
+                <p><strong>Security Tip:</strong> Never share this code with anyone. LushThreads will never ask for your verification code.</p>
+            </div>
+            
+            <p>Alternatively, you can click the button below to verify your email:</p>
+            
+            <a href=""{GenerateVerificationLink(user, code)}"" class='button'>Verify Email Address</a>
+            
+            <p>If the button doesn't work, copy and paste this link into your browser:</p>
+            <p style=""word-break: break-all;"">{GenerateVerificationLink(user, code)}</p>
         </div>
+        
         <div class='footer'>
             <p>© {DateTime.Now.Year} LushThreads. All rights reserved.</p>
+            <p>This email was sent to {user.Email} as part of our verification process.</p>
         </div>
     </div>
 </body>
 </html>";
         }
-
+        private string GenerateForgotPasswordEmail(
+    ApplicationUser user,
+    string ipAddress,
+    string deviceName,
+    DateTime requestTime,
+    string code,
+    string passwordResetLink)
+        {
+            return $@"
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <style>
+        body {{
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }}
+        .email-container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eaeaea;
+            padding-bottom: 15px;
+        }}
+        .header h1 {{
+            color: #088178;
+            margin: 0;
+            font-size: 24px;
+        }}
+        .content {{
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }}
+        .content p {{
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 15px;
+        }}
+        .verification-code {{
+            font-size: 24px;
+            font-weight: bold;
+            color: #088178;
+            letter-spacing: 3px;
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px dashed #088178;
+        }}
+        .security-alert {{
+            background-color: #f8f9fa;
+            border-left: 4px solid #088178;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }}
+        .footer {{
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            margin-top: 25px;
+            border-top: 1px solid #eaeaea;
+            padding-top: 15px;
+        }}
+        .button {{
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #088178;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 15px 0;
+        }}
+        .info-item {{
+            margin-bottom: 8px;
+        }}
+        .info-label {{
+            font-weight: bold;
+            color: #555;
+        }}
+        .security-message {{
+            color: #088178;
+            font-weight: bold;
+        }}
+    </style>
+</head>
+<body>
+    <div class='email-container'>
+        <div class='header'>
+            <h1>Password Reset Verification</h1>
+        </div>
+        
+        <div class='content'>
+            <p>Hello {user.Name},</p>
+            
+            <p class='security-message'>A password reset was requested for your account!</p>
+            
+            <div class='security-alert'>
+                <p><strong>SECURITY NOTICE:</strong> Use this verification code to confirm your identity:</p>
+                <div class='verification-code'>
+                    {code}
+                </div>
+                <p>This code expires in 15 minutes.</p>
+            </div>
+            
+            <div class='security-alert'>
+                <p><strong>IMPORTANT:</strong> Do not share this code with anyone. LushThreads will never ask for your verification code.</p>
+            </div>
+            
+            <p>Request details:</p>
+            <div class='info-item'>
+                <span class='info-label'>Device:</span> {deviceName}
+            </div>
+            <div class='info-item'>
+                <span class='info-label'>IP Address:</span> {ipAddress}
+            </div>
+            <div class='info-item'>
+                <span class='info-label'>Time:</span> {requestTime:f}
+            </div>
+            
+            <p>To complete your password reset, click the button below:</p>
+            
+            <a href=""{passwordResetLink}"" class='button'>Reset Password</a>
+            
+            <p style=""word-break: break-all;"">Or copy this link manually: {passwordResetLink}</p>
+            
+            <p>If you didn't request this password reset, please secure your account immediately.</p>
+        </div>
+        
+        <div class='footer'>
+            <p>© {requestTime.Year} LushThreads. All rights reserved.</p>
+            <p>This email was sent to {user.Email} as part of our security notifications.</p>
+        </div>
+    </div>
+</body>
+</html>";
+        }
         private string Generate2FALink(ApplicationUser user, string code)
         {
             return Url.Action("Enter2FACode", "Account", new { userId = user.Id, code }, protocol: HttpContext.Request.Scheme);
         }
 
+        private string GenerateVerificationLink(ApplicationUser user, string code)
+        {
+            return Url.Action(
+                "VerifyEmailCode",
+                "Account",
+                new { userId = user.Id, code = code },
+                protocol: HttpContext.Request.Scheme
+            );
+        }
+        private string passwordResetLink(ApplicationUser user, string code)
+        {
+            return Url.Action(
+                "ResetPassword",
+                "Account",
+                new { userId = user.Id, code = code },
+                protocol: HttpContext.Request.Scheme
+            );
+        }
         private void AddErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)
