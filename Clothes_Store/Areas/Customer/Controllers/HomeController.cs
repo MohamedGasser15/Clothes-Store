@@ -8,7 +8,6 @@ using Clothes_Store.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SendGrid.Helpers.Mail;
 
 namespace Clothes_Store.Controllers
 {
