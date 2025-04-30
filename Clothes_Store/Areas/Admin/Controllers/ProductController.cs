@@ -4,6 +4,7 @@ using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
 using Clothes_Utilities;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +18,14 @@ namespace Clothes_Store.Areas.Admin.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ApplicationDbContext _db;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment, ApplicationDbContext db)
+        public ProductController(IUnitOfWork unitOfWork, IWebHostEnvironment webHostEnvironment, ApplicationDbContext db, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _webHostEnvironment = webHostEnvironment;
             _db = db;
+            _userManager = userManager;
         }
 
         // Displays the list of all products
@@ -146,6 +149,13 @@ namespace Clothes_Store.Areas.Admin.Controllers
             {
                 obj.Product.DateAdded = DateTime.Now;
                 await _unitOfWork.Products.Add(obj.Product);
+
+                await _unitOfWork.Products.AdminActivityAsync(
+                    userId: _userManager.GetUserId(User),
+                    activityType: "AddProduct",
+                    description: $"Add Product (Id: {obj.Product.Product_Id})",
+                    ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
                 await _unitOfWork.SaveAsync();
 
                 if (obj.Stocks != null && obj.Stocks.Any())
@@ -162,6 +172,14 @@ namespace Clothes_Store.Areas.Admin.Controllers
             else
             {
                 _unitOfWork.Products.UpdateAsync(obj.Product);
+
+                await _unitOfWork.Products.AdminActivityAsync(
+                    userId: _userManager.GetUserId(User),
+                    activityType: "UpdateProduct",
+                    description: $"Update Product (Id: {obj.Product.Product_Id})",
+                    ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString()
+                );
+
                 var existingStocks = await _db.Stocks
                     .Where(s => s.Product_Id == obj.Product.Product_Id)
                     .ToListAsync();
@@ -219,6 +237,12 @@ namespace Clothes_Store.Areas.Admin.Controllers
             }
 
             await _unitOfWork.Products.Delete(obj);
+            await _unitOfWork.Products.AdminActivityAsync(
+                userId: _userManager.GetUserId(User),
+                activityType: "DeleteProduct",
+                description: $"Delete Product (Id: {obj.Product_Id})",
+                ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString()
+            );
             TempData["Success"] = "Product deleted successfully!";
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
@@ -242,6 +266,12 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 : "Product has been removed from featured items!";
 
             await _unitOfWork.Products.UpdateAsync(obj);
+            await _unitOfWork.Products.AdminActivityAsync(
+                userId: _userManager.GetUserId(User),
+                activityType: obj.IsFeatured ? "AddToFeatured" : "RemoveFromFeatured",
+                description: $"{(obj.IsFeatured ? "Add" : "Remove")} Product (Id: {obj.Product_Id}) to/from featured items",
+                ipAddress: HttpContext.Connection.RemoteIpAddress?.ToString()
+            );
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }

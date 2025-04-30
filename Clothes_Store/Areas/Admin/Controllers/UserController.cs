@@ -13,7 +13,6 @@ namespace Clothes_Store.Areas.Admin.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _db;
-
         public UserController(UserManager<ApplicationUser> userManager, ApplicationDbContext db)
         {
             _userManager = userManager;
@@ -76,6 +75,19 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
             await _userManager.AddToRoleAsync(objFromDb, _db.Roles.FirstOrDefault(u => u.Id == user.RoleId).Name);
             objFromDb.Name = user.Name;
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            var activity = new AdminActivity
+            {
+                UserId = _userManager.GetUserId(User),
+                ActivityType = "EditUser",
+                Description = $"Edit User (Email: '{objFromDb.Email}')",
+                IpAddress = ipAddress
+            };
+
+            _db.AdminActivities.Add(activity);
+            _db.SaveChanges();
+
             TempData["Success"] = $"User ('{objFromDb.Name}') updated successfully";
             await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
@@ -98,6 +110,17 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 var userDevices = _db.UserDevices.Where(ud => ud.UserId == userId);
                 _db.UserDevices.RemoveRange(userDevices);
                 _db.ApplicationUsers.Remove(obj);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+                var activity = new AdminActivity
+                {
+                    UserId = _userManager.GetUserId(User),
+                    ActivityType = "DeleteUser",
+                    Description = $"Delete User (Email: '{obj.Email}')",
+                    IpAddress = ipAddress
+                };
+
+                _db.AdminActivities.Add(activity);
                 _db.SaveChanges();
 
                 TempData["Success"] = $"User '{obj.Name}' deleted successfully!";
@@ -123,11 +146,31 @@ namespace Clothes_Store.Areas.Admin.Controllers
             if (objFromDb.LockoutEnd != null && objFromDb.LockoutEnd > DateTime.Now)
             {
                 objFromDb.LockoutEnd = DateTime.Now;
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var activity = new AdminActivity
+                {
+                    UserId = _userManager.GetUserId(User),
+                    ActivityType = "UnlockUser",
+                    Description = $"Unlock User (Email: '{objFromDb.Email}')",
+                    IpAddress = ipAddress
+                };
+                _db.AdminActivities.Add(activity);
+
                 TempData["Success"] = $"Successfully unlocked user ({objFromDb.Name})!";
             }
             else
             {
                 objFromDb.LockoutEnd = DateTime.Now.AddDays(10);
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var activity = new AdminActivity
+                {
+                    UserId = _userManager.GetUserId(User),
+                    ActivityType = "LockUser",
+                    Description = $"Lock User (Email: '{objFromDb.Email}')",
+                    IpAddress = ipAddress
+                };
+                _db.AdminActivities.Add(activity);
+
                 TempData["Success"] = $"Successfully locked user ({objFromDb.Name}) for 10 days!";
             }
 

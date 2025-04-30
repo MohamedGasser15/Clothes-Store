@@ -1,5 +1,6 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_DataAccess.Repo.Interfaces;
+using Clothes_Models.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -33,6 +34,19 @@ namespace Clothes_DataAccess.Repo
         public async Task Delete(T entity)
         {
             dbSet.Remove(entity);
+        }
+        public async Task AdminActivityAsync(string userId, string activityType, string description, string ipAddress)
+        {
+            var activity = new AdminActivity
+            {
+                UserId = userId,
+                ActivityType = activityType,
+                Description = description,
+                IpAddress = ipAddress
+            };
+
+            _db.AdminActivities.Add(activity);
+            await _db.SaveChangesAsync();
         }
     }
 }

@@ -65,6 +65,15 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
             order.Name = name;
             order.PhoneNumber = phoneNumber;
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var activity = new AdminActivity
+            {
+                UserId = _userManager.GetUserId(User),
+                ActivityType = "UpdateCustomerInfo",
+                Description = $"Update Customer Info (order: #{order.Id})",
+                IpAddress = ipAddress
+            };
+            _db.AdminActivities.Add(activity);
             _db.SaveChanges();
 
             TempData["Success"] = "Customer information updated successfully!";
@@ -82,6 +91,15 @@ namespace Clothes_Store.Areas.Admin.Controllers
             order.StreetAddress = streetAddress;
             order.Country = country;
             order.PostalCode = postalCode;
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var activity = new AdminActivity
+            {
+                UserId = _userManager.GetUserId(User),
+                ActivityType = "UpdateShippingInfo",
+                Description = $"Update Shipping Info (order: #{order.Id})",
+                IpAddress = ipAddress
+            };
+            _db.AdminActivities.Add(activity);
             _db.SaveChanges();
 
             TempData["Success"] = "Shipping information updated successfully!";
@@ -102,6 +120,15 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
             order.TrackingNumber = trackingNumber;
             order.Carrier = carrier;
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var activity = new AdminActivity
+            {
+                UserId = _userManager.GetUserId(User),
+                ActivityType = "UpdateTrackingInfo",
+                Description = $"Update Tracking Info (order: #{order.Id})",
+                IpAddress = ipAddress
+            };
+            _db.AdminActivities.Add(activity);
             _db.SaveChanges();
 
             TempData["Success"] = "Tracking information updated successfully!";
@@ -148,6 +175,16 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 order.OrderStatus = SD.StatusApproved;
                 order.PaymentStatus = SD.PaymentStatusApproved;
                 order.PaymentDate = DateTime.Now;
+
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var activity = new AdminActivity
+                {
+                    UserId = _userManager.GetUserId(User),
+                    ActivityType = "OrderApproval",
+                    Description = $"Approved Order (order: #{order.Id})",
+                    IpAddress = ipAddress
+                };
+                _db.AdminActivities.Add(activity);
 
                 _db.SaveChanges();
                 transaction.Commit();
@@ -243,6 +280,17 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 }
 
                 order.OrderStatus = SD.StatusCancelled;
+
+                var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+                var activity = new AdminActivity
+                {
+                    UserId = _userManager.GetUserId(User),
+                    ActivityType = "OrderCancellation",
+                    Description = $"Cancelled Order (order: #{order.Id})",
+                    IpAddress = ipAddress
+                };
+                _db.AdminActivities.Add(activity);
+
                 _db.SaveChanges();
                 transaction.Commit();
             }
@@ -292,6 +340,17 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
             order.OrderStatus = SD.StatusShipped;
             order.ShippingDate = DateTime.Now;
+
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var activity = new AdminActivity
+            {
+                UserId = _userManager.GetUserId(User),
+                ActivityType = "OrderShipped",
+                Description = $"Shipped Order (order: #{order.Id})",
+                IpAddress = ipAddress
+            };
+            _db.AdminActivities.Add(activity);
+
             _db.SaveChanges();
 
             var user = order.ApplicationUser;
@@ -333,6 +392,16 @@ namespace Clothes_Store.Areas.Admin.Controllers
 
             order.OrderStatus = SD.StatusDelivered;
             _db.OrderHeaders.Update(order);
+
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var activity = new AdminActivity
+            {
+                UserId = _userManager.GetUserId(User),
+                ActivityType = "OrderDelivered",
+                Description = $"Delivered Order (order: #{order.Id})",
+                IpAddress = ipAddress
+            };
+            _db.AdminActivities.Add(activity);
             _db.SaveChanges();
 
             var user = order.ApplicationUser;
