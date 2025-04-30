@@ -23,7 +23,7 @@
                 </div>
             </div>
             <a asp-controller="Product" asp-action="Index" class="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50">
-                <i class="fas fa-clipboard-list mr-2"></i> <!-- Perfect for order lists -->
+                <i class="fas fa-clipboard-list mr-2"></i>
                 <span>View Products</span>
             </a>
         </div>
@@ -86,13 +86,16 @@
             </div>
             <canvas id="topProductsChart" height="300"></canvas>
             <div class="mt-4 grid grid-cols-2 gap-3">
-                @for (int i = 0; i < Model.TopProducts.ProductNames.Count; i++)
+                @if (Model.TopProducts?.ProductNames != null)
                 {
-                    <div class="flex items-center bg-gray-50 rounded-lg p-2">
-                        <span class="h-3 w-3 rounded-full mr-2 flex-shrink-0" style="background-color: @Model.SalesByCategory.Colors[i % Model.SalesByCategory.Colors.Count]"></span>
-                        <span class="text-sm text-gray-700 truncate font-medium">@Model.TopProducts.ProductNames[i]</span>
-                        <span class="ml-auto text-xs text-gray-500 font-medium">@Model.TopProducts.SalesCounts[i] sales</span>
-                    </div>
+                    @for (int i = 0; i < Math.Min(Model.TopProducts.ProductNames.Count, Model.SalesByCategory.Colors.Count); i++)
+                    {
+                        <div class="flex items-center bg-gray-50 rounded-lg p-2">
+                            <span class="h-3 w-3 rounded-full mr-2 flex-shrink-0" style="background-color: @Model.SalesByCategory.Colors[i]"></span>
+                            <span class="text-sm text-gray-700 truncate font-medium">@Model.TopProducts.ProductNames[i]</span>
+                            <span class="ml-auto text-xs text-gray-500 font-medium">@Model.TopProducts.SalesCounts[i] sales</span>
+                        </div>
+                    }
                 }
             </div>
         </div>
@@ -107,13 +110,16 @@
             </div>
             <canvas id="inventoryStatusChart" height="300"></canvas>
             <div class="mt-4 flex justify-center space-x-4">
-                @foreach (var status in Model.InventoryStatus.Statuses)
+                @if (Model.InventoryStatus?.Statuses != null)
                 {
-                    <div class="flex items-center">
-                        <span class="h-3 w-3 rounded-full mr-2"
-                              style="background-color: @Model.InventoryStatus.Colors[Model.InventoryStatus.Statuses.IndexOf(status)]"></span>
-                        <span class="text-xs text-gray-500">@status</span>
-                    </div>
+                    @for (int i = 0; i < Math.Min(Model.InventoryStatus.Statuses.Count, Model.InventoryStatus.Colors.Count); i++)
+                    {
+                        <div class="flex items-center">
+                            <span class="h-3 w-3 rounded-full mr-2"
+                                  style="background-color: @Model.InventoryStatus.Colors[i]"></span>
+                            <span class="text-xs text-gray-500">@Model.InventoryStatus.Statuses[i]</span>
+                        </div>
+                    }
                 }
             </div>
         </div>
@@ -142,22 +148,25 @@
             <!-- Category Breakdown -->
             <div>
                 <div class="space-y-4">
-                    @for (int i = 0; i < Model.SalesByCategory.CategoryNames.Count; i++)
+                    @if (Model.SalesByCategory?.CategoryNames != null)
                     {
-                        <div class="flex items-center">
-                            <div class="flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center mr-4"
-                                 style="background-color: @Model.SalesByCategory.Colors[i]">
-                                <span class="text-white font-medium text-xs">@(i + 1)</span>
+                        @for (int i = 0; i < Math.Min(Model.SalesByCategory.CategoryNames.Count, Model.SalesByCategory.Colors.Count); i++)
+                        {
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center mr-4"
+                                     style="background-color: @Model.SalesByCategory.Colors[i]">
+                                    <span class="text-white font-medium text-xs">@(i + 1)</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900 truncate">@Model.SalesByCategory.CategoryNames[i]</p>
+                                    <p class="text-xs text-gray-500">@Model.SalesByCategory.SalesCounts[i] sales</p>
+                                </div>
+                                <div class="ml-auto text-right">
+                                    <p class="text-sm font-semibold text-gray-900">@Model.SalesByCategory.Revenue[i].ToString("C")</p>
+                                    <p class="text-xs text-gray-500">@((Model.SalesByCategory.Revenue[i] / (Model.SalesByCategory.Revenue.Any() ? Model.SalesByCategory.Revenue.Sum() : 1) * 100).ToString("0.0"))% of revenue</p>
+                                </div>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">@Model.SalesByCategory.CategoryNames[i]</p>
-                                <p class="text-xs text-gray-500">@Model.SalesByCategory.SalesCounts[i] sales</p>
-                            </div>
-                            <div class="ml-auto text-right">
-                                <p class="text-sm font-semibold text-gray-900">@Model.SalesByCategory.Revenue[i].ToString("C")</p>
-                                <p class="text-xs text-gray-500">@((Model.SalesByCategory.Revenue[i] / Model.SalesByCategory.Revenue.Sum() * 100).ToString("0.0"))% of revenue</p>
-                            </div>
-                        </div>
+                        }
                     }
                 </div>
             </div>
@@ -171,7 +180,7 @@
             <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">@Model.LowStockItems.Count items</span>
         </div>
 
-        @if (Model.LowStockItems.Any())
+        @if (Model.LowStockItems?.Any() == true)
         {
             <div class="overflow-x-auto">
                 <table class="w-full text-sm text-left text-gray-500">
@@ -223,11 +232,11 @@
                 {
                     type: 'bar',
                     data: {
-                        labels: @Json.Serialize(Model.TopProducts.ProductNames.Take(5)),
+                        labels: @Json.Serialize(Model.TopProducts?.ProductNames?.Take(5) ?? new List<string>()),
                         datasets: [{
                             label: 'Sales Count',
-                            data: @Json.Serialize(Model.TopProducts.SalesCounts.Take(5)),
-                            backgroundColor: @Json.Serialize(Model.SalesByCategory.Colors.Take(5)),
+                            data: @Json.Serialize(Model.TopProducts?.SalesCounts?.Take(5) ?? new List<int>()),
+                            backgroundColor: @Json.Serialize(Model.SalesByCategory?.Colors?.Take(5) ?? new List<string>()),
                             borderWidth: 1
                         }]
                     },
@@ -264,10 +273,10 @@
                 {
                     type: 'doughnut',
                     data: {
-                        labels: @Json.Serialize(Model.InventoryStatus.Statuses),
+                        labels: @Json.Serialize(Model.InventoryStatus?.Statuses ?? new List<string>()),
                         datasets: [{
-                            data: @Json.Serialize(Model.InventoryStatus.Counts),
-                            backgroundColor: @Json.Serialize(Model.InventoryStatus.Colors),
+                            data: @Json.Serialize(Model.InventoryStatus?.Counts ?? new List<int>()),
+                            backgroundColor: @Json.Serialize(Model.InventoryStatus?.Colors ?? new List<string>()),
                             borderWidth: 1
                         }]
                     },
@@ -283,7 +292,7 @@
                                         const label = context.label || '';
                                         const value = context.raw || 0;
                                         const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = Math.round((value / total) * 100);
+                                        const percentage = total ? Math.round((value / total) * 100) : 0;
                                         return `${label}: ${value} (${percentage}%)`;
                                     }
                                 }
@@ -300,11 +309,11 @@
                 {
                     type: 'bar',
                     data: {
-                        labels: @Json.Serialize(Model.SalesByCategory.CategoryNames),
+                        labels: @Json.Serialize(Model.SalesByCategory?.CategoryNames ?? new List<string>()),
                         datasets: [
                             {
                                 label: 'Revenue',
-                                data: @Json.Serialize(Model.SalesByCategory.Revenue),
+                                data: @Json.Serialize(Model.SalesByCategory?.Revenue ?? new List<decimal>()),
                                 backgroundColor: 'rgba(8, 129, 120, 0.6)',
                                 borderColor: '#088178',
                                 borderWidth: 1,
@@ -312,7 +321,7 @@
                             },
                             {
                                 label: 'Sales Count',
-                                data: @Json.Serialize(Model.SalesByCategory.SalesCounts),
+                                data: @Json.Serialize(Model.SalesByCategory?.SalesCounts ?? new List<int>()),
                                 backgroundColor: 'rgba(59, 130, 246, 0.6)',
                                 borderColor: '#3B82F6',
                                 borderWidth: 1,

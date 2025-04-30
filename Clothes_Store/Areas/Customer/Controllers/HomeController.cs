@@ -17,309 +17,40 @@ namespace Clothes_Store.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _db;
 
-
         public HomeController(ILogger<HomeController> logger, ApplicationDbContext db)
         {
             _logger = logger;
             _db = db;
         }
-        [HttpGet]
-        public IActionResult GetProductDetails(int productId)
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                ViewBag.CartCount =  _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
-
-            var product = _db.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .Include(p => p.Stocks)
-                .Where(p => p.Product_Id == productId)
-                .Select(p => new
-                {
-                    productId = p.Product_Id,
-                    productName = p.Product_Name,
-                    imgUrl = p.imgUrl,
-                    productRating = p.Product_Rating,
-                    productPrice = p.Product_Price,
-                    description = p.Product_Description,
-                    color = p.Product_Color, // Single string
-                    brandName = p.Brand.Brand_Name,
-                    categoryName = p.Category.Category_Name,
-                    availableSizes = p.Stocks
-                        .Where(s => s.Quantity > 0)
-                        .Select(s => s.Size)
-                        .Distinct()
-                        .OrderBy(s => s)
-                        .ToList()
-                })
-                .FirstOrDefault();
-
-            if (product == null)
-            {
-                return Json(new { success = false, message = "Product not found" });
-            }
-
-            return Json(new { success = true, product });
-        }
-        public IActionResult ShopByCategory(string category)
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                ViewBag.CartCount =  _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
-
-            if (string.IsNullOrEmpty(category))
-            {
-                return NotFound();
-            }
-
-            // Map the URL-friendly category to the database category name
-            var categoryName = category switch
-            {
-                "mens-fashion" => "Men's Fashion",
-                "womens-fashion" => "Women's Fashion",
-                "kids-fashion" => "Kids Fashion",
-                "footwear" => "Footwear",
-                "accessories" => "Accessories",
-                "sportswear" => "Sportswear",
-                "luxury-collection" => "Luxury Collection",
-                "summer-essentials" => "Seasonal Collections",
-                _ => null
-            };
-
-            if (categoryName == null)
-            {
-                return NotFound();
-            }
-
-            // Get the parent category and its subcategories
-            var parentCategory = _db.Categories.FirstOrDefault(c => c.Category_Name == categoryName && c.ParentCategoryId == null);
-            if (parentCategory == null)
-            {
-                return NotFound();
-            }
-
-            // Get all subcategory IDs (including the parent category)
-            var categoryIds = _db.Categories
-                .Where(c => c.ParentCategoryId == parentCategory.Category_Id || c.Category_Id == parentCategory.Category_Id)
-                .Select(c => c.Category_Id)
-                .ToList();
-
-            // Get products for the parent category and its subcategories
-            var products = _db.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .Include(p => p.Stocks)
-                .Where(p => categoryIds.Contains(p.Category_Id))
-                .ToList();
-
-            if (products == null || !products.Any())
-            {
-                return View(products);
-            }
-
-            ViewBag.Category = categoryName;
-            return View(products);
-        }
-        public IActionResult ShopByChildCategory(string category)
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                ViewBag.CartCount =  _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
-
-            if (string.IsNullOrEmpty(category))
-            {
-                return NotFound();
-            }
-
-            // Normalize category name
-            var categoryName = category.ToLower();
-
-            // If the category is "shorts" or "hoodie", fetch all child categories under Men's, Women's, and Unisex
-            if (categoryName == "shorts" || categoryName == "hoodie")
-            {
-                // Get parent category IDs for Men's Fashion, Women's Fashion, and Unisex
-                var parentCategoryIds = _db.Categories
-                    .Where(c => c.Category_Name == "Men's Fashion" || c.Category_Name == "Women's Fashion" || c.Category_Name == "Unisex")
-                    .Select(c => c.Category_Id)
-                    .ToList();
-
-                // Get all child categories with the specified name under these parent categories
-                var childCategoryIds = _db.Categories
-                    .Where(c => c.Category_Name.ToLower() == categoryName && c.ParentCategoryId.HasValue && parentCategoryIds.Contains(c.ParentCategoryId.Value))
-                    .Select(c => c.Category_Id)
-                    .ToList();
-
-                if (!childCategoryIds.Any())
-                {
-                    return NotFound();
-                }
-
-                // Fetch products from all matching child categories
-                var products = _db.Products
-                    .Include(p => p.Brand)
-                    .Include(p => p.Category)
-                    .Include(p => p.Stocks)
-                    .Where(p => childCategoryIds.Contains(p.Category_Id))
-                    .ToList();
-
-                ViewBag.Category = categoryName == "shorts" ? "Shorts" : "Hoodie";
-                return View("ShopByCategory", products ?? new List<Product>());
-            }
-            else
-            {
-                // Handle other child categories
-                var childCategory = _db.Categories
-                    .FirstOrDefault(c => c.Category_Name.ToLower() == categoryName && c.ParentCategoryId != null);
-
-                if (childCategory == null)
-                {
-                    return NotFound();
-                }
-
-                var products = _db.Products
-                    .Include(p => p.Brand)
-                    .Include(p => p.Category)
-                    .Include(p => p.Stocks)
-                    .Where(p => p.Category_Id == childCategory.Category_Id)
-                    .ToList();
-
-                ViewBag.Category = childCategory.Category_Name;
-                return View("ShopByCategory", products ?? new List<Product>());
-            }
-        }
-
-        public IActionResult ShopByBrand(string brand)
-        {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                ViewBag.CartCount = _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
-            if (string.IsNullOrEmpty(brand))
-            {
-                Console.WriteLine("ShopByBrand: Brand parameter is null or empty.");
-                return NotFound();
-            }
-
-            var brandLower = brand.ToLower();
-            bool isLocalBrands = brandLower == "local";
-
-            // Map URL-friendly brand to database brand name
-            var brandName = isLocalBrands ? null : brandLower switch
-            {
-                "nike" => "Nike",
-                "adidas" => "Adidas",
-                "puma" => "Puma",
-                "zara" => "Zara",
-                "hm" => "H&M",
-                "levis" => "Levi's",
-                "nightbird" => "NightBird",
-                _ => null
-            };
-
-            // Query Brands table for the brand
-            var brandEntity = isLocalBrands ? null : _db.Brands
-                .FirstOrDefault(b => b.Brand_Name == brandName);
-
-            if (!isLocalBrands && brandEntity == null)
-            {
-                Console.WriteLine($"ShopByBrand: Brand '{brand}' not found in database.");
-                return NotFound();
-            }
-
-            // Get products
-            var products = _db.Products
-                .Include(p => p.Brand)
-                .Include(p => p.Category)
-                .Include(p => p.Stocks)
-                .Where(p => isLocalBrands
-                    ? p.Brand != null && !new[] { "Nike", "Adidas", "Puma", "Zara", "H&M", "Levi's", "NightBird" }.Contains(p.Brand.Brand_Name)
-                    : p.brand_Id == brandEntity.Brand_Id)
-                .ToList();
-
-            // Debug: Log results
-
-            ViewBag.Brand = isLocalBrands ? "Local Brands" : brandEntity.Brand_Name;
-            return View("ShopByBrand", products ?? new List<Product>());
-        }
-
+        // Displays home page with featured and new arrival products
         public async Task<IActionResult> Home(int? categoryId = null)
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            ViewBag.CartCount = GetCartCount();
 
-                ViewBag.CartCount = _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
             var productsQuery = _db.Products
-                                   .Include(p => p.Brand)
-                                   .Include(p => p.Category)
-                                   .OrderBy(p => p.Product_Id);
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .OrderBy(p => p.Product_Id);
 
-            // Filter by category ID if specified
             if (categoryId.HasValue && categoryId > 0)
             {
                 var subCategoryIds = await _db.Categories
-                                            .Where(c => c.ParentCategoryId == categoryId.Value)
-                                            .Select(c => c.Category_Id)
-                                            .ToListAsync();
+                    .Where(c => c.ParentCategoryId == categoryId.Value)
+                    .Select(c => c.Category_Id)
+                    .ToListAsync();
 
-                if (subCategoryIds.Any())
-                {
-                    productsQuery = (IOrderedQueryable<Product>)productsQuery
-                        .Where(p => subCategoryIds.Contains(p.Category_Id));
-                }
-                else
-                {
-                    productsQuery = (IOrderedQueryable<Product>)productsQuery
-                        .Where(p => p.Category_Id == categoryId.Value);
-                }
+                productsQuery = (IOrderedQueryable<Product>)productsQuery
+                    .Where(p => subCategoryIds.Any() ? subCategoryIds.Contains(p.Category_Id) : p.Category_Id == categoryId.Value);
             }
             else
             {
-                // If no category is selected, show featured products
                 productsQuery = (IOrderedQueryable<Product>)productsQuery
                     .Where(p => p.IsFeatured);
             }
 
             var products = await productsQuery
-                .Take(8) // Limit to 8 products
+                .Take(8)
                 .Select(p => new HomeViewModel
                 {
                     Product_Id = p.Product_Id,
@@ -363,11 +94,7 @@ namespace Clothes_Store.Controllers
                 })
                 .ToListAsync();
 
-            var specificCategories = new[]
-            {
-        "Bags", "Jackets", "Hats", "Shoes", "Pantalons", "Dresses", "Shorts", "Hoodie" // Added Hoodie as 8th category
-    };
-
+            var specificCategories = new[] { "Bags", "Jackets", "Hats", "Shoes", "Pantalons", "Dresses", "Shorts", "Hoodie" };
             var categories = await _db.Categories
                 .Where(c => specificCategories.Contains(c.Category_Name) && c.ParentCategoryId != null)
                 .Select(c => new
@@ -378,11 +105,7 @@ namespace Clothes_Store.Controllers
                 })
                 .ToListAsync();
 
-            var specificBrands = new[]
-            {
-        "Nike", "Adidas", "Zara", "H&M", "Puma", "Levi's", "Lacoste", "Local Brands"
-    };
-
+            var specificBrands = new[] { "Nike", "Adidas", "Zara", "H&M", "Puma", "Levi's", "Lacoste", "Local Brands" };
             var brands = specificBrands
                 .Select(b => new
                 {
@@ -398,94 +121,65 @@ namespace Clothes_Store.Controllers
 
             var viewModel = new HomeViewModel
             {
-                FeaturedProducts = products, // Limited to 8 filtered or featured products
+                FeaturedProducts = products,
                 NewArrivals = newArrivals
             };
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return Json(new
-                {
-                    products,
-                    currentCategoryId = categoryId
-                });
-            }
+                return Json(new { products, currentCategoryId = categoryId });
 
             return View(viewModel);
         }
 
+        // Displays paginated shop page with optional category filter
         public async Task<IActionResult> Shop(int? categoryId = null, int page = 1, int pageSize = 8)
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            ViewBag.CartCount = GetCartCount();
 
-                ViewBag.CartCount = _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
-            // Validate inputs
             page = Math.Max(1, page);
             pageSize = Math.Max(1, Math.Min(pageSize, 100));
 
             var productsQuery = _db.Products
-                                  .Include(p => p.Brand)
-                                  .Include(p => p.Category)
-                                  .OrderBy(p => p.Product_Id);
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .OrderBy(p => p.Product_Id);
 
-            // Filter by category ID if specified
             if (categoryId.HasValue && categoryId > 0)
             {
-                // Get subcategories of the selected categoryId
                 var subCategoryIds = await _db.Categories
-                                            .Where(c => c.ParentCategoryId == categoryId.Value)
-                                            .Select(c => c.Category_Id)
-                                            .ToListAsync();
+                    .Where(c => c.ParentCategoryId == categoryId.Value)
+                    .Select(c => c.Category_Id)
+                    .ToListAsync();
 
-                if (subCategoryIds.Any())
-                {
-                    // If there are subcategories, filter products by those IDs
-                    productsQuery = (IOrderedQueryable<Product>)productsQuery
-                        .Where(p => subCategoryIds.Contains(p.Category_Id));
-                }
-                else
-                {
-                    // If no subcategories, filter directly by categoryId
-                    productsQuery = (IOrderedQueryable<Product>)productsQuery
-                        .Where(p => p.Category_Id == categoryId.Value);
-                }
+                productsQuery = (IOrderedQueryable<Product>)productsQuery
+                    .Where(p => subCategoryIds.Any() ? subCategoryIds.Contains(p.Category_Id) : p.Category_Id == categoryId.Value);
             }
 
             var totalProducts = await productsQuery.CountAsync();
             var totalPages = (int)Math.Ceiling((double)totalProducts / pageSize);
-
-            // Ensure page is within valid range
             page = Math.Min(page, Math.Max(1, totalPages));
 
             var products = await productsQuery
-     .Skip((page - 1) * pageSize)
-     .Take(pageSize)
-     .Select(p => new
-     {
-         ProductId = p.Product_Id,        // Changed from Product_Id
-         ProductName = p.Product_Name,    // Changed from Product_Name
-         ImgUrl = p.imgUrl,              // Already camelCase in model, keep as is
-         BrandName = p.Brand.Brand_Name,  // Remains unchanged
-         CategoryName = p.Category.Category_Name, // Remains unchanged
-         IsFeatured = p.IsFeatured,       // Remains unchanged
-         ProductRating = p.Product_Rating, // Changed from Product_Rating
-         ProductPrice = p.Product_Price,  // Changed from Product_Price
-         AvailableSizes = p.Stocks
-             .Where(s => s.Quantity > 0)
-             .Select(s => s.Size)
-             .Distinct()
-             .OrderBy(s => s)
-             .ToList()
-     })
-     .ToListAsync();
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(p => new
+                {
+                    ProductId = p.Product_Id,
+                    ProductName = p.Product_Name,
+                    ImgUrl = p.imgUrl,
+                    BrandName = p.Brand.Brand_Name,
+                    CategoryName = p.Category.Category_Name,
+                    IsFeatured = p.IsFeatured,
+                    ProductRating = p.Product_Rating,
+                    ProductPrice = p.Product_Price,
+                    AvailableSizes = p.Stocks
+                        .Where(s => s.Quantity > 0)
+                        .Select(s => s.Size)
+                        .Distinct()
+                        .OrderBy(s => s)
+                        .ToList()
+                })
+                .ToListAsync();
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
@@ -494,69 +188,210 @@ namespace Clothes_Store.Controllers
             ViewBag.CurrentCategoryId = categoryId;
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return Json(new
-                {
-                    products,
-                    currentPage = page,
-                    totalPages,
-                    pageSize,
-                    currentCategoryId = categoryId
-                });
-            }
+                return Json(new { products, currentPage = page, totalPages, pageSize, currentCategoryId = categoryId });
 
             return View(products);
         }
 
+        // Displays detailed view of a single product
         public async Task<IActionResult> Details(int id)
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            ViewBag.CartCount = GetCartCount();
 
-                ViewBag.CartCount = _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
             var product = await _db.Products
-                .Include(p => p.Category) // Include category details
-                .Include(p => p.Brand) // Include brand details
-                .Include(p => p.Stocks) // Include stock details to get available sizes
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.Stocks)
                 .FirstOrDefaultAsync(p => p.Product_Id == id);
 
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
+            return product == null ? NotFound() : View(product);
         }
 
         [HttpGet]
+        // Fetches product details by ID for JSON response
+        public IActionResult GetProductDetails(int productId)
+        {
+            ViewBag.CartCount = GetCartCount();
+
+            var product = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => p.Product_Id == productId)
+                .Select(p => new
+                {
+                    productId = p.Product_Id,
+                    productName = p.Product_Name,
+                    imgUrl = p.imgUrl,
+                    productRating = p.Product_Rating,
+                    productPrice = p.Product_Price,
+                    description = p.Product_Description,
+                    color = p.Product_Color,
+                    brandName = p.Brand.Brand_Name,
+                    categoryName = p.Category.Category_Name,
+                    availableSizes = p.Stocks
+                        .Where(s => s.Quantity > 0)
+                        .Select(s => s.Size)
+                        .Distinct()
+                        .OrderBy(s => s)
+                        .ToList()
+                })
+                .FirstOrDefault();
+
+            return product == null
+                ? Json(new { success = false, message = "Product not found" })
+                : Json(new { success = true, product });
+        }
+
+        // Displays products by main category
+        public IActionResult ShopByCategory(string category)
+        {
+            ViewBag.CartCount = GetCartCount();
+
+            if (string.IsNullOrEmpty(category))
+                return NotFound();
+
+            // Map URL-friendly category to database category name
+            var categoryName = category switch
+            {
+                "mens-fashion" => "Men's Fashion",
+                "womens-fashion" => "Women's Fashion",
+                "kids-fashion" => "Kids Fashion",
+                "footwear" => "Footwear",
+                "accessories" => "Accessories",
+                "sportswear" => "Sportswear",
+                "luxury-collection" => "Luxury Collection",
+                "summer-essentials" => "Seasonal Collections",
+                _ => null
+            };
+
+            if (categoryName == null)
+                return NotFound();
+
+            var parentCategory = _db.Categories.FirstOrDefault(c => c.Category_Name == categoryName && c.ParentCategoryId == null);
+            if (parentCategory == null)
+                return NotFound();
+
+            var categoryIds = _db.Categories
+                .Where(c => c.ParentCategoryId == parentCategory.Category_Id || c.Category_Id == parentCategory.Category_Id)
+                .Select(c => c.Category_Id)
+                .ToList();
+
+            var products = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => categoryIds.Contains(p.Category_Id))
+                .ToList();
+
+            ViewBag.Category = categoryName;
+            return View(products ?? new List<Product>());
+        }
+
+        // Displays products by child category
+        public IActionResult ShopByChildCategory(string category)
+        {
+            ViewBag.CartCount = GetCartCount();
+
+            if (string.IsNullOrEmpty(category))
+                return NotFound();
+
+            var categoryName = category.ToLower();
+
+            if (categoryName == "shorts" || categoryName == "hoodie")
+            {
+                var parentCategoryIds = _db.Categories
+                    .Where(c => c.Category_Name == "Men's Fashion" || c.Category_Name == "Women's Fashion" || c.Category_Name == "Unisex")
+                    .Select(c => c.Category_Id)
+                    .ToList();
+
+                var childCategoryIds = _db.Categories
+                    .Where(c => c.Category_Name.ToLower() == categoryName && c.ParentCategoryId.HasValue && parentCategoryIds.Contains(c.ParentCategoryId.Value))
+                    .Select(c => c.Category_Id)
+                    .ToList();
+
+                if (!childCategoryIds.Any())
+                    return NotFound();
+
+                var product = _db.Products
+                    .Include(p => p.Brand)
+                    .Include(p => p.Category)
+                    .Include(p => p.Stocks)
+                    .Where(p => childCategoryIds.Contains(p.Category_Id))
+                    .ToList();
+
+                ViewBag.Category = categoryName == "shorts" ? "Shorts" : "Hoodie";
+                return View("ShopByCategory", product ?? new List<Product>());
+            }
+
+            var childCategory = _db.Categories
+                .FirstOrDefault(c => c.Category_Name.ToLower() == categoryName && c.ParentCategoryId != null);
+
+            if (childCategory == null)
+                return NotFound();
+
+            var products = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => p.Category_Id == childCategory.Category_Id)
+                .ToList();
+
+            ViewBag.Category = childCategory.Category_Name;
+            return View("ShopByCategory", products ?? new List<Product>());
+        }
+
+        // Displays products by brand
+        public IActionResult ShopByBrand(string brand)
+        {
+            ViewBag.CartCount = GetCartCount();
+
+            if (string.IsNullOrEmpty(brand))
+                return NotFound();
+
+            var brandLower = brand.ToLower();
+            bool isLocalBrands = brandLower == "local";
+
+            var brandName = isLocalBrands ? null : brandLower switch
+            {
+                "nike" => "Nike",
+                "adidas" => "Adidas",
+                "puma" => "Puma",
+                "zara" => "Zara",
+                "hm" => "H&M",
+                "levis" => "Levi's",
+                "nightbird" => "NightBird",
+                _ => null
+            };
+
+            if (!isLocalBrands && _db.Brands.FirstOrDefault(b => b.Brand_Name == brandName) == null)
+                return NotFound();
+
+            var products = _db.Products
+                .Include(p => p.Brand)
+                .Include(p => p.Category)
+                .Include(p => p.Stocks)
+                .Where(p => isLocalBrands
+                    ? p.Brand != null && !new[] { "Nike", "Adidas", "Puma", "Zara", "H&M", "Levi's", "NightBird" }.Contains(p.Brand.Brand_Name)
+                    : p.Brand.Brand_Name == brandName)
+                .ToList();
+
+            ViewBag.Brand = isLocalBrands ? "Local Brands" : brandName;
+            return View("ShopByBrand", products ?? new List<Product>());
+        }
+
+        [HttpGet]
+        // Fetches available sizes for a product
         public async Task<IActionResult> GetProductSizes(int productId)
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            ViewBag.CartCount = GetCartCount();
 
-                ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == userId).CountAsync();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
             var product = await _db.Products
                 .Include(p => p.Stocks)
                 .FirstOrDefaultAsync(p => p.Product_Id == productId);
 
             if (product == null)
-            {
                 return Json(new { success = false, message = "Product not found" });
-            }
 
             var sizes = product.Stocks?
                 .Where(s => s.Quantity > 0)
@@ -566,30 +401,18 @@ namespace Clothes_Store.Controllers
             return Json(new { success = true, sizes });
         }
 
-        public ActionResult Search(string searchTerm)
+        // Handles product search by name or description
+        public IActionResult Search(string searchTerm)
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            ViewBag.CartCount = GetCartCount();
 
-                ViewBag.CartCount = _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
-
-            var viewModel = new SearchViewModel
-            {
-                SearchTerm = searchTerm
-            };
+            var viewModel = new SearchViewModel { SearchTerm = searchTerm };
 
             if (!string.IsNullOrEmpty(searchTerm))
             {
-                viewModel.Results = _db.Products.Include(p => p.Brand)
-                    .Where(p => p.Product_Name.Contains(searchTerm) ||
-                                p.Product_Description.Contains(searchTerm))
+                viewModel.Results = _db.Products
+                    .Include(p => p.Brand)
+                    .Where(p => p.Product_Name.Contains(searchTerm) || p.Product_Description.Contains(searchTerm))
                     .ToList();
             }
             else
@@ -600,42 +423,36 @@ namespace Clothes_Store.Controllers
             return View(viewModel);
         }
 
+        // Displays the About page
         public IActionResult About()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                ViewBag.CartCount = _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
+            ViewBag.CartCount = GetCartCount();
             return View();
         }
 
+        // Displays the Contact page
         public IActionResult Contact()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                ViewBag.CartCount = _db.CartItems.Where(c => c.UserId == userId).Count();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
+            ViewBag.CartCount = GetCartCount();
             return View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        // Handles error display
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        // Retrieves cart item count for authenticated users
+        private int GetCartCount()
+        {
+            if (!User.Identity.IsAuthenticated)
+                return 0;
+
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            return _db.CartItems.Count(c => c.UserId == userId);
         }
     }
 }

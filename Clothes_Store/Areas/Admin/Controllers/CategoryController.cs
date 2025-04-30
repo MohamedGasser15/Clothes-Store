@@ -17,26 +17,29 @@ namespace Clothes_Store.Areas.Admin.Controllers
         {
             _unitOfWork = unitOfWork;
         }
+
+        // Displays the list of all categories
         public async Task<IActionResult> Index()
         {
             IEnumerable<Category> objList = await _unitOfWork.Categories.GetAll();
             return View(objList);
         }
+
+        // Displays the form for creating or editing a category
         public async Task<IActionResult> Upsert(int id)
         {
             Category obj = new();
-            if (id == null || id == 0)
-            {
+            if (id == 0)
                 return View(obj);
-            }
+
             obj = await _unitOfWork.Categories.GetById(id);
             if (obj == null)
-            {
                 return NotFound();
-            }
+
             return View(obj);
         }
 
+        // Creates or updates a category
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Upsert(Category obj)
@@ -45,29 +48,28 @@ namespace Clothes_Store.Areas.Admin.Controllers
             {
                 await _unitOfWork.Categories.Add(obj);
                 TempData["Success"] = "Category Added successfully";
-
             }
             else
             {
                 _unitOfWork.Categories.UpdateAsync(obj);
                 TempData["Success"] = $"('{obj.Category_Name}') updated successfully";
-
             }
-            await _unitOfWork.SaveAsync();
 
+            await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));
         }
 
+        // Deletes a category by ID
         public async Task<IActionResult> Delete(int id)
         {
-            Category obj = new();
-            obj = await _unitOfWork.Categories.GetById(id);
+            var obj = await _unitOfWork.Categories.GetById(id);
             if (obj == null)
             {
                 TempData["Error"] = "Oops! Something went wrong. Please try again.";
                 return NotFound();
             }
-                _unitOfWork.Categories.Delete(obj);
+
+            _unitOfWork.Categories.Delete(obj);
             TempData["Success"] = "Category deleted successfully!";
             await _unitOfWork.SaveAsync();
             return RedirectToAction(nameof(Index));

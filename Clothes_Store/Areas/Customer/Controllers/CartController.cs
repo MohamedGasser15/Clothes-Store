@@ -3,7 +3,6 @@ using Clothes_Models.Models;
 using Clothes_Models.ViewModels;
 using Clothes_Utilities;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,21 +19,14 @@ namespace Clothes_Store.Areas.Customer.Controllers
         public CartController(ApplicationDbContext db, UserManager<ApplicationUser> userManager) : base(db, userManager)
         {
         }
+
+        // Displays the user's shopping cart
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == userId).CountAsync();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
             var user = await _userManager.GetUserAsync(User);
+            ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == user.Id).CountAsync();
+
             var cartItems = await _db.CartItems
                 .Include(ci => ci.Product)
                     .ThenInclude(p => p.Stocks)
@@ -65,40 +57,32 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View(viewModel);
         }
 
+        // Adds an item to the cart with size validation
         [HttpPost]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1, string size = null)
         {
             try
             {
-                
-
                 var user = await _userManager.GetUserAsync(User);
                 var product = await _db.Products
                     .Include(p => p.Stocks)
                     .FirstOrDefaultAsync(p => p.Product_Id == productId);
 
                 if (product == null)
-                {
                     return Json(new { success = false, message = "Product not found" });
-                }
 
-                // Validate size if provided
+                // Validate or assign default size
                 if (!string.IsNullOrEmpty(size))
                 {
                     var availableSize = product.Stocks?.Any(s => s.Size == size) ?? false;
                     if (!availableSize)
-                    {
                         return Json(new { success = false, message = "Selected size is not available" });
-                    }
                 }
                 else
                 {
-                    // If no size is provided, try to select a default size (e.g., first available)
                     size = product.Stocks?.FirstOrDefault()?.Size;
                     if (string.IsNullOrEmpty(size))
-                    {
                         return Json(new { success = false, message = "No sizes available for this product" });
-                    }
                 }
 
                 var existingItem = await _db.CartItems
@@ -110,14 +94,13 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 }
                 else
                 {
-                    var newItem = new CartItem
+                    _db.CartItems.Add(new CartItem
                     {
                         ProductId = productId,
                         UserId = user.Id,
                         Quantity = quantity,
                         Size = size
-                    };
-                    _db.CartItems.Add(newItem);
+                    });
                 }
 
                 await _db.SaveChangesAsync();
@@ -126,12 +109,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     .Where(ci => ci.UserId == user.Id)
                     .SumAsync(ci => ci.Quantity);
 
-                return Json(new
-                {
-                    success = true,
-                    message = "Item added to cart successfully!",
-                    cartCount
-                });
+                return Json(new { success = true, message = "Item added to cart successfully!", cartCount });
             }
             catch (Exception ex)
             {
@@ -139,6 +117,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             }
         }
 
+        // Removes an item from the cart
         [HttpPost]
         public async Task<IActionResult> RemoveFromCart(int id)
         {
@@ -152,9 +131,10 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction(nameof(Index));
         }
 
+        // Increases the quantity of a cart item
         [HttpPost]
         public async Task<IActionResult> IncreaseQuantity(int id)
         {
@@ -164,20 +144,15 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 .FirstOrDefaultAsync(ci => ci.Id == id && ci.UserId == user.Id);
 
             if (cartItem == null)
-            {
                 return NotFound();
-            }
 
-            // Check stock availability if needed
-            if (cartItem.Quantity > 0)
-            {
-                cartItem.Quantity += 1;
-                await _db.SaveChangesAsync();
-            }
+            cartItem.Quantity += 1;
+            await _db.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }
 
+        // Decreases the quantity of a cart item or removes it if quantity becomes 0
         [HttpPost]
         public async Task<IActionResult> DecreaseQuantity(int id)
         {
@@ -187,24 +162,22 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 .FirstOrDefaultAsync(ci => ci.Id == id && ci.UserId == user.Id);
 
             if (cartItem == null)
-            {
                 return NotFound();
-            }
 
             if (cartItem.Quantity > 1)
             {
                 cartItem.Quantity -= 1;
-                await _db.SaveChangesAsync();
             }
             else
             {
                 _db.CartItems.Remove(cartItem);
-                await _db.SaveChangesAsync();
             }
 
+            await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
+        // Clears all items from the user's cart
         [HttpPost]
         public async Task<IActionResult> ClearCart()
         {
@@ -219,59 +192,41 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        // Updates the size of a cart item
         [HttpPost]
         public async Task<IActionResult> UpdateSize(int itemId, string size)
         {
-            // Ensure user is authenticated
             if (!User.Identity.IsAuthenticated)
-            {
                 return Json(new { success = false, message = "User not authenticated. Please log in." });
-            }
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
-            {
                 return Json(new { success = false, message = "User not found. Please log in again." });
-            }
 
-            // Fetch the cart item
             var cartItem = await _db.CartItems
                 .Include(ci => ci.Product)
                     .ThenInclude(p => p.Stocks)
                 .FirstOrDefaultAsync(ci => ci.Id == itemId && ci.UserId == user.Id);
 
             if (cartItem == null)
-            {
                 return Json(new { success = false, message = $"Cart item with ID {itemId} not found for user {user.Id}." });
-            }
 
-            // Validate the selected size
             if (string.IsNullOrEmpty(size))
-            {
                 return Json(new { success = false, message = "Please select a valid size." });
-            }
 
-            // Check if the selected size is available
             var availableSize = cartItem.Product.Stocks?.Any(s => s.Size == size) ?? false;
             if (!availableSize)
-            {
                 return Json(new { success = false, message = $"Selected size '{size}' is not available for product {cartItem.Product.Product_Name}." });
-            }
 
-            // Optional: Check stock availability for the selected size
             var stock = cartItem.Product.Stocks.FirstOrDefault(s => s.Size == size);
             if (stock != null && stock.Quantity < cartItem.Quantity)
-            {
                 return Json(new { success = false, message = $"Insufficient stock for size '{size}'. Only {stock.Quantity} items available." });
-            }
 
-            // Check if another cart item with the same product and size already exists
             var existingItem = await _db.CartItems
                 .FirstOrDefaultAsync(ci => ci.ProductId == cartItem.ProductId && ci.UserId == user.Id && ci.Size == size && ci.Id != itemId);
 
             if (existingItem != null)
             {
-                // Merge quantities and remove the current item
                 existingItem.Quantity += cartItem.Quantity;
                 _db.CartItems.Remove(cartItem);
             }
@@ -284,12 +239,11 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return Json(new { success = true, message = "Size updated successfully." });
         }
 
-
+        // Updates the user's payment method
         [HttpPost]
         public async Task<IActionResult> ChangePayment(string PaymentMethod)
         {
-            var userId = _userManager.GetUserId(User);
-            var user = await _userManager.FindByIdAsync(userId);
+            var user = await _userManager.GetUserAsync(User);
             try
             {
                 if (user != null)
@@ -303,7 +257,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     TempData["Error"] = "User not found";
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 TempData["Error"] = "Failed to update payment method";
             }
@@ -311,21 +265,13 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return RedirectToAction(nameof(Summary));
         }
 
+        // Displays the cart summary with order details
         [HttpGet]
         public async Task<IActionResult> Summary()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
-
-                ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == userId).CountAsync();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
             var user = await _userManager.GetUserAsync(User);
+            ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == user.Id).CountAsync();
+
             var cartItems = await _db.CartItems
                 .Include(ci => ci.Product)
                     .ThenInclude(p => p.Stocks)
@@ -346,8 +292,8 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     ShippingFee = shippingFee,
                     Tax = tax,
                     OrderTotal = total,
-                    OrderStatus = "Pending",
-                    PaymentStatus = "Pending",
+                    OrderStatus = SD.StatusPending,
+                    PaymentStatus = SD.PaymentStatusPending,
                     Name = user.Name,
                     PhoneNumber = user.PhoneNumber,
                     StreetAddress = user.StreetAddress,
@@ -360,6 +306,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             return View(viewModel);
         }
 
+        // Processes the cart summary and initiates payment
         [HttpPost]
         [ActionName("Summary")]
         [Route("Customer/Cart/Summary")]
@@ -368,10 +315,8 @@ namespace Clothes_Store.Areas.Customer.Controllers
             var user = await _userManager.GetUserAsync(User);
             viewModel.User = user;
 
-            // Handle payment method update (not final submission)
             if (!isFinalSubmission && !string.IsNullOrEmpty(selectedPaymentMethod))
             {
-                // Get or create payment method
                 var paymentMethod = await _db.PaymentMethods
                     .FirstOrDefaultAsync(p => p.UserId == user.Id && p.IsDefault)
                     ?? new Clothes_Models.Models.PaymentMethod
@@ -381,34 +326,26 @@ namespace Clothes_Store.Areas.Customer.Controllers
                         CreatedAt = DateTime.UtcNow
                     };
 
-                // Update payment method type
                 paymentMethod.CardBrand = selectedPaymentMethod == "credit" ? "card" : null;
                 paymentMethod.Last4 = selectedPaymentMethod == "credit" ? "4242" : null;
 
                 if (paymentMethod.Id == 0)
-                {
                     _db.PaymentMethods.Add(paymentMethod);
-                }
                 else
-                {
                     _db.PaymentMethods.Update(paymentMethod);
-                }
 
                 await _db.SaveChangesAsync();
                 TempData["Success"] = "Payment method updated successfully!";
                 return RedirectToAction(nameof(Summary));
             }
 
-            // Get cart items
             var cartItems = await _db.CartItems
                 .Include(ci => ci.Product)
                 .Where(ci => ci.UserId == user.Id)
                 .ToListAsync();
 
-            // Calculate totals
             var (subtotal, shippingFee, tax, total) = CalculateOrderTotals(cartItems);
 
-            // Create order header
             viewModel.OrderHeader.OrderDate = DateTime.Now;
             viewModel.OrderHeader.ApplicationUserId = user.Id;
             viewModel.OrderHeader.OrderStatus = SD.StatusPending;
@@ -418,7 +355,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
             viewModel.OrderHeader.ShippingFee = shippingFee;
             viewModel.OrderHeader.Tax = tax;
 
-            // Save shipping info to PaymentMethod instead of ApplicationUser
             var paymentMethodForOrder = await _db.PaymentMethods
                 .FirstOrDefaultAsync(p => p.UserId == user.Id && p.IsDefault)
                 ?? new Clothes_Models.Models.PaymentMethod
@@ -435,14 +371,11 @@ namespace Clothes_Store.Areas.Customer.Controllers
             paymentMethodForOrder.PostalCode = viewModel.OrderHeader.PostalCode;
 
             if (paymentMethodForOrder.Id == 0)
-            {
                 _db.PaymentMethods.Add(paymentMethodForOrder);
-            }
 
             _db.OrderHeaders.Add(viewModel.OrderHeader);
             await _db.SaveChangesAsync();
 
-            // Create order details with size
             foreach (var item in cartItems)
             {
                 _db.OrderDetails.Add(new OrderDetail
@@ -451,12 +384,11 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     OrderHeaderId = viewModel.OrderHeader.Id,
                     price = (double)item.Product.Product_Price,
                     Count = item.Quantity,
-                    Size = item.Size // Add size to OrderDetail
+                    Size = item.Size
                 });
             }
             await _db.SaveChangesAsync();
 
-            // Use the selectedPaymentMethod parameter
             if (selectedPaymentMethod == "credit")
             {
                 var domain = "https://" + Request.Host.Value;
@@ -517,20 +449,15 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 var service = new SessionService();
                 Session session = service.Create(options);
 
-                // Update order with Stripe IDs
                 viewModel.OrderHeader.SessionId = session.Id;
                 viewModel.OrderHeader.PaymentIntentId = session.PaymentIntentId;
                 await _db.SaveChangesAsync();
 
-                // Clear cart
                 return Redirect(session.Url);
             }
             else
             {
-                // For cash payment
                 await _db.SaveChangesAsync();
-
-                // Clear cart
                 _db.CartItems.RemoveRange(cartItems);
                 await _db.SaveChangesAsync();
 
@@ -538,28 +465,19 @@ namespace Clothes_Store.Areas.Customer.Controllers
             }
         }
 
+        // Confirms the order and updates stock and payment status
         public async Task<IActionResult> OrderConfirmation(int id, string session_id)
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var claimsIdentity = (ClaimsIdentity)User.Identity;
-                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+            var user = await _userManager.GetUserAsync(User);
+            ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == user.Id).CountAsync();
 
-                ViewBag.CartCount = await _db.CartItems.Where(c => c.UserId == userId).CountAsync();
-            }
-            else
-            {
-                ViewBag.CartCount = 0;
-            }
             var orderHeader = await _db.OrderHeaders
                 .Include(oh => oh.ApplicationUser)
                 .FirstOrDefaultAsync(oh => oh.Id == id);
 
-            if (orderHeader == null) return NotFound();
+            if (orderHeader == null)
+                return NotFound();
 
-            var user = orderHeader.ApplicationUser;
-
-            // Load order details to update stock
             var orderDetails = await _db.OrderDetails
                 .Where(od => od.OrderHeaderId == id)
                 .ToListAsync();
@@ -573,32 +491,24 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
                     if (session.PaymentStatus == "paid")
                     {
-                        // Begin transaction to ensure stock updates are atomic
                         using var transaction = await _db.Database.BeginTransactionAsync();
-
                         try
                         {
-                            // Update stock for each order detail
                             foreach (var detail in orderDetails)
                             {
                                 var stock = await _db.Stocks
                                     .FirstOrDefaultAsync(s => s.Product_Id == detail.ProductId && s.Size == detail.Size);
 
                                 if (stock == null)
-                                {
                                     throw new Exception($"Stock not found for Product ID {detail.ProductId} with size {detail.Size}.");
-                                }
 
                                 if (stock.Quantity < detail.Count)
-                                {
                                     throw new Exception($"Insufficient stock for Product ID {detail.ProductId} (Size: {detail.Size}). Available: {stock.Quantity}, Requested: {detail.Count}.");
-                                }
 
                                 stock.Quantity -= detail.Count;
                                 _db.Stocks.Update(stock);
                             }
 
-                            // Update order status
                             orderHeader.SessionId = session_id;
                             orderHeader.PaymentIntentId = session.PaymentIntentId;
                             orderHeader.PaymentStatus = SD.PaymentStatusApproved;
@@ -607,18 +517,12 @@ namespace Clothes_Store.Areas.Customer.Controllers
                             var paymentIntentService = new PaymentIntentService();
                             var paymentIntent = paymentIntentService.Get(session.PaymentIntentId);
 
-                            var options = new PaymentMethodGetOptions
-                            {
-                                Expand = new List<string> { "card" }
-                            };
+                            var options = new PaymentMethodGetOptions { Expand = new List<string> { "card" } };
                             var stripePaymentMethod = new PaymentMethodService().Get(paymentIntent.PaymentMethodId, options);
 
                             var paymentMethod = await _db.PaymentMethods
-                                .FirstOrDefaultAsync(p => p.StripePaymentMethodId == paymentIntent.PaymentMethodId);
-
-                            if (paymentMethod == null)
-                            {
-                                paymentMethod = new Clothes_Models.Models.PaymentMethod
+                                .FirstOrDefaultAsync(p => p.StripePaymentMethodId == paymentIntent.PaymentMethodId)
+                                ?? new Clothes_Models.Models.PaymentMethod
                                 {
                                     UserId = user.Id,
                                     StripePaymentMethodId = paymentIntent.PaymentMethodId,
@@ -626,8 +530,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
                                     IsDefault = true,
                                     CreatedAt = DateTime.UtcNow
                                 };
-                                _db.PaymentMethods.Add(paymentMethod);
-                            }
 
                             if (stripePaymentMethod?.Card != null)
                             {
@@ -641,45 +543,33 @@ namespace Clothes_Store.Areas.Customer.Controllers
                             {
                                 paymentMethod.BillingName = stripePaymentMethod.BillingDetails.Name;
                                 paymentMethod.PhoneNumber = stripePaymentMethod.BillingDetails.Phone;
-
-                                if (stripePaymentMethod.BillingDetails.Address != null)
-                                {
-                                    paymentMethod.AddressLine1 = stripePaymentMethod.BillingDetails.Address.Line1;
-                                    paymentMethod.AddressLine2 = stripePaymentMethod.BillingDetails.Address.Line2;
-                                    paymentMethod.City = stripePaymentMethod.BillingDetails.Address.City;
-                                    paymentMethod.State = stripePaymentMethod.BillingDetails.Address.State;
-                                    paymentMethod.PostalCode = stripePaymentMethod.BillingDetails.Address.PostalCode;
-                                    paymentMethod.Country = stripePaymentMethod.BillingDetails.Address.Country;
-                                }
+                                paymentMethod.AddressLine1 = stripePaymentMethod.BillingDetails.Address?.Line1;
+                                paymentMethod.AddressLine2 = stripePaymentMethod.BillingDetails.Address?.Line2;
+                                paymentMethod.City = stripePaymentMethod.BillingDetails.Address?.City;
+                                paymentMethod.State = stripePaymentMethod.BillingDetails.Address?.State;
+                                paymentMethod.PostalCode = stripePaymentMethod.BillingDetails.Address?.PostalCode;
+                                paymentMethod.Country = stripePaymentMethod.BillingDetails.Address?.Country;
                             }
 
-                            await _db.SaveChangesAsync();
+                            if (paymentMethod.Id == 0)
+                                _db.PaymentMethods.Add(paymentMethod);
 
-                            // Commit transaction after successful stock update
+                            await _db.SaveChangesAsync();
                             await transaction.CommitAsync();
                         }
                         catch (Exception ex)
                         {
-                            // Rollback transaction on failure
                             await transaction.RollbackAsync();
-
-                            // Update order status to failed
                             orderHeader.OrderStatus = "Failed";
                             orderHeader.PaymentStatus = "Failed";
                             await _db.SaveChangesAsync();
-
-                            // Log the error (in a real application, use a proper logging framework)
-                            Console.WriteLine($"Stock update failed: {ex.Message}");
-
-                            // Redirect to an error page or show a message
                             TempData["Error"] = "Order failed due to insufficient stock. Please try again.";
                             return RedirectToAction("Index");
                         }
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    // Handle Stripe or other errors
                     TempData["Error"] = "An error occurred while processing your payment.";
                     return RedirectToAction("Index");
                 }
@@ -691,7 +581,6 @@ namespace Clothes_Store.Areas.Customer.Controllers
                 await _db.SaveChangesAsync();
             }
 
-            // Clear cart only after successful stock update
             var cartItems = await _db.CartItems
                 .Where(ci => ci.UserId == user.Id)
                 .ToListAsync();
@@ -706,14 +595,13 @@ namespace Clothes_Store.Areas.Customer.Controllers
             {
                 OrderHeader = orderHeader,
                 OrderDetails = await _db.OrderDetails
-                       .Include(od => od.Product)
-                       .Where(od => od.OrderHeaderId == id)
-                       .ToListAsync()
+                    .Include(od => od.Product)
+                    .Where(od => od.OrderHeaderId == id)
+                    .ToListAsync()
             });
         }
 
-
-
+        // Calculates order totals including subtotal, shipping, tax, and total
         private (double Subtotal, double ShippingFee, double Tax, double Total) CalculateOrderTotals(IEnumerable<CartItem> cartItems)
         {
             double subtotal = (double)cartItems.Sum(i => i.Product.Product_Price * i.Quantity);

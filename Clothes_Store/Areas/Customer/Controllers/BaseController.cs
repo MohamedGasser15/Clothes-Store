@@ -1,7 +1,6 @@
 ﻿using Clothes_DataAccess.Data;
 using Clothes_Models.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
@@ -9,7 +8,6 @@ using System.Net;
 namespace Clothes_Store.Areas.Customer.Controllers
 {
     [Area("Customer")]
-
     public class BaseController : Controller
     {
         protected readonly ApplicationDbContext _db;
@@ -20,6 +18,8 @@ namespace Clothes_Store.Areas.Customer.Controllers
             _db = db;
             _userManager = userManager;
         }
+
+        // Validates email format and checks for common TLDs
         public bool IsValidEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -27,15 +27,11 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             try
             {
-                // Use MailAddress to validate the email format
                 var mailAddress = new System.Net.Mail.MailAddress(email);
-
-                // Additional check to prevent things like "test@example.com.xyz" (but allow valid subdomains)
                 string[] parts = mailAddress.Host.Split('.');
                 if (parts.Length < 2 || parts.Any(string.IsNullOrWhiteSpace))
                     return false;
 
-                // Check for common TLDs (you can expand this list)
                 string[] commonTlds = { "com", "net", "org", "edu", "gov", "io", "co", "uk", "de", "fr" };
                 string lastPart = parts.Last().ToLower();
 
@@ -50,6 +46,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             }
         }
 
+        // Tracks user device information and logs login activity
         public async Task TrackUserDevice(ApplicationUser user)
         {
             var deviceInfo = new
@@ -63,8 +60,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
             };
 
             var existingDevice = await _db.UserDevices
-                .FirstOrDefaultAsync(d => d.UserId == user.Id &&
-                                        d.DeviceToken == Request.Cookies["DeviceToken"]);
+                .FirstOrDefaultAsync(d => d.UserId == user.Id && d.DeviceToken == Request.Cookies["DeviceToken"]);
 
             if (existingDevice != null)
             {
@@ -104,6 +100,7 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     HttpOnly = true,
                     Secure = true
                 });
+
                 var newDeviceActivity = new SecurityActivity
                 {
                     UserId = user.Id,
@@ -111,13 +108,13 @@ namespace Clothes_Store.Areas.Customer.Controllers
                     Description = "Login detected from a new device.",
                     IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
                 };
+
                 _db.SecurityActivities.Add(newDeviceActivity);
                 await _db.SaveChangesAsync();
             }
         }
 
-
-
+        // Retrieves client IP address, handling forwarded IPs and IPv6
         public string GetClientIpAddress()
         {
             var ip = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
@@ -145,7 +142,9 @@ namespace Clothes_Store.Areas.Customer.Controllers
 
             return ip ?? "Unknown";
         }
-        public string GetOSFromUserAgent(string userAgent)
+
+        // Determines operating system from user agent
+        private string GetOSFromUserAgent(string userAgent)
         {
             if (userAgent.Contains("Windows")) return "Windows";
             if (userAgent.Contains("Mac")) return "MacOS";
@@ -154,83 +153,60 @@ namespace Clothes_Store.Areas.Customer.Controllers
             if (userAgent.Contains("iPhone")) return "iOS";
             return "Unknown";
         }
-        public string GetBrowserFromUserAgent(string userAgent)
+
+        // Identifies browser from user agent
+        private string GetBrowserFromUserAgent(string userAgent)
         {
-            if (userAgent.Contains("Edg"))
-                return "Microsoft Edge";
-
-            if (userAgent.Contains("Chrome"))
-                return "Google Chrome";
-
-            if (userAgent.Contains("Firefox"))
-                return "Mozilla Firefox";
-
-            if (userAgent.Contains("Safari") && !userAgent.Contains("Chrome"))
-                return "Apple Safari";
-
-            if (userAgent.Contains("Opera") || userAgent.Contains("OPR"))
-                return "Opera";
-
+            if (userAgent.Contains("Edg")) return "Microsoft Edge";
+            if (userAgent.Contains("Chrome")) return "Google Chrome";
+            if (userAgent.Contains("Firefox")) return "Mozilla Firefox";
+            if (userAgent.Contains("Safari") && !userAgent.Contains("Chrome")) return "Apple Safari";
+            if (userAgent.Contains("Opera") || userAgent.Contains("OPR")) return "Opera";
             return "Unknown Browser";
         }
-        public string GetFriendlyDeviceName(string userAgent)
+
+        // Generates a friendly device name based on user agent
+        private string GetFriendlyDeviceName(string userAgent)
         {
             string deviceType = userAgent.Contains("Mobile") ? "Mobile" : "Desktop";
 
-            if (userAgent.Contains("Windows NT"))
-                deviceType = "Windows " + deviceType;
-            else if (userAgent.Contains("Macintosh"))
-                deviceType = "Mac " + deviceType;
-            else if (userAgent.Contains("Linux"))
-                deviceType = "Linux " + deviceType;
+            if (userAgent.Contains("Windows NT")) deviceType = "Windows " + deviceType;
+            else if (userAgent.Contains("Macintosh")) deviceType = "Mac " + deviceType;
+            else if (userAgent.Contains("Linux")) deviceType = "Linux " + deviceType;
 
             string browser = GetBrowserFromUserAgent(userAgent);
-
             return $"{deviceType} ({browser})";
         }
-        public string GetDeviceType(string userAgent)
+
+        // Determines device type from user agent
+        private string GetDeviceType(string userAgent)
         {
-            if (userAgent.Contains("Mobi") || userAgent.Contains("Android"))
-                return "Mobile";
-
-            if (userAgent.Contains("Tablet") || userAgent.Contains("iPad"))
-                return "Tablet";
-
-            if (userAgent.Contains("Windows NT") || userAgent.Contains("Macintosh") || userAgent.Contains("Linux"))
-                return "Desktop";
-
-            if (userAgent.Contains("Xbox") || userAgent.Contains("PlayStation"))
-                return "Gaming Console";
-
+            if (userAgent.Contains("Mobi") || userAgent.Contains("Android")) return "Mobile";
+            if (userAgent.Contains("Tablet") || userAgent.Contains("iPad")) return "Tablet";
+            if (userAgent.Contains("Windows NT") || userAgent.Contains("Macintosh") || userAgent.Contains("Linux")) return "Desktop";
+            if (userAgent.Contains("Xbox") || userAgent.Contains("PlayStation")) return "Gaming Console";
             return "Unknown Device";
         }
-        public async Task<string> GetLocationFromIP(string ipAddress)
+
+        // Retrieves location from IP address using external API
+        private async Task<string> GetLocationFromIP(string ipAddress)
         {
             if (ipAddress == "::1" || ipAddress == "127.0.0.0")
-            {
                 return "Cairo, Egypt (Local Development)";
-            }
 
             try
             {
                 using var httpClient = new HttpClient();
                 var response = await httpClient.GetFromJsonAsync<IpApiResponse>($"http://ip-api.com/json/{ipAddress}");
-
-                return response switch
-                {
-                    { Status: "success" } => $"{response.City}, {response.Country}",
-                    _ => "Unknown Location"
-                };
+                return response.Status == "success" ? $"{response.City}, {response.Country}" : "Unknown Location";
             }
             catch
             {
                 return "Location Unknown";
             }
         }
-        public record IpApiResponse(
-            string Status,
-            string Country,
-            string City
-        );
+
+        // Record for IP API response
+        private record IpApiResponse(string Status, string Country, string City);
     }
 }

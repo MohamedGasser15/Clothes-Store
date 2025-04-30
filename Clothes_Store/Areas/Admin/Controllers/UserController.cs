@@ -11,7 +11,6 @@ namespace Clothes_Store.Areas.Admin.Controllers
     [Authorize(Roles = SD.Admin)]
     public class UserController : Controller
     {
-
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _db;
 
@@ -21,6 +20,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
             _db = db;
         }
 
+        // Displays the list of all users with their roles
         public IActionResult Index()
         {
             var UserAccount = _db.ApplicationUsers.ToList();
@@ -29,33 +29,24 @@ namespace Clothes_Store.Areas.Admin.Controllers
             foreach (var user in UserAccount)
             {
                 var role = userRole.FirstOrDefault(u => u.UserId == user.Id);
-                if (role == null)
-                {
-                    user.Role = "None";
-                }
-                else
-                {
-                    user.Role = roles.FirstOrDefault(u => u.Id == role.RoleId).Name;
-                }
+                user.Role = role == null ? "None" : roles.FirstOrDefault(u => u.Id == role.RoleId).Name;
             }
             return View(UserAccount);
         }
 
+        // Displays the form for editing a user's details
         public IActionResult Edit(string userId)
         {
             var objFromDb = _db.ApplicationUsers.FirstOrDefault(u => u.Id == userId);
             if (objFromDb == null)
-            {
                 return NotFound();
-            }
+
             var userRole = _db.UserRoles.ToList();
             var roles = _db.Roles.ToList();
             var role = userRole.FirstOrDefault(u => u.UserId == objFromDb.Id);
             if (role != null)
-            {
                 objFromDb.RoleId = roles.FirstOrDefault(u => u.Id == role.RoleId).Id;
 
-            }
             objFromDb.RoleList = _db.Roles.Select(u => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
             {
                 Text = u.Name,
@@ -64,43 +55,33 @@ namespace Clothes_Store.Areas.Admin.Controllers
             return View(objFromDb);
         }
 
+        // Updates a user's details and role
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ApplicationUser user)
         {
-
             var objFromDb = _db.ApplicationUsers.FirstOrDefault(u => u.Id == user.Id);
             if (objFromDb == null)
             {
                 TempData["Error"] = "Oops! Something went wrong. Please try again.";
                 return NotFound();
             }
+
             var userRole = _db.UserRoles.FirstOrDefault(u => u.UserId == objFromDb.Id);
             if (userRole != null)
             {
                 var previousRoleName = _db.Roles.Where(u => u.Id == userRole.RoleId).Select(e => e.Name).FirstOrDefault();
-                //removing the old role
                 await _userManager.RemoveFromRoleAsync(objFromDb, previousRoleName);
-
             }
 
-            //add new role
             await _userManager.AddToRoleAsync(objFromDb, _db.Roles.FirstOrDefault(u => u.Id == user.RoleId).Name);
             objFromDb.Name = user.Name;
             TempData["Success"] = $"User ('{objFromDb.Name}') updated successfully";
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-
-
-
-            user.RoleList = _db.Roles.Select(u => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-            {
-                Text = u.Name,
-                Value = u.Id
-            });
-            return View(user);
         }
 
+        // Deletes a user and their associated devices
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(string userId)
@@ -122,15 +103,14 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 TempData["Success"] = $"User '{obj.Name}' deleted successfully!";
                 return RedirectToAction(nameof(Index));
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 TempData["Error"] = "An error occurred while deleting the user. Please try again.";
-                // Optionally log the exception: _logger.LogError(ex, "Error deleting user {UserId}", userId);
                 return RedirectToAction(nameof(Index));
             }
         }
 
-        //[HttpPost]
+        // Locks or unlocks a user account
         public IActionResult LockUnlock(string userId)
         {
             var objFromDb = _db.ApplicationUsers.FirstOrDefault(u => u.Id == userId);
@@ -139,6 +119,7 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 TempData["Error"] = "User not found! The account may have been deleted or doesn't exist.";
                 return NotFound();
             }
+
             if (objFromDb.LockoutEnd != null && objFromDb.LockoutEnd > DateTime.Now)
             {
                 objFromDb.LockoutEnd = DateTime.Now;
@@ -149,9 +130,9 @@ namespace Clothes_Store.Areas.Admin.Controllers
                 objFromDb.LockoutEnd = DateTime.Now.AddDays(10);
                 TempData["Success"] = $"Successfully locked user ({objFromDb.Name}) for 10 days!";
             }
+
             _db.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
-
     }
 }
