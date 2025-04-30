@@ -1,72 +1,285 @@
-﻿<section id="page-header" class="about-header" style="background-image: url('@Url.Content("~/img/about/about.png")');">
-    <h2>#KnowUs</h2>
-    <p>Know What We Are And What We Do!</p>
-</section>
+﻿    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-<section id="about-head" class="section-p1">
-    <img src="~/img/about/a6.jpg">
-    <div>
-        <h2>Who We Are?</h2>
-        <p>
-            We are a clothing manufacturing and selling company.
-            We have branches in countries around the world.
-            We have clothes for children, men and women.
-        </p>
-        <abbr title="">
-            Create Stunning images with as much or as
-            litthle control as you like thanks to a choice of basic
-            and creative modes.
-        </abbr>
-        <br><br>
-        <marquee bgcolor="#ccc" loop="-1" scrollamount="5" width="100%">
-            Create Stunning images with as much or as
-            litthle control as you like thanks to a choice of basic
-            and creative modes.
-        </marquee>
-    </div>
-</section>
+        /* Page Header */
+        #page-header {
+            background-image: url('~/img/about/about.png');
+            background-size: cover;
+            background-position: center;
+            height: 40vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
 
-<section class="about-app" class="-p1">
-    <h1 class="krs">Download Our <a href="#">App</a></h1>
-    <div class="video">
-        <video autoplay muted loop src="~/img/about/1.mp4"></video>
-    </div>
-</section>
+            #page-header::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 1;
+            }
 
-<section id="feature" class="section-p1">
-    <div class="fe-box">
-        <img src="~/img/features/f1.png" alt="">
-        <h6>Free shipping</h6>
-    </div>
-    <div class="fe-box">
-        <img src="~/img/features/f2.png" alt="">
-        <h6>Online Order</h6>
-    </div>
-    <div class="fe-box">
-        <img src="~/img/features/f3.png" alt="">
-        <h6>Save Money</h6>
-    </div>
-    <div class="fe-box">
-        <img src="~/img/features/f4.png" alt="">
-        <h6>Promotions</h6>
-    </div>
-    <div class="fe-box">
-        <img src="~/img/features/f5.png" alt="">
-        <h6>Happy Sell</h6>
-    </div>
-    <div class="fe-box">
-        <img src="~/img/features/f6.png" alt="">
-        <h6>F24/7 Support </h6>
-    </div>
-</section>
+            #page-header h2, #page-header p {
+                position: relative;
+                z-index: 2;
+            }
 
-<section id="newsletter" class="section-p1 section-m1">
-    <div class="newstext">
-        <h4> Sign Up For Newsletter</h4>
-        <p> Get E-mail updates about our latest shop and <span>special offers</span></p>
-    </div>
-    <div class="form">
-        <input type="text" placeholder="Your Email Address">
-        <button class="normal"> Sign Up</button>
-    </div>
-</section>
+            #page-header h2 {
+                font-size: 3rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 2px;
+            }
+
+            #page-header p {
+                font-size: 1.2rem;
+                margin-top: 10px;
+            }
+
+        /* About Section */
+        #about-head {
+            display: flex;
+            align-items: center;
+            padding: 40px 80px;
+            background: #f9f9f9;
+        }
+
+            #about-head img {
+                width: 40%;
+                height: auto;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            #about-head div {
+                width: 60%;
+                padding-left: 40px;
+            }
+
+            #about-head h2 {
+                font-size: 2.5rem;
+                color: #1a1a1a;
+                margin-bottom: 20px;
+            }
+
+            #about-head p {
+                font-size: 1rem;
+                color: #465b52;
+                line-height: 1.8;
+                margin-bottom: 20px;
+            }
+
+        /* About App */
+        .about-app {
+            text-align: center;
+            padding: 40px 80px;
+            background: #fff;
+        }
+
+            .about-app h1 {
+                font-size: 2.5rem;
+                color: #1a1a1a;
+                margin-bottom: 20px;
+            }
+
+                .about-app h1 a {
+                    color: #088178;
+                    text-decoration: none;
+                    font-weight: 700;
+                }
+
+                    .about-app h1 a:hover {
+                        text-decoration: underline;
+                    }
+
+            .about-app .video {
+                width: 50%;
+                margin: 0 auto;
+            }
+
+            .about-app video {
+                width: 100%;
+                height: auto;
+                border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+
+        /* Features Section */
+        #feature {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 40px 80px;
+            background: #f9f9f9;
+        }
+
+        .fe-box {
+            width: 180px;
+            text-align: center;
+            padding: 25px 15px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin: 15px 0;
+        }
+
+            .fe-box:hover {
+                transform: translateY(-10px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .fe-box img {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .fe-box h6 {
+                font-size: 1rem;
+                color: #088178;
+                font-weight: 600;
+            }
+
+        /* Responsive Design */
+        @@media (max-width: 799px) {
+            #about-head
+
+        {
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        #about-head img {
+            width: 80%;
+        }
+
+        #about-head div {
+            width: 100%;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .about-app .video {
+            width: 90%;
+        }
+
+        #feature {
+            justify-content: center;
+        }
+
+        }
+
+        @@media (max-width: 477px) {
+            #page-header h2
+
+        {
+            font-size: 2rem;
+        }
+
+        #page-header p {
+            font-size: 1rem;
+        }
+
+        #about-head h2, .about-app h1 {
+            font-size: 1.8rem;
+        }
+
+        }
+    </style>
+    <section id="page-header" class="about-header" style="background-image: url('@Url.Content("~/img/about/about.png")');">
+        <h2>#KnowUs</h2>
+        <p>Know What We Are And What We Do!</p>
+    </section>
+
+    <section id="about-head" class="section-p1">
+        <img src="~/img/about/a6.jpg" alt="About LushThreads">
+        <div>
+            <h2>Who We Are?</h2>
+            <p>
+                We are a clothing manufacturing and selling company.
+                We have branches in countries around the world.
+                We have clothes for children, men, and women.
+            </p>
+            <marquee bgcolor="#ccc" loop="-1" scrollamount="5" width="100%">
+                Create Stunning images with as much or as litthle control as you like thanks to a choice of basic and creative modes.
+            </marquee>
+        </div>
+    </section>
+
+    <section class="about-app section-p1">
+        <h1>Download Our <a href="#">App</a></h1>
+        <div class="video">
+            <video autoplay muted loop src="~/img/about/1.mp4"></video>
+        </div>
+    </section>
+
+    <section id="feature" class="section-p1">
+        <div class="fe-box">
+            <img src="~/img/features/f1.png" alt="Free Shipping">
+            <h6>Free Shipping</h6>
+        </div>
+        <div class="fe-box">
+            <img src="~/img/features/f2.png" alt="Online Order">
+            <h6>Online Order</h6>
+        </div>
+        <div class="fe-box">
+            <img src="~/img/features/f3.png" alt="Save Money">
+            <h6>Save Money</h6>
+        </div>
+        <div class="fe-box">
+            <img src="~/img/features/f4.png" alt="Promotions">
+            <h6>Promotions</h6>
+        </div>
+        <div class="fe-box">
+            <img src="~/img/features/f5.png" alt="Happy Sell">
+            <h6>Happy Sell</h6>
+        </div>
+        <div class="fe-box">
+            <img src="~/img/features/f6.png" alt="24/7 Support">
+            <h6>24/7 Support</h6>
+        </div>
+    </section>
+
+    <section id="newsletter" class="px-6 sm:px-8 lg:px-12 py-12 bg-[#c1e3d6] rounded-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;utf8,<svg width=\" 100\" height=\"100\" transform=\"rotate(25)\" opacity=\"0.2\" version=\"1.1\" viewBox=\"0 0 100 100\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"%23088178\" /></svg></div>
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-8 lg:gap-12 relative z-10">
+            <div class="newsletter-content flex items-center gap-6 group cursor-pointer">
+                <div class="icon-container w-16 h-16 rounded-xl bg-white/30 backdrop-blur-md flex items-center justify-center shadow-sm hover:shadow-md hover:bg-white/40 transition-all">
+                    <i class="fas fa-envelope-open-text text-2xl text-[#1B201E] opacity-90"></i>
+                </div>
+                <div class="text-content space-y-1">
+                    <h3 class="text-2xl lg:text-3xl font-bold text-[#1B201E] leading-tight">
+                        Style Updates & Offers
+                        <span class="block text-[#088178] mt-1">20% First Order</span>
+                    </h3>
+                    <p class="text-[#1B201E]/90 font-medium text-sm lg:text-base">
+                        Get exclusive access to new arrivals and special promotions
+                    </p>
+                </div>
+            </div>
+            <form class="subscription-form w-full lg:w-[480px] flex flex-col sm:flex-row gap-3 items-center">
+                <div class="email-input-wrapper relative w-full group">
+                    <input type="email" placeholder="Enter your email" class="w-full h-12 px-5 pr-12 text-[#1B201E] bg-white/90 backdrop-blur-sm rounded-full border-2 border-transparent focus:border-[#088178]/50 focus:ring-0 transition-all" required>
+                    <i class="fas fa-paper-plane text-[#088178] absolute right-4 top-1/2 -translate-y-1/2 transition-transform duration-300"></i>
+                </div>
+                <button type="submit" class="subscribe-btn h-12 px-8 bg-[#088178] hover:bg-[#066156] text-white font-medium rounded-full transition-all transform hover:scale-[1.02] active:scale-95 flex items-center gap-2">
+                    Subscribe Now
+                    <i class="fas fa-arrow-right text-sm opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>
+                </button>
+            </form>
+        </div>
+    </section>

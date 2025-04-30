@@ -96,41 +96,6 @@ body {
     transition: 0.2s;
 }
 
-.krkr {
-    font-size: 14px;
-    font-weight: 300;
-    padding: 15px 30px;
-    color: #000;
-    background-color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-    outline: none;
-    transition: 0.2s;
-}
-
-    .krkr:hover {
-        box-shadow: 10px 10px 54px rgba(72, 62, 221, 0.1);
-    }
-
-#krkr .krkr {
-    font-size: 16px;
-    font-weight: 600;
-    padding: 15px 30px;
-    color: white;
-    background-color: #088178;
-    border-radius: 4px;
-    cursor: pointer;
-    border: none;
-    outline: none;
-    transition: 0.2s;
-}
-
-    #krkr .krkr:hover {
-        background: #088178;
-        color: #fff;
-    }
-
 /* Hero Section */
 #hero {
     background-image: url("../img/hero6.png");
@@ -221,7 +186,6 @@ body {
     background-color: #fff2e5;
 }
 
-/* Product Section */
 /* Product Section */
 #product1 {
     text-align: center;

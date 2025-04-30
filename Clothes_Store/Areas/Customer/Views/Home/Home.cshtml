@@ -11,95 +11,698 @@
 }
 <link rel="stylesheet" href="~/css/style.css">
 <style>
-    /* Animation styles */
-    .scroll-animate .animated-element {
+    /* Quick View Modal */
+.quick-view-modal {
+    background-color: white;
+    border-radius: 0.75rem; /* Softer corners */
+    width: 90%;
+    max-width: 700px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Enhanced shadow for depth */
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-view-content {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.quick-view-image {
+    flex: 1;
+}
+
+.quick-view-image img {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    border-radius: 0.5rem;
+    object-fit: cover;
+}
+
+.quick-view-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.quick-view-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.quick-view-rating i {
+    color: #f5c518;
+    font-size: 1rem; /* Slightly larger for visibility */
+}
+
+.quick-view-price {
+    font-size: 1.5rem; /* Larger for emphasis */
+    font-weight: 600;
+    color: #088178;
+}
+
+.quick-view-description {
+    font-size: 0.95rem;
+    color: #666;
+    line-height: 1.6;
+}
+
+.quick-view-sizes {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.size-label {
+    font-weight: 500;
+    color: #333;
+    font-size: 1rem;
+}
+
+.quick-view-modal .size-options {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.quick-view-modal .size-option {
+    border: 1px solid #cce7d0;
+    background-color: #e8f6ea;
+    color: #088178;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-size: 0.9rem;
+    min-width: 50px;
+    flex: 0 0 auto;
+}
+
+.quick-view-modal .size-option:hover {
+    background-color: #088178;
+    color: white;
+    border-color: #088178;
+    transform: scale(1.05); /* Subtle hover animation */
+}
+
+.quick-view-modal .size-option.selected {
+    background-color: #088178;
+    color: white;
+    border-color: #088178;
+}
+
+.quick-view-actions {
+    margin-top: 1rem;
+}
+
+.quick-view-actions .confirm-button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    background-color: #088178;
+    border: 1px solid #088178;
+    color: white;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quick-view-actions .confirm-button:hover {
+    background-color: #066156;
+    transform: scale(1.02);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.75rem; /* Larger for easy tapping */
+    cursor: pointer;
+    color: #666;
+    transition: color 0.2s ease;
+}
+
+.close-modal:hover {
+    color: #088178;
+}
+
+/* Quantity Selector */
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0;
+    justify-content: flex-start;
+}
+
+.quantity-label {
+    margin-right: 1rem;
+    font-weight: 500;
+    color: #333;
+    font-size: 1rem;
+}
+
+.quantity-controls {
+    display: flex;
+    align-items: center;
+    border: 1px solid #cce7d0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: #f8f9fa;
+}
+
+.quantity-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+    background-color: #e8f6ea;
+    border: none;
+    font-size: 1.2rem;
+    color: #088178;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.quantity-btn:hover {
+    background-color: #cce7d0;
+}
+
+.quantity-input {
+    width: 3.5rem;
+    height: 2.5rem;
+    text-align: center;
+    border: none;
+    border-left: 1px solid #cce7d0;
+    border-right: 1px solid #cce7d0;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0 0.5rem;
+    -moz-appearance: textfield;
+    background-color: white;
+}
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.quantity-input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.2);
+}
+
+/* Modal Animation */
+    @@keyframes modalFadeIn {
+    from {
         opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        transform: scale(0.95);
     }
-
-    .scroll-animate.visible .animated-element {
+    to {
         opacity: 1;
-        transform: translateY(0);
+        transform: scale(1);
+    }
+}
+
+.animate-modal {
+    animation: modalFadeIn 0.3s ease-out forwards;
+}
+
+/* Mobile-Specific Styles for Quick View Modal */
+    @@media (max-width: 768px) {
+    .quick-view-modal {
+        max-width: 90%; /* Smaller width */
+        padding: 0.75rem; /* Minimal padding */
+        border-radius: 0.5rem;
+        max-height: 80vh; /* Limit height */
+        overflow-y: auto; /* Scroll if content overflows */
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Stronger shadow for depth */
     }
 
-        /* Delay children */
-        .scroll-animate.visible .animated-element:nth-child(1) {
-            transition-delay: 0.1s;
-        }
-
-        .scroll-animate.visible .animated-element:nth-child(2) {
-            transition-delay: 0.3s;
-        }
-
-        .scroll-animate.visible .animated-element:nth-child(3) {
-            transition-delay: 0.5s;
-        }
-
-        .scroll-animate.visible .animated-element:nth-child(4) {
-            transition-delay: 0.7s;
-        }
-
-    /* Add to your existing banner CSS */
-    .banner-main {
-        @@apply relative overflow-hidden rounded-[1.5rem] h-[480px] isolate;
+    .quick-view-content {
+        flex-direction: column; /* Stack image and details */
+        gap: 0.75rem; /* Tighter gap */
     }
 
-    .banner-content {
-        @@apply relative z-10 p-8 h-full flex flex-col justify-center space-y-5 text-white;
-    }
-    /* Category Filter */
-    .filter-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .filter-options {
-        display: flex;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .filter-btn {
-        padding: 0.5rem 1rem;
-        border: 1px solid #eeeeee;
-        border-radius: 0.25rem;
-        background-color: #eeeeee;
-        color: #454545;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        font-size: 0.95rem;
-        font-weight: 500;
-    }
-
-        .filter-btn:hover {
-            background-color: #fde1bd;
-            border-color: #fde1bd;
-            transform: translateY(-4px);
-            color: #088178;
-        }
-
-        .filter-btn.active {
-            background-color: #fde1bd;
-            border-color: #fde1bd;
-            color: #088178;
-            font-weight: 600;
-            transform: translateY(-2px);
-        }
-    @@media (min-width: 1024px) {
-        .pro
-
-    {
+    .quick-view-image {
         width: 100%;
-        max-width: 160px; /* Adjust as needed to fit 8 items */
+        display: flex;
+        justify-content: center;
+    }
+
+    .quick-view-image img {
+        max-width: 150px; /* Smaller image */
+        max-height: 150px;
+        border-radius: 0.5rem;
+    }
+
+    .quick-view-details {
+        gap: 0.5rem; /* Tighter spacing */
+    }
+
+    .modal-title {
+        font-size: 1.1rem; /* Smaller title */
+    }
+
+    .quick-view-price {
+        font-size: 1.1rem;
+    }
+
+    .quick-view-description {
+        font-size: 0.8rem;
+        line-height: 1.4;
+        max-height: 50px; /* Limit height */
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .quick-view-sizes {
+        gap: 0.3rem;
+    }
+
+    .size-label {
+        font-size: 0.85rem;
+    }
+
+    .quick-view-modal .size-options {
+        gap: 0.3rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .quick-view-modal .size-option {
+        padding: 0.3rem 0.7rem;
+        font-size: 0.8rem;
+        min-width: 35px;
+    }
+
+    .quantity-selector {
+        flex-direction: column; /* Stack label and controls */
+        align-items: flex-start;
+        gap: 0.3rem;
+        margin: 0.75rem 0;
+    }
+
+    .quantity-label {
+        font-size: 0.85rem;
+    }
+
+    .quantity-controls {
+        width: 100%; /* Full width for touch */
+    }
+
+    .quantity-btn {
+        width: 2.25rem; /* Tappable size */
+        height: 2.25rem;
+        font-size: 1rem;
+    }
+
+    .quantity-input {
+        width: 3rem;
+        height: 2.25rem;
+        font-size: 0.85rem;
+    }
+
+    .quick-view-actions .confirm-button {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+        border-radius: 0.5rem;
+    }
+
+    .close-modal {
+        font-size: 1.25rem; /* Tappable size */
+        position: absolute;
+        top: 0.5rem;
+        right: 0.5rem;
+    }
+}
+
+    @@media (max-width: 480px) {
+    .quick-view-modal {
+        max-width: 95%;
+        padding: 0.5rem;
+        max-height: 75vh;
+    }
+
+    .quick-view-image img {
+        max-width: 120px;
+        max-height: 120px;
+    }
+
+    .modal-title {
+        font-size: 1rem;
+    }
+
+    .quick-view-price {
+        font-size: 1rem;
+    }
+
+    .quick-view-description {
+        font-size: 0.75rem;
+        max-height: 40px;
+    }
+
+    .quick-view-modal .size-option {
+        padding: 0.25rem 0.6rem;
+        font-size: 0.75rem;
+        min-width: 30px;
+    }
+
+    .quantity-btn {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .quantity-input {
+        width: 2.5rem;
+        height: 2rem;
+        font-size: 0.8rem;
+    }
+
+    .quick-view-actions .confirm-button {
+        padding: 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    .close-modal {
+        font-size: 1.1rem;
+    }
+}
+
+/* Size and Quantity Selection Modal Size Options */
+.size-modal .size-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.size-modal .size-option {
+    border: 1px solid #cce7d0;
+    background-color: #e8f6ea;
+    color: #088178;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.size-modal .size-option:hover {
+    background-color: #088178;
+    color: white;
+    border-color: #088178;
+}
+
+.size-modal .size-option.active {
+    background-color: #088178;
+    color: white;
+    border-color: #088178;
+}
+
+.size-modal .size-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    text-decoration: line-through;
+    position: relative;
+}
+
+.size-modal .size-option.disabled::after {
+    content: "×";
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Size Modal */
+.size-modal {
+    background-color: white;
+    border-radius: 0.5rem;
+    width: 90%;
+    max-width: 400px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+}
+
+.modal-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cancel-button {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    color: #333;
+}
+
+.confirm-button {
+    background-color: #088178;
+    border: 1px solid #088178;
+    color: white;
+}
+
+.confirm-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Stock Info */
+.stock-info {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+/* Mobile-specific styles for Home Banner */
+   @@media (max-width: 768px) {
+    #home-banner {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+
+    #home-banner .relative {
+        height: 300px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    #home-banner .bg-[url('/img/banner/HomeBanner.png')] {
+        background-size: 100% auto;
+        background-position: center 30%;
+    }
+
+    #home-banner .bg-black\/30 {
+        opacity: 0.4;
+    }
+
+    #home-banner .p-4 {
+        padding: 1rem;
+    }
+
+    #home-banner h2 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+        color: #fff;
+    }
+
+    #home-banner p {
+        font-size: 1.25rem;
+        line-height: 1.4;
+        color: #fff;
+    }
+
+    #home-banner a {
+        padding: 0.75rem 2rem;
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        width: auto;
+        max-width: 200px;
+    }
+
+    #home-banner a svg {
+        height: 1.25rem;
+        width: 1.25rem;
+    }
+
+    @@keyframes fade-in {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fade-in 0.8s ease-out forwards;
+    }
+}
+
+    @@media (min-width: 769px) {
+    #home-banner .bg-black\/30 {
+        opacity: 0;
+    }
+
+    #home-banner h2 {
+        color: #088178;
+    }
+
+    #home-banner p {
+        color: #000;
+    }
+}
+
+/* Animation styles */
+.scroll-animate .animated-element {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.scroll-animate.visible .animated-element {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.scroll-animate.visible .animated-element:nth-child(1) {
+    transition-delay: 0.1s;
+}
+
+.scroll-animate.visible .animated-element:nth-child(2) {
+    transition-delay: 0.3s;
+}
+
+.scroll-animate.visible .animated-element:nth-child(3) {
+    transition-delay: 0.5s;
+}
+
+.scroll-animate.visible .animated-element:nth-child(4) {
+    transition-delay: 0.7s;
+}
+
+/* Banner styles */
+.banner-main {
+    @@apply relative overflow-hidden rounded-[1.5rem] h-[480px] isolate;
+}
+
+.banner-content {
+   @@apply relative z-10 p-8 h-full flex flex-col justify-center space-y-5 text-white;
+}
+
+/* Category Filter */
+.filter-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-options {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #eeeeee;
+    border-radius: 0.25rem;
+    background-color: #eeeeee;
+    color: #454545;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.filter-btn:hover {
+    background-color: #fde1bd;
+    border-color: #fde1bd;
+    transform: translateY(-4px);
+    color: #088178;
+}
+
+.filter-btn.active {
+    background-color: #fde1bd;
+    border-color: #fde1bd;
+    color: #088178;
+    font-weight: 600;
+    transform: translateY(-2px);
+}
+
+    @@media (min-width: 1024px) {
+    .pro {
+        width: 100%;
+        max-width: 160px;
     }
 
     .pro img {
-        height: 160px; /* Maintain aspect ratio */
+        height: 160px;
         object-fit: cover;
     }
 
@@ -116,102 +719,99 @@
     .pro .star i {
         font-size: 0.75rem;
     }
+}
 
-    }
-</style>
-<style>
-    .pro-cart-button {
-        width: 40px;
-        height: 40px;
-        line-height: 40px;
-        border-radius: 50px;
-        background-color: #e8f6ea;
-        font-weight: 500;
-        color: #088178;
-        border: 1px solid #cce7d0;
-        position: absolute;
-        bottom: 20px;
-        right: 10px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 0;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
+.pro-cart-button {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    border-radius: 50px;
+    background-color: #e8f6ea;
+    font-weight: 500;
+    color: #088178;
+    border: 1px solid #cce7d0;
+    position: absolute;
+    bottom: 20px;
+    right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
 
-        .pro-cart-button:hover {
-            background-color: #cce7d0;
-            color: #066156;
-            transform: scale(1.05);
-        }
-    /* Category Slider */
-    #categoriesWrapper {
-        overflow-x: hidden;
-    }
+.pro-cart-button:hover {
+    background-color: #cce7d0;
+    color: #066156;
+    transform: scale(1.05);
+}
 
-    #categoriesContainer {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 1rem;
-        will-change: transform;
-        backface-visibility: hidden;
-        perspective: 1000;
-        scroll-snap-type: x mandatory;
-    }
+/* Category Slider */
+#categoriesWrapper {
+    overflow-x: hidden;
+}
 
-    .category-card {
-        flex: 0 0 auto;
-        width: 200px;
-        height: 240px;
-        padding: 0.75rem;
-        border: 1px solid #cce7d0;
-        border-radius: 1.5rem;
-        cursor: pointer;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
-        transition: box-shadow 0.2s ease, transform 0.2s ease;
-        background-color: #fff;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: space-between;
-        position: relative;
-        scroll-snap-align: start;
-    }
+#categoriesContainer {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000;
+    scroll-snap-type: x mandatory;
+}
 
-        .category-card:hover {
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06);
-            transform: translateY(-4px);
-        }
+.category-card {
+    flex: 0 0 auto;
+    width: 200px;
+    height: 240px;
+    padding: 0.75rem;
+    border: 1px solid #cce7d0;
+    border-radius: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    scroll-snap-align: start;
+}
 
-        .category-card img {
-            width: 100%;
-            height: auto;
-            max-height: 160px;
-            object-fit: cover;
-            border-radius: 1.25rem;
-        }
+.category-card:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06);
+    transform: translateY(-4px);
+}
 
-        .category-card h4.category-name {
-            font-size: 1rem;
-            line-height: 1.5rem;
-            font-weight: 600;
-            color: #222;
-            margin-top: 0.5rem;
-            text-align: center;
-        }
+.category-card img {
+    width: 100%;
+    height: auto;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: 1.25rem;
+}
 
-        .category-card:hover h4.category-name {
-            color: #088178;
-            transform: scale(1.05);
-        }
+.category-card h4.category-name {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 600;
+    color: #222;
+    margin-top: 0.5rem;
+    text-align: center;
+}
 
-    /* Responsive Adjustments */
+.category-card:hover h4.category-name {
+    color: #088178;
+    transform: scale(1.05);
+}
+
+/* Responsive Adjustments */
     @@media (max-width: 1280px) {
-        .category-card
-
-    {
+    .category-card {
         width: 180px;
         height: 220px;
     }
@@ -224,13 +824,10 @@
         font-size: 0.875rem;
         line-height: 1.25rem;
     }
-
-    }
+}
 
     @@media (max-width: 768px) {
-        #popular-categories .navigation-buttons, #popular-Brands .navigation-buttons
-
-    {
+    #popular-categories .navigation-buttons, #popular-Brands .navigation-buttons {
         display: none;
     }
 
@@ -249,14 +846,14 @@
         margin-bottom: 1rem;
     }
 
-        .category-card img {
-            max-height: 110px;
-        }
+    .category-card img {
+        max-height: 110px;
+    }
 
-        .category-card h4.category-name {
-            font-size: 0.875rem;
-            line-height: 1.25rem;
-        }
+    .category-card h4.category-name {
+        font-size: 0.875rem;
+        line-height: 1.25rem;
+    }
 
     #popular-categories .flex.items-center.mb-12,
     #popular-Brands .flex.items-center.mb-12 {
@@ -264,13 +861,10 @@
         align-items: flex-start;
         gap: 1rem;
     }
-
-    }
+}
 
     @@media (max-width: 480px) {
-        .category-card
-
-    {
+    .category-card {
         flex: 0 0 calc(50% - 0.5rem);
         max-width: 160px;
         height: 160px;
@@ -297,148 +891,141 @@
         gap: 0.5rem;
         justify-content: center;
     }
+}
 
-    }
+/* New Arrivals */
+#brandsWrapper {
+    overflow-x: hidden;
+}
 
-    /* New Arrivals */
-    #brandsWrapper {
-        overflow-x: hidden;
-    }
+#brandsContainer {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 1rem;
+    will-change: transform;
+    backface-visibility: hidden;
+    perspective: 1000;
+    scroll-snap-type: x mandatory;
+}
 
-    #brandsContainer {
-        display: flex;
-        flex-wrap: nowrap;
-        gap: 1rem;
-        will-change: transform;
-        backface-visibility: hidden;
-        perspective: 1000;
-        scroll-snap-type: x mandatory;
-    }
+/* Three Banners */
+.banners {
+    background-color: #fff;
+    padding: 1rem 1rem 5rem 1rem;
+}
 
-    /* Three Banners */
-    .banners {
-        background-color: #fff;
-        padding: 1rem 1rem 5rem 1rem;
-    }
+.banner-img {
+    position: relative;
+    overflow: hidden;
+}
 
-    .banner-img {
-        position: relative;
-        overflow: hidden;
-    }
+.banner-text {
+    position: absolute;
+    top: 50%;
+    right: 10%;
+    transform: translateY(-50%);
+    text-align: left;
+    color: #fff;
+    transition: transform 0.3s ease;
+}
 
-    .banner-text {
-        position: absolute;
-        top: 50%;
-        right: 10%;
-        transform: translateY(-50%);
-        text-align: left;
-        color: #fff;
-        transition: transform 0.3s ease;
-    }
+.banner-img:hover .banner-text {
+    transform: translateY(-50%) translateX(-10px);
+}
 
-    .banner-img:hover .banner-text {
-        transform: translateY(-50%) translateX(-10px);
-    }
+.banner-text span {
+    font-size: 14px;
+    font-weight: 400;
+    display: block;
+    color: silver;
+    font-family: 'Roboto', sans-serif;
+}
 
-    .banner-text span {
-        font-size: 14px;
-        font-weight: 400;
-        display: block;
-        color: silver;
-        font-family: 'Roboto', sans-serif;
-    }
+.banner-text h4 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 10px 0;
+    font-family: 'Roboto', sans-serif;
+}
 
-    .banner-text h4 {
-        font-size: 24px;
-        font-weight: 600;
-        margin: 10px 0;
-        font-family: 'Roboto', sans-serif;
-    }
+.banner-text a {
+    color: #088178;
+    text-decoration: none;
+    font-weight: 300;
+    font-family: 'Arial', sans-serif;
+}
 
-    .banner-text a {
-        color: #088178;
-        text-decoration: none;
-        font-weight: 300;
-        font-family: 'Arial', sans-serif;
-    }
+.banner-text a:hover {
+    color: #046963;
+}
 
-        .banner-text a:hover {
-            color: #046963;
-        }
+.wow {
+    visibility: hidden;
+}
 
-    .wow {
-        visibility: hidden;
-    }
-
-        .wow.fadeIn {
-            animation-name: fadeIn;
-            animation-duration: 1s;
-            animation-fill-mode: both;
-        }
+.wow.fadeIn {
+    animation-name: fadeIn;
+    animation-duration: 1s;
+    animation-fill-mode: both;
+}
 
     @@keyframes fadeIn {
-        from
-
-    {
+    from {
         opacity: 0;
     }
-
     to {
         opacity: 1;
     }
+}
 
-    }
+.banner-img img {
+    width: 100%;
+    height: auto;
+    display: block;
+    aspect-ratio: 16/9;
+}
 
-    .banner-img img {
-        width: 100%;
-        height: auto;
-        display: block;
-        aspect-ratio: 16/9;
-    }
+.container {
+    width: 100%;
+    padding-right: 8px;
+    padding-left: 8px;
+    margin-right: auto;
+    margin-left: auto;
+    max-width: 80rem;
+}
 
-    .container {
-        width: 100%;
-        padding-right: 8px;
-        padding-left: 8px;
-        margin-right: auto;
-        margin-left: auto;
-        max-width: 80rem;
-    }
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -8px;
+    margin-left: -8px;
+    gap: 0.5rem;
+}
 
-    .row {
-        display: flex;
-        flex-wrap: wrap;
-        margin-right: -8px;
-        margin-left: -8px;
-        gap: 0.5rem;
-    }
+.col-lg-4 {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+    padding: 0 8px;
+}
 
-    .col-lg-4 {
-        flex: 0 0 33.333333%;
-        max-width: 33.333333%;
-        padding: 0 8px;
-    }
+.d Ascot: none;
+display: block !important;
+}
 
-    .d Ascot: none;
+.d-md-none {
     display: block !important;
-    }
+}
 
-    .d-md-none {
-        display: block !important;
-    }
+.d-lg-flex {
+    display: block !important;
+}
 
-    .d-lg-flex {
-        display: block !important;
-    }
-
-    .mb-sm-0 {
-        margin-bottom: 0;
-    }
+.mb-sm-0 {
+    margin-bottom: 0;
+}
 
     @@media (max-width: 639px) {
-        .banner-img
-
-    {
+    .banner-img {
         max-width: 100%;
         margin: 0 auto;
     }
@@ -459,23 +1046,17 @@
         flex: 0 0 100%;
         max-width: 100%;
     }
-
-    }
+}
 
     @@media (min-width: 640px) {
-        .banners
-
-    {
+    .banners {
         padding-left: 1.5rem;
         padding-right: 1.5rem;
     }
-
-    }
+}
 
     @@media (min-width: 768px) {
-        .col-lg-4
-
-    {
+    .col-lg-4 {
         flex: 0 0 33.333333%;
         max-width: 33.333333%;
     }
@@ -487,13 +1068,10 @@
     .d-lg-flex {
         display: flex !important;
     }
-
-    }
+}
 
     @@media (min-width: 1024px) {
-        .banners
-
-    {
+    .banners {
         padding-left: 2rem;
         padding-right: 2rem;
     }
@@ -501,648 +1079,286 @@
     .row {
         flex-wrap: nowrap;
     }
+}
 
-    }
+#brands {
+    background-color: #ffffff !important;
+}
 
-    #brands {
-        background-color: #ffffff !important;
-    }
+body {
+    background-color: #ffffff !important;
+    margin: 0;
+}
 
-    body {
-        background-color: #ffffff !important;
-        margin: 0;
-    }
+section, div {
+    background-color: transparent;
+}
 
-    section, div {
-        background-color: transparent;
-    }
+/* Back to top button */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    background-color: #088178;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 999;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
 
-    /* Back to top button */
-    .back-to-top {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 50px;
-        height: 50px;
-        background-color: #088178;
-        color: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        cursor: pointer;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-        z-index: 999;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
+.back-to-top:hover {
+    background-color: #066156;
+    transform: translateY(-3px);
+}
 
-        .back-to-top:hover {
-            background-color: #066156;
-            transform: translateY(-3px);
-        }
-
-        .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-        }
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
 
     @@media (max-width: 768px) {
-        .back-to-top
-
-    {
+    .back-to-top {
         width: 40px;
         height: 40px;
         font-size: 16px;
         bottom: 20px;
         right: 20px;
     }
+}
 
-    }
+#hero button a {
+    text-decoration: none;
+    color: #088178;
+}
 
-    #hero button a {
-        text-decoration: none;
-        color: #088178;
-    }
-
-    #hero {
-        background-image: url("../img/hero6.png");
-    }
+#hero {
+    background-image: url("../img/hero6.png");
+}
 
     @@media (max-width: 477px) {
-        #hero
-
-    {
+    #hero {
         padding-bottom: 90px;
         background-position: 50% 30%;
         height: 70vh;
     }
+}
 
-    }
+/* Notification styles */
+.notification-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+}
 
-    /* Notification styles */
-    .notification-container {
-        position: fixed;
-        top: 1.5rem;
-        right: 1.5rem;
-        z-index: 1000;
-    }
+.notification {
+    padding: 1rem 1.5rem;
+    color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    transform: translateX(150%);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
 
-    .notification {
-        padding: 1rem 1.5rem;
-        color: white;
-        border-radius: 0.75rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        display: flex;
-        align-items: center;
-        transform: translateX(150%);
-        transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        margin-bottom: 1rem;
-        position: relative;
-        overflow: hidden;
-    }
+.notification.success {
+    background-color: #088178;
+}
 
-        .notification.success {
-            background-color: #088178;
-        }
+.notification.error {
+    background-color: #ef4444;
+}
 
-        .notification.error {
-            background-color: #ef4444;
-        }
+.notification.show {
+    transform: translateX(0);
+}
 
-        .notification.show {
-            transform: translateX(0);
-        }
+.notification.hide {
+    transform: translateX(150%);
+    opacity: 0;
+}
 
-        .notification.hide {
-            transform: translateX(150%);
-            opacity: 0;
-        }
+.notification-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+}
 
-    .notification-icon {
-        margin-right: 0.75rem;
-        font-size: 1.25rem;
-    }
+.notification-close {
+    margin-left: 1rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
 
-    .notification-close {
-        margin-left: 1rem;
-        cursor: pointer;
-        opacity: 0.7;
-        transition: opacity 0.2s;
-    }
+.notification-close:hover {
+    opacity: 1;
+}
 
-        .notification-close:hover {
-            opacity: 1;
-        }
+.notification-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.3);
+}
 
-    .notification-progress {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 4px;
-        width: 100%;
-        background: rgba(255, 255, 255, 0.3);
-    }
-
-    .notification-progress-bar {
-        height: 100%;
-        width: 100%;
-        background: white;
-        animation: progress 3s linear forwards;
-        transform-origin: left;
-    }
+.notification-progress-bar {
+    height: 100%;
+    width: 100%;
+    background: white;
+    animation: progress 3s linear forwards;
+    transform-origin: left;
+}
 
     @@keyframes progress {
-        0%
-
-    {
+    0% {
         transform: scaleX(0);
     }
-
     100% {
         transform: scaleX(1);
     }
+}
 
-    }
-
-    /* Bounce animation for cart button */
+/* Bounce animation for cart button */
     @@keyframes bounce {
-        0%, 20%, 50%, 80%, 100%
-
-    {
+    0%, 20%, 50%, 80%, 100% {
         transform: translateY(0);
     }
-
     40% {
         transform: translateY(-10px);
     }
-
     60% {
         transform: translateY(-5px);
     }
+}
 
-    }
+.bounce-effect {
+    animation: bounce 1s;
+}
 
-    .bounce-effect {
-        animation: bounce 1s;
-    }
+/* View All Button */
+.view-all-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1.25rem;
+    background-color: #088178;
+    color: white;
+    border-radius: 4px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
 
-    /* Size selection modal styles */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-        opacity: 0;
-        visibility: hidden;
-        transition: all 0.3s ease;
-    }
+.view-all-btn:hover {
+    background-color: #066156;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
+.view-all-btn i {
+    transition: transform 0.3s ease;
+}
 
-    .size-modal {
-        background-color: white;
-        border-radius: 0.5rem;
-        width: 90%;
-        max-width: 400px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-
-    .modal-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #333;
-    }
-
-    .close-modal {
-        background: none;
-        border: none;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: #666;
-    }
-
-    .size-options {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .size-option {
-        border: 1px solid #cce7d0;
-        background-color: #e8f6ea;
-        color: #088178;
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-    }
-
-        .size-option:hover {
-            background-color: #088178;
-            color: white;
-            border-color: #088178;
-        }
-
-        .size-option.active {
-            background-color: #088178;
-            color: white;
-            border-color: #088178;
-        }
-
-        .size-option.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            text-decoration: line-through;
-            position: relative;
-        }
-
-            .size-option.disabled::after {
-                content: "×";
-                position: absolute;
-                top: -5px;
-                right: -5px;
-                background: #ef4444;
-                color: white;
-                border-radius: 50%;
-                width: 18px;
-                height: 18px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 12px;
-            }
-
-    .modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.75rem;
-    }
-
-    .modal-button {
-        padding: 0.5rem 1rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .cancel-button {
-        background-color: #f5f5f5;
-        border: 1px solid #ddd;
-        color: #333;
-    }
-
-    .confirm-button {
-        background-color: #088178;
-        border: 1px solid #088178;
-        color: white;
-    }
-
-        .confirm-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-    /* Quantity Selector Styles */
-    .quantity-selector {
-        display: flex;
-        align-items: center;
-        margin: 1.5rem 0;
-        justify-content: center;
-    }
-
-    .quantity-label {
-        margin-right: 1rem;
-        font-weight: 500;
-        color: #333;
-        font-size: 0.95rem;
-    }
-
-    .quantity-controls {
-        display: flex;
-        align-items: center;
-        border: 1px solid #cce7d0;
-        border-radius: 0.5rem;
-        overflow: hidden;
-        background-color: #f8f9fa;
-    }
-
-    .quantity-btn {
-        width: 2.5rem;
-        height: 2.5rem;
-        background-color: #e8f6ea;
-        border: none;
-        font-size: 1.2rem;
-        color: #088178;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-        padding: 0;
-    }
-
-        .quantity-btn:hover {
-            background-color: #cce7d0;
-        }
-
-    .quantity-input {
-        width: 3.5rem;
-        height: 2.5rem;
-        text-align: center;
-        border: none;
-        border-left: 1px solid #cce7d0;
-        border-right: 1px solid #cce7d0;
-        font-size: 1rem;
-        font-weight: 500;
-        padding: 0 0.5rem;
-        -moz-appearance: textfield;
-        background-color: white;
-    }
-
-        .quantity-input::-webkit-outer-spin-button,
-        .quantity-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-
-        .quantity-input:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(8, 129, 120, 0.2);
-        }
-
-    /* Stock info styles */
-    .stock-info {
-        font-size: 0.85rem;
-        color: #666;
-        margin-top: 0.5rem;
-        text-align: center;
-    }
-
-    /* Banner styles */
-    .banner-slide {
-        background-size: cover;
-        background-position: center;
-        opacity: 0;
-        z-index: 0;
-        transition: opacity 1s ease-in-out;
-    }
-
-        .banner-slide:first-child {
-            opacity: 1;
-            z-index: 1;
-        }
+.view-all-btn:hover i {
+    transform: translateX(4px);
+}
 
     @@media (max-width: 768px) {
-        #page-header
-
-    {
-        height: 30vh;
-    }
-
-    }
-
-    /* View All Button */
     .view-all-btn {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.5rem 1.25rem;
-        background-color: #088178;
-        color: white;
-        border-radius: 4px;
-        font-weight: 500;
-        text-decoration: none;
-        transition: all 0.3s ease;
-    }
-
-        .view-all-btn:hover {
-            background-color: #066156;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .view-all-btn i {
-            transition: transform 0.3s ease;
-        }
-
-        .view-all-btn:hover i {
-            transform: translateX(4px);
-        }
-
-    @@media (max-width: 768px) {
-        .view-all-btn
-
-    {
         padding: 0.4rem 1rem;
         font-size: 0.9rem;
     }
+}
 
+.product-brand,
+.product-description {
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.product-brand:hover,
+.product-description:hover {
+    color: #088178 !important;
+    transform: translateY(-1px);
+    cursor: pointer;
+    text-decoration: none;
+    text-underline-offset: 2px;
+}
+
+/* Icon Overlay for Quick View Button */
+.icon-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateX(20px);
+}
+
+.pro:hover .icon-overlay {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.icon-overlay button {
+    width: 38px;
+    height: 38px;
+    background-color: #088178;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease, background-color 0.3s ease;
+    cursor: pointer;
+    padding: 0;
+}
+
+.icon-overlay button:hover {
+    transform: scale(1.15);
+    background-color: #066156;
+}
+
+/* Banner styles */
+.banner-slide {
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    z-index: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.banner-slide:first-child {
+    opacity: 1;
+    z-index: 1;
+}
+
+    @@media (max-width: 768px) {
+    #page-header {
+        height: 30vh;
     }
-
-    .product-brand,
-    .product-description {
-        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
-        .product-brand:hover,
-        .product-description:hover {
-            color: #088178 !important;
-            transform: translateY(-1px);
-            cursor: pointer;
-            text-decoration: none;
-            text-underline-offset: 2px;
-        }
-
-    /* Quick View Modal */
-    .quick-view-modal {
-        background-color: white;
-        border-radius: 0.5rem;
-        width: 90%;
-        max-width: 700px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .quick-view-content {
-        display: flex;
-        gap: 1.5rem;
-    }
-
-    .quick-view-image {
-        flex: 1;
-    }
-
-        .quick-view-image img {
-            width: 100%;
-            max-width: 400px;
-            height: auto;
-            border-radius: 0.5rem;
-        }
-
-    .quick-view-details {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-
-    .quick-view-rating {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-        .quick-view-rating i {
-            color: #f5c518;
-            font-size: 0.9rem;
-        }
-
-    .quick-view-price {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #088178;
-    }
-
-    .quick-view-description {
-        font-size: 0.9rem;
-        color: #666;
-        line-height: 1.5;
-    }
-
-    .quick-view-sizes {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .size-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.75rem;
-    }
-    .size-label {
-        font-weight: 500;
-        color: #333;
-        font-size: 0.95rem;
-    }
-
-    .size-options {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .size-option {
-        border: 1px solid #cce7d0;
-        background-color: #e8f6ea;
-        color: #088178;
-        border-radius: 0.5rem;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-        font-size: 0.9rem;
-    }
-
-        .size-option:hover {
-            background-color: #088178;
-            color: white;
-            border-color: #088178;
-        }
-
-        .size-option.selected {
-            background-color: #088178;
-            color: white;
-            border-color: #088178;
-        }
-
-    .quick-view-actions {
-        margin-top: 1rem;
-    }
-
-        .quick-view-actions .confirm-button {
-            width: 100%;
-            padding: 0.75rem;
-            font-size: 1rem;
-            background-color: #088178;
-            border: 1px solid #088178;
-            color: white;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-            .quick-view-actions .confirm-button:hover {
-                background-color: #066156;
-                transform: scale(1.05);
-            }
-
-    /* Icon Overlay for Quick View Button */
-    .icon-overlay {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        opacity: 0;
-        transition: opacity 0.3s ease, transform 0.3s ease;
-        transform: translateX(20px);
-    }
-
-    .pro:hover .icon-overlay {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    .icon-overlay button {
-        width: 38px;
-        height: 38px;
-        background-color: #088178;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 16px;
-        border: 2px solid rgba(255, 255, 255, 0.8);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-        transition: transform 0.2s ease, background-color 0.3s ease;
-        cursor: pointer;
-        padding: 0;
-    }
-
-        .icon-overlay button:hover {
-            transform: scale(1.15);
-            background-color: #066156;
-        }
+}
 </style>
-
 
 <!-- Hero Section -->
 <section id="hero" class="px-8 sm:px-12 lg:px-16 max-w-7xl mx-auto">
@@ -1157,40 +1373,40 @@
     <div class="notification-container">
         <!-- Notifications will be added here dynamically -->
     </div>
-    <!-- Quick View Modal -->
-    <div class="modal-overlay" id="quickViewModal">
-        <div class="quick-view-modal">
-            <div class="modal-header">
-                <h3 class="modal-title" id="quickViewProductName"></h3>
-                <button class="close-modal" onclick="hideQuickViewModal()">×</button>
+<!-- Quick View Modal -->
+<div class="modal-overlay" id="quickViewModal">
+    <div class="quick-view-modal animate-modal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="quickViewProductName"></h3>
+            <button class="close-modal" onclick="hideQuickViewModal()">×</button>
+        </div>
+        <div class="quick-view-content">
+            <div class="quick-view-image">
+                <img id="quickViewProductImage" src="" alt="Product Image">
             </div>
-            <div class="quick-view-content">
-                <div class="quick-view-image">
-                    <img id="quickViewProductImage" src="" alt="Product Image">
+            <div class="quick-view-details">
+                <div class="quick-view-rating" id="quickViewRating"></div>
+                <h4 class="quick-view-price" id="quickViewPrice"></h4>
+                <p class="quick-view-description" id="quickViewDescription"></p>
+                <div class="quick-view-sizes">
+                    <span class="size-label">Size:</span>
+                    <div class="size-options" id="quickViewSizes"></div>
                 </div>
-                <div class="quick-view-details">
-                    <div class="quick-view-rating" id="quickViewRating"></div>
-                    <h4 class="quick-view-price" id="quickViewPrice"></h4>
-                    <p class="quick-view-description" id="quickViewDescription"></p>
-                    <div class="quick-view-sizes">
-                        <span class="size-label">Size:</span>
-                        <div class="size-options" id="quickViewSizes"></div>
-                    </div>
-                    <div class="quick-view-actions">
-                        <div class="quantity-selector">
-                            <span class="quantity-label">Quantity:</span>
-                            <div class="quantity-controls">
-                                <button class="quantity-btn" id="quickViewDecrementQty">-</button>
-                                <input type="number" id="quickViewQuantityInput" class="quantity-input" value="1" min="1" max="10">
-                                <button class="quantity-btn" id="quickViewIncrementQty">+</button>
-                            </div>
+                <div class="quick-view-actions">
+                    <div class="quantity-selector">
+                        <span class="quantity-label">Quantity:</span>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" id="quickViewDecrementQty">-</button>
+                            <input type="number" id="quickViewQuantityInput" class="quantity-input" value="1" min="1" max="10">
+                            <button class="quantity-btn" id="quickViewIncrementQty">+</button>
                         </div>
-                        <button class="modal-button confirm-button" id="quickViewAddToCart">Add to Cart</button>
                     </div>
+                    <button class="modal-button confirm-button" id="quickViewAddToCart">Add to Cart</button>
                 </div>
             </div>
         </div>
     </div>
+</div>
     <!-- Size and Quantity Selection Modal -->
     <div class="modal-overlay" id="sizeModal">
         <div class="size-modal">
@@ -1341,24 +1557,24 @@
     <!-- Home Banner Section -->
     <section id="home-banner" class="px-4 sm:px-6 lg:px-16 py-6 bg-white max-w-7xl mx-auto">
         <div class="max-w-7xl mx-auto">
-            <div class="relative overflow-hidden rounded-2xl h-[500px] sm:h-[400px] lg:h-[400px] group">
+            <div class="relative overflow-hidden rounded-2xl h-[300px] sm:h-[400px] lg:h-[400px] group">
                 <!-- Background Image -->
-                <div class="absolute inset-0 bg-[url('/img/banner/HomeBanner.png')] bg-cover sm:bg-contain bg-center sm:bg-no-repeat bg-[length:30%_25%]"></div>
+                <div class="absolute inset-0 bg-[url('/img/banner/HomeBanner.png')] bg-cover bg-center sm:bg-contain sm:bg-no-repeat bg-[length:100%_auto]"></div>
                 <!-- Subtle Hover Overlay -->
-                <div class="absolute inset-0 bg-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="absolute inset-0 bg-black/30 sm:bg-white/15 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <!-- Content Container -->
-                <div class="relative z-10 p-4 sm:p-6 lg:p-8 h-full flex flex-col justify-center items-end text-right font-['Montserrat',sans-serif]">
-                    <div class="w-full sm:w-auto">
-                        <h2 class="text-sm sm:text-base font-medium mb-2 text-[#088178] tracking-wider">
+                <div class="relative z-10 p-4 sm:p-6 lg:p-8 h-full flex flex-col justify-center items-center sm:items-end text-center sm:text-right font-['Montserrat',sans-serif] animate-fade-in">
+                    <div class="w-full max-w-md">
+                        <h2 class="text-base sm:text-base font-medium mb-3 text-[#088178] tracking-wider">
                             Shop With Style
                         </h2>
-                        <p class="text-lg sm:text-2xl lg:text-3xl font-bold mb-4 text-black tracking-tight leading-tight">
+                        <p class="text-xl sm:text-2xl lg:text-3xl font-bold mb-4 text-white sm:text-black tracking-tight leading-tight">
                             Discover the Latest<br>Fashion Trends Today
                         </p>
                     </div>
-                    <a asp-action="shop" class="inline-flex items-center bg-[#088178] text-white font-medium py-2 px-4 sm:px-6 rounded-md w-max transition-all duration-300 group/button hover:bg-[#066156] shadow-md hover:shadow-lg">
-                        <span class="text-sm sm:text-base">Discover</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 ml-2 opacity-0 group-hover/button:opacity-100 transform translate-x-0 group-hover/button:translate-x-1 transition-all duration-300" viewBox="0 0 20 20" fill="currentColor">
+                    <a asp-action="shop" class="inline-flex items-center bg-[#088178] text-white font-medium py-3 px-6 sm:px-6 rounded-md w-max transition-all duration-300 group/button hover:bg-[#066156] shadow-md hover:shadow-lg">
+                        <span class="text-base sm:text-base">Discover</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-5 sm:w-5 ml-2 opacity-0 group-hover/button:opacity-100 transform translate-x-0 group-hover/button:translate-x-1 transition-all duration-300" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
                         </svg>
                     </a>
