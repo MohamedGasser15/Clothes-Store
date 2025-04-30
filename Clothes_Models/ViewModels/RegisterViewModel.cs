@@ -24,6 +24,7 @@ namespace Clothes_Models.ViewModels
         [Display(Name = "Confirm Password")]
         [Compare("Password", ErrorMessage = "Password and Confirm Password must match")]
         public string ConfirmPassword { get; set; }
+        public string? ReturnUrl { get; set; }
         public IEnumerable<SelectListItem>? RoleList { get; set; }
 
     }

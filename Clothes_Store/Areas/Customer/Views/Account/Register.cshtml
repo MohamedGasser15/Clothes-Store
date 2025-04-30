@@ -13,7 +13,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Cara Store</title>
+    <title>Register - LushThreads</title>
+    <link rel="icon" type="image/png" href="~/img/favicon.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .text-danger {
@@ -30,6 +32,7 @@
             <p class="text-lg text-gray-500">Sign up to get started</p>
         </div>
         <form class="mt-6" id="registerForm" method="post" asp-controller="Account" asp-action="Register">
+            <input type="hidden" asp-for="ReturnUrl" />
 
             <div>
                 <label asp-for="Name" class="block text-gray-700 font-medium mb-2">Name</label>
@@ -58,14 +61,15 @@
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-[#088178] focus:outline-none focus:bg-white">
                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
             </div>
+
             <button type="submit" id="registerButton"
                     class="w-full mt-6 bg-[#088178] text-white py-2 rounded-lg text-lg font-semibold hover:bg-[#066b62] transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                    disabled>
+                    onclick="this.disabled=true; this.form.submit();">
                 <span id="registerText">Register</span>
                 <div id="loadingSpinner" class="hidden ml-2 w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             </button>
-
         </form>
+
         @{
             var schemes = await signInManager.GetExternalAuthenticationSchemesAsync();
             var loginProviders = schemes.ToList();
@@ -78,14 +82,11 @@
         @if (loginProviders.Count > 0)
         {
             <form asp-action="ExternalLogin" asp-controller="Account" method="post" class="flex flex-col gap-3">
-                <!-- Added gap-3 -->
                 @foreach (var provider in loginProviders)
                 {
                     @if (provider.Name == "Google")
                     {
-                        <button type="submit"
-                                name="provider"
-                                value="@provider.Name"
+                        <button type="submit" name="provider" value="@provider.Name"
                                 class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition"
                                 title="Log in using your @provider.DisplayName account">
                             <img src="https://www.svgrepo.com/show/303108/google-icon-logo.svg" class="w-5 h-5">
@@ -94,9 +95,7 @@
                     }
                     else if (provider.Name == "Facebook")
                     {
-                        <button type="submit"
-                                name="provider"
-                                value="@provider.Name"
+                        <button type="submit" name="provider" value="@provider.Name"
                                 class="w-full flex items-center justify-center gap-2 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-100 hover:shadow-md transition"
                                 title="Log in using your @provider.DisplayName account">
                             <img src="https://www.svgrepo.com/show/475647/facebook-color.svg" class="w-5 h-5">
@@ -112,7 +111,17 @@
         </p>
     </div>
 
-    <script src="~/js/register.js"></script>
+    <script>
+        // Prevent double submit and show loading spinner
+        document.getElementById('registerForm').addEventListener('submit', function () {
+            var button = document.getElementById('registerButton');
+            var spinner = document.getElementById('loadingSpinner');
+            var text = document.getElementById('registerText');
+            button.disabled = true;
+            spinner.classList.remove('hidden');
+            text.textContent = 'Registering...';
+        });
+    </script>
 
     @section Scripts {
         @{
