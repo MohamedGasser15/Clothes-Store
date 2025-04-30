@@ -1739,45 +1739,41 @@
             </div>
         </div>
     </section>
-<!-- Newsletter Section -->
-<section id="newsletter" class="px-6 sm:px-8 lg:px-12 py-12 bg-[#c1e3d6]">
-    <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-8 lg:gap-12">
-        <!-- Text Content -->
-        <div class="newsletter-content flex items-center gap-6 hover:gap-7 transition-all duration-300">
-            <div class="icon-container w-16 h-16 rounded-xl bg-white/30 backdrop-blur-md flex items-center justify-center shadow-sm hover:shadow-md hover:bg-white/40 transition-all">
-                <i class="fas fa-envelope text-2xl text-[#1B201E] opacity-90"></i>
-            </div>
-            <div class="text-content space-y-1">
-                <h3 class="text-2xl lg:text-3xl font-bold text-[#1B201E] leading-tight">
-                    Join & Save
-                    <span class="block text-[#088178] mt-1">20% First Order</span>
-                </h3>
-                <p class="text-[#1B201E]/90 font-medium text-sm lg:text-base">
-                    Exclusive offers + style updates
-                </p>
-            </div>
-        </div>
+    <section id="newsletter" class="px-6 sm:px-8 lg:px-12 py-12 bg-[#c1e3d6] rounded-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;utf8,<svg width=" 100" height="100" transform="rotate(25)" opacity="0.2" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="%23088178" /></svg></div>
 
-        <!-- Email Form -->
-        <form class="subscription-form w-full lg:w-[480px] flex flex-col sm:flex-row gap-3 items-center">
-            <div class="email-input-wrapper relative w-full group">
-                <input 
-                    type="email" 
-                    placeholder="Enter your email" 
-                    class="w-full h-12 px-5 pr-12 text-[#1B201E] bg-white/90 backdrop-blur-sm rounded-full border border-transparent focus:border-[#088178]/50 focus:ring-2 focus:ring-[#088178]/30 transition-all placeholder-[#1B201E]/60"
-                >
-                <i class="fas fa-envelope absolute right-4 top-1/2 -translate-y-1/2 text-[#1B201E]/60 group-focus-within:text-[#088178] transition-colors"></i>
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-8 lg:gap-12 relative z-10">
+            <div class="newsletter-content flex items-center gap-6 group cursor-pointer">
+                <div class="icon-container w-16 h-16 rounded-xl bg-white/30 backdrop-blur-md flex items-center justify-center shadow-sm hover:shadow-md hover:bg-white/40 transition-all">
+                    <i class="fas fa-envelope-open-text text-2xl text-[#1B201E] opacity-90"></i>
+                </div>
+                <div class="text-content space-y-1">
+                    <h3 class="text-2xl lg:text-3xl font-bold text-[#1B201E] leading-tight">
+                        Style Updates & Offers
+                        <span class="block text-[#088178] mt-1">20% First Order</span>
+                    </h3>
+                    <p class="text-[#1B201E]/90 font-medium text-sm lg:text-base">
+                        Get exclusive access to new arrivals and special promotions
+                    </p>
+                </div>
             </div>
-            <button 
-                type="submit" 
-                class="subscribe-btn h-12 px-8 bg-[#088178] hover:bg-[#066156] text-white font-medium rounded-full transition-all transform hover:scale-105 hover:shadow-lg active:scale-95 flex items-center gap-2"
-            >
-                Subscribe
-                <i class="fas fa-arrow-right text-sm opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all"></i>
-            </button>
-        </form>
-    </div>
-</section>
+
+            <form class="subscription-form w-full lg:w-[480px] flex flex-col sm:flex-row gap-3 items-center">
+                <div class="email-input-wrapper relative w-full group">
+                    <input type="email"
+                           placeholder="Enter your email"
+                           class="w-full h-12 px-5 pr-12 text-[#1B201E] bg-white/90 backdrop-blur-sm rounded-full border-2 border-transparent focus:border-[#088178]/50 focus:ring-0 transition-all"
+                           required>
+                    <i class="fas fa-paper-plane text-[#088178] absolute right-4 top-1/2 -translate-y-1/2 transition-transform duration-300"></i>
+                </div>
+                <button type="submit"
+                        class="subscribe-btn h-12 px-8 bg-[#088178] hover:bg-[#066156] text-white font-medium rounded-full transition-all transform hover:scale-[1.02] active:scale-95 flex items-center gap-2">
+                    Subscribe Now
+                    <i class="fas fa-arrow-right text-sm opacity-0 group-hover/subscribe:opacity-100 group-hover/subscribe:translate-x-1 transition-all"></i>
+                </button>
+            </form>
+        </div>
+    </section>
 
 <!-- Back to Top Button -->
 <button class="back-to-top" title="Go to top">

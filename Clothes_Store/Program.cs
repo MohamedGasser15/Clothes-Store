@@ -56,22 +56,36 @@ builder.Services.AddScoped<IProductAnalyticsService, ProductAnalyticsService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    // Comment out or remove UseDeveloperExceptionPage to test custom error page
+    // app.UseDeveloperExceptionPage();
+    app.UseExceptionHandler("/Home/Error"); // Handle exceptions
+    app.UseStatusCodePagesWithReExecute("/Home/Error/{0}"); // Handle status codes (e.g., 404)
+}
+else
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
     app.UseHsts();
 }
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<String>();
+StripeConfiguration.ApiKey = builder.Configuration.GetSection("Stripe:SecretKey").Get<string>();
 app.UseRouting();
-app.UseAuthentication(); // Added here
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{area=Customer}/{controller=Home}/{action=Home}/{id?}");
+
+// Optional: Catch-all route for unmatched URLs
+app.MapControllerRoute(
+    name: "catch-all",
+    pattern: "{*url}",
+    defaults: new { controller = "Home", action = "Error", statusCode = 404 });
 
 using (var scope = app.Services.CreateScope())
 {

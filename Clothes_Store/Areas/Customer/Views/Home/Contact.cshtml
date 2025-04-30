@@ -1,78 +1,320 @@
-﻿<section id="page-header" class="about-header" style="background-image: url('@Url.Content("~/img/about/about.png")');">
-    <h2>#Let's_talk</h2>
-    <p>LEAVE A MESSAGE. We Love to hear from you!</p>
-</section>
+﻿@{
+    ViewData["Title"] = "Contact Us";
+}
 
-<section id="contact-details" class="section-p1">
-    <div class="details">
-        <span>GET IN TOUCH</span>
-        <h2>Visit one of our agency locations or contact us today</h2>
-        <h3>Head office</h3>
-        <div>
-            <li>
-                <i class="fal fa-map"></i>
-                <p>Elamin Street beside afamina hospital -Portsaid</p>
-            </li>
-            <li>
-                <i class="far fa-envelope"></i>
-                <p>madagasser15@gmail.com</p>
-            </li>
-            <li>
-                <i class="fas fa-phone-alt"></i>
-                <p>+201201055894 / +201020749292</p>
-            </li>
-            <li>
-                <i class="far fa-clock"></i>
-                <p>Saturday to Thursday: 10:00am to 20:00pm</p>
-            </li>
-        </div>
-    </div>
-    <div class="map">
-        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d972.5909691006718!2d32.28254634886982!3d31.
-            255897629989335!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14f99d06f7b1c0f3%3A0x999cda236fc9e9b!2z2KPYqNix2KfYrCDZhNik2YTYpNipINio2YjYsdiz2LnZitivINio2LHYrCDYp9mE2YTYpNmE2KTYqSDYsdmC2YUgNw!5e1!3m2!1sar!2seg!4v1717262905311!5m2!1sar!2seg"
-                width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-    </div>
-</section>
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Enhanced Hero Section -->
+    <section class="relative bg-gradient-to-br from-[#088178] via-[#04a696] to-[#066156] text-white rounded-3xl p-8 mb-16 shadow-2xl overflow-hidden group/hero">
+        <!-- Animated gradient overlay -->
+        <div class="absolute inset-0 opacity-20 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.1)_50%,transparent_75%)] bg-[length:400%_400%] animate-gradient-flow"></div>
 
-<section id="form-details">
-    <form action="#">
-        <span>LEAVE A MESSAGE</span>
-        <h2>We Love to hear from you</h2>
-        <input type="text" placeholder="Your Name">
-        <input type="email" placeholder="E-mail">
-        <input type="text" placeholder="Subject">
-        <textarea name="" id="" cols="30" rows="10" palceholder="Your Messege"></textarea>
-        <button class="normal">Submit</button>
-    </form>
-    <div class="people">
-        <div>
-            <p>
-                <span>Ahmed Haridy</span> Senior Web Development <br> Phone: +201094184590 <Br>
-                Email: ahassan200695@gmail.com</Br>
+        <div class="relative max-w-4xl mx-auto text-center space-y-6">
+            <div class="inline-flex items-center gap-3 bg-white/10 backdrop-blur-sm px-6 py-2 rounded-full hover:bg-white/20 transition-all duration-300 cursor-pointer">
+                <i class="fas fa-headset text-xl text-[#e8f6ea]"></i>
+                <span class="text-sm font-semibold tracking-widest uppercase">24/7 Support</span>
+            </div>
+
+            <h1 class="text-4xl md:text-5xl font-bold leading-tight drop-shadow-lg transform group-hover/hero:scale-105 transition-transform duration-500">
+                Fashion Solutions<br>
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#e8f6ea] to-[#cce7d0]">At Your Fingertips</span>
+            </h1>
+
+            <p class="text-xl text-white/90 max-w-2xl mx-auto opacity-90 group-hover/hero:opacity-100 transition-opacity duration-300">
+                Connect with our style experts and transform your fashion experience today!
             </p>
         </div>
-        <div>
-            <p>
-                <span>Mohamed Gasser</span> Backend Web Developer <br> Phone: +201201055894 <Br>
-                Email: madagasser15@gmail.com</Br>
-            </p>
-        </div>
-        <div>
-            <p>
-                <span>Moamen Mahmoud Fathy</span> Frontend Web Developer<br> Phone: +201090442224<Br>
-                Email: moamenfathy123@gmail.com</Br>
-            </p>
-        </div>
-    </div>
-</section>
 
-<section id="newsletter" class="section-p1 section-m1">
-    <div class="newstext">
-        <h4> Sign Up For Newsletter</h4>
-        <p> Get E-mail updates about our latest shop and <span>special offers</span></p>
+        <!-- Particle animation background -->
+        <div class="absolute inset-0 z-0 opacity-20 particle-network"></div>
+    </section>
+
+    <!-- Enhanced Contact Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        <!-- Interactive Contact Form -->
+        <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 relative overflow-hidden">
+            <div class="absolute -inset-1 bg-gradient-to-r from-[#088178]/5 to-[#04a696]/5 opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+
+            <h2 class="text-3xl font-bold text-[#088178] mb-8 relative z-10">
+                <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#088178] to-[#04a696]">
+                    Direct Message
+                </span>
+            </h2>
+
+            <form class="space-y-6 relative z-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group relative">
+                        <input type="text"
+                               class="form-input w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#088178] focus:ring-0 transition-all"
+                               required>
+                        <label class="floating-label">Your Name</label>
+                        <i class="fas fa-user text-[#088178] absolute right-4 top-1/2 -translate-y-1/2 transition-transform duration-300"></i>
+                    </div>
+
+                    <div class="form-group relative">
+                        <input type="email"
+                               class="form-input w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#088178] focus:ring-0 transition-all"
+                               required>
+                        <label class="floating-label">Your Email</label>
+                        <i class="fas fa-envelope text-[#088178] absolute right-4 top-1/2 -translate-y-1/2 transition-transform duration-300"></i>
+                    </div>
+                </div>
+
+                <div class="form-group relative">
+                    <input type="text"
+                           class="form-input w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#088178] focus:ring-0 transition-all"
+                           required>
+                    <label class="floating-label">Subject</label>
+                    <i class="fas fa-tag text-[#088178] absolute right-4 top-1/2 -translate-y-1/2 transition-transform duration-300"></i>
+                </div>
+
+                <div class="form-group relative">
+                    <textarea class="form-input w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:border-[#088178] focus:ring-0 transition-all h-48"
+                              required></textarea>
+                    <label class="floating-label">Your Message</label>
+                    <i class="fas fa-comment-dots text-[#088178] absolute right-4 top-6 transition-transform duration-300"></i>
+                </div>
+
+                <button type="submit"
+                        class="w-full relative overflow-hidden bg-gradient-to-r from-[#088178] to-[#04a696] text-white py-4 px-8 rounded-xl font-medium hover:to-[#066156] transition-all transform hover:scale-[1.02] group">
+                    <span class="relative z-10">Send Message</span>
+                    <div class="absolute inset-0 bg-gradient-to-r from-[#066156] to-[#04a696] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </button>
+            </form>
+        </div>
+
+        <!-- Enhanced Contact Info Section -->
+        <div class="space-y-8">
+            <!-- Interactive Info Cards -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 group/card">
+                <h3 class="text-2xl font-bold text-[#088178] mb-6 transform group-hover/card:translate-x-2 transition-transform duration-300">
+                    <i class="fas fa-address-card mr-2"></i>Contact Information
+                </h3>
+
+                <div class="space-y-6">
+                    <div class="flex items-start gap-4 hover:bg-gray-50 p-4 rounded-xl transition-all duration-300">
+                        <div class="w-12 h-12 bg-[#e8f6ea] rounded-xl flex items-center justify-center transform hover:rotate-12 transition-transform duration-300">
+                            <i class="fas fa-phone text-[#088178] text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-1">Phone</h4>
+                            <a href="tel:+15551234567" class="text-gray-600 hover:text-[#088178] transition-colors">+1 (555) 123-4567</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 hover:bg-gray-50 p-4 rounded-xl transition-all duration-300">
+                        <div class="w-12 h-12 bg-[#e8f6ea] rounded-xl flex items-center justify-center transform hover:rotate-12 transition-transform duration-300">
+                            <i class="fas fa-envelope-open-text text-[#088178] text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-1">Email</h4>
+                            <a href="mailto:support@clothesstore.com" class="text-gray-600 hover:text-[#088178] transition-colors">support@LushThreads.com</a>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-4 hover:bg-gray-50 p-4 rounded-xl transition-all duration-300">
+                        <div class="w-12 h-12 bg-[#e8f6ea] rounded-xl flex items-center justify-center transform hover:rotate-12 transition-transform duration-300">
+                            <i class="fas fa-map-marker-alt text-[#088178] text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-1">Address</h4>
+                            <p class="text-gray-600 hover:text-[#088178] transition-colors">
+                                123 LushThreads Avenue<br>New York, NY 10001
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Social Media Section -->
+            <div class="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <h3 class="text-2xl font-bold text-[#088178] mb-6">Join Our Community</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <a href="#" class="social-card p-4 flex flex-col items-center justify-center rounded-xl bg-[#e8f6ea] hover:bg-[#cce7d0] transition-all group">
+                        <i class="fab fa-instagram text-2xl text-[#088178] mb-2 transform group-hover:scale-125 transition-transform"></i>
+                        <span class="text-sm font-medium text-[#066156] opacity-0 group-hover:opacity-100 transition-opacity">@@LushThreads</span>
+                    </a>
+                    <a href="#" class="social-card p-4 flex flex-col items-center justify-center rounded-xl bg-[#e8f6ea] hover:bg-[#cce7d0] transition-all group">
+                        <i class="fab fa-facebook-f text-2xl text-[#088178] mb-2 transform group-hover:scale-125 transition-transform"></i>
+                        <span class="text-sm font-medium text-[#066156] opacity-0 group-hover:opacity-100 transition-opacity">/LushThreads</span>
+                    </a>
+                    <a href="#" class="social-card p-4 flex flex-col items-center justify-center rounded-xl bg-[#e8f6ea] hover:bg-[#cce7d0] transition-all group">
+                        <i class="fab fa-tiktok text-2xl text-[#088178] mb-2 transform group-hover:scale-125 transition-transform"></i>
+                        <span class="text-sm font-medium text-[#066156] opacity-0 group-hover:opacity-100 transition-opacity">@@LushThreads</span>
+                    </a>
+                    <a href="#" class="social-card p-4 flex flex-col items-center justify-center rounded-xl bg-[#e8f6ea] hover:bg-[#cce7d0] transition-all group">
+                        <i class="fab fa-pinterest-p text-2xl text-[#088178] mb-2 transform group-hover:scale-125 transition-transform"></i>
+                        <span class="text-sm font-medium text-[#066156] opacity-0 group-hover:opacity-100 transition-opacity">/LushThreads</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Interactive Map Section -->
+            <div class="map-container bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
+                <div class="relative h-64 w-full">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3022.9663095343008!2d-73.98542828428752!3d40.74844047932789!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c259a9b30eac9f%3A0xaca05ca48ab5ac2c!2s350%205th%20Ave%2C%20New%20York%2C%20NY%2010118!5e0!3m2!1sen!2sus!4v1623861256933!5m2!1sen!2sus"
+                            class="absolute inset-0 w-full h-full border-none"
+                            style="filter: grayscale(30%) contrast(110%) hue-rotate(160deg)"
+                            loading="lazy">
+                    </iframe>
+                    <div class="absolute bottom-4 left-4 bg-white px-4 py-2 rounded-lg shadow-sm flex items-center gap-2 text-[#088178]">
+                        <i class="fas fa-map-marker-alt animate-pulse"></i>
+                        <span class="font-medium">Our Fashion Hub</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="form">
-        <input type="text" placeholder="Your Email Address">
-        <button class="normal"> Sign Up</button>
-    </div>
-</section>
+
+    <!-- Enhanced Newsletter Section -->
+    <section id="newsletter" class="mt-20 px-6 sm:px-8 lg:px-12 py-12 bg-[#c1e3d6] rounded-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;utf8,<svg width=" 100" height="100" transform="rotate(25)" opacity="0.2" version="1.1" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="40" fill="%23088178" /></svg></div>
+
+        <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-8 lg:gap-12 relative z-10">
+            <div class="newsletter-content flex items-center gap-6 group cursor-pointer">
+                <div class="icon-container w-16 h-16 rounded-xl bg-white/30 backdrop-blur-md flex items-center justify-center shadow-sm hover:shadow-md hover:bg-white/40 transition-all">
+                    <i class="fas fa-envelope-open-text text-2xl text-[#1B201E] opacity-90"></i>
+                </div>
+                <div class="text-content space-y-1">
+                    <h3 class="text-2xl lg:text-3xl font-bold text-[#1B201E] leading-tight">
+                        Style Updates & Offers
+                        <span class="block text-[#088178] mt-1">20% First Order</span>
+                    </h3>
+                    <p class="text-[#1B201E]/90 font-medium text-sm lg:text-base">
+                        Get exclusive access to new arrivals and special promotions
+                    </p>
+                </div>
+            </div>
+
+            <form class="subscription-form w-full lg:w-[480px] flex flex-col sm:flex-row gap-3 items-center">
+                <div class="email-input-wrapper relative w-full group">
+                    <input type="email"
+                           placeholder="Enter your email"
+                           class="w-full h-12 px-5 pr-12 text-[#1B201E] bg-white/90 backdrop-blur-sm rounded-full border-2 border-transparent focus:border-[#088178]/50 focus:ring-0 transition-all"
+                           required>
+                    <i class="fas fa-paper-plane text-[#088178] absolute right-4 top-1/2 -translate-y-1/2 transition-transform duration-300"></i>
+                </div>
+                <button type="submit"
+                        class="subscribe-btn h-12 px-8 bg-[#088178] hover:bg-[#066156] text-white font-medium rounded-full transition-all transform hover:scale-[1.02] active:scale-95 flex items-center gap-2">
+                    Subscribe Now
+                    <i class="fas fa-arrow-right text-sm opacity-0 group-hover/subscribe:opacity-100 group-hover/subscribe:translate-x-1 transition-all"></i>
+                </button>
+            </form>
+        </div>
+    </section>
+</div>
+
+<style>
+    @@keyframes gradient-flow {
+        0% {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
+    }
+
+    .animate-gradient-flow {
+        animation: gradient-flow 15s ease infinite;
+    }
+
+    .floating-label {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+
+    .form-input:focus ~ .floating-label,
+    .form-input:not(:placeholder-shown) ~ .floating-label {
+        top: -10px;
+        left: 0.8rem;
+        font-size: 0.75rem;
+        color: #088178;
+    }
+
+    .particle-network {
+        background-image: radial-gradient(circle at center, #e8f6ea 1px, transparent 1px);
+        background-size: 20px 20px;
+        mask-image: radial-gradient(circle at center, black 10%, transparent 100%);
+    }
+
+    .social-card {
+        position: relative;
+        overflow: hidden;
+    }
+
+        .social-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(8, 129, 120, 0.1);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .social-card:hover::after {
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+        }
+
+    @@keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+        }
+    }
+
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add intersection observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.form-group, .social-card, .map-container').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Form validation
+        const form = document.querySelector('form');
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Add custom validation logic here
+        });
+
+        // Add hover effect to newsletter section
+        const newsletter = document.querySelector('#newsletter');
+        newsletter.addEventListener('mousemove', (e) => {
+            const rect = newsletter.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            newsletter.style.setProperty('--mouse-x', `${x}px`);
+            newsletter.style.setProperty('--mouse-y', `${y}px`);
+        });
+    });
+</script>

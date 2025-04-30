@@ -437,11 +437,22 @@ namespace Clothes_Store.Controllers
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         // Handles error display
-        public IActionResult Error()
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error(int? statusCode = null)
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            var errorViewModel = new ErrorViewModel
+            {
+                RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier,
+                ShowRequestId = !string.IsNullOrEmpty(Activity.Current?.Id ?? HttpContext.TraceIdentifier)
+            };
+
+            if (statusCode.HasValue)
+            {
+                ViewData["StatusCode"] = statusCode.Value;
+            }
+
+            return View(errorViewModel);
         }
 
         // Retrieves cart item count for authenticated users
