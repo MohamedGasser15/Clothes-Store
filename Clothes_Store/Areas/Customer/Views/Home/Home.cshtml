@@ -2342,7 +2342,27 @@ section, div {
                 console.error('Error adding to cart:', error);
             });
         }
-        // filter function
+        // Back to Top Button Functionality
+document.addEventListener('DOMContentLoaded', function () {
+    const backToTopButton = document.querySelector('.back-to-top');
+
+    // Show/hide button based on scroll position
+    window.addEventListener('scroll', function () {
+        if (window.scrollY > 300) { // Show button after scrolling 300px
+            backToTopButton.classList.add('visible');
+        } else {
+            backToTopButton.classList.remove('visible');
+        }
+    });
+
+    // Smooth scroll to top when button is clicked
+    backToTopButton.addEventListener('click', function () {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+});
     // Filter function
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.filter-btn').forEach(button => {
